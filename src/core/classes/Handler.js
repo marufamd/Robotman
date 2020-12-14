@@ -147,11 +147,13 @@ module.exports = class Handler {
         const regex = this.getRegex(prefix);
 
         if (!regex.test(message.content)) {
-            const regexCmd = this.commands.find(c => c.regex && c.regex.test(message.content));
-            if (regexCmd) {
-                message.command = message.content.match(regexCmd.regex)[0];
-                args = message.content.slice(message.command.length).trim().split(/ +/);
-                await this.runCommand(message, regexCmd, args, editEvent);
+            if (!this.client.development) {
+                const regexCmd = this.commands.find(c => c.regex && c.regex.test(message.content));
+                if (regexCmd) {
+                    message.command = message.content.match(regexCmd.regex)[0];
+                    args = message.content.slice(message.command.length).trim().split(/ +/);
+                    await this.runCommand(message, regexCmd, args, editEvent);
+                }
             }
             return;
         }
@@ -184,7 +186,7 @@ module.exports = class Handler {
 
     async runCommand(message, command, params, editEvent) {
         if (editEvent && command.disableEdits) return;
-        
+
         if (command.exclusive) {
             const ex = command.exclusive;
             if (ex.roles) {

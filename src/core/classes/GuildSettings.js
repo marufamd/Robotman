@@ -11,7 +11,7 @@ module.exports = class GuildSettings {
     }
 
     set(props) {
-        return this.client.settings.get(this.guild.id, props);
+        return this.client.settings.set(this.guild.id, props);
     }
 
     edit(props) {
