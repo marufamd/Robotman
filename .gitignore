@@ -1,0 +1,14 @@
+# Node
+node_modules
+package-lock.json
+
+# Env
+.env
+
+# Development
+.eslintrc.json
+.vscode
+
+# Other
+src/util/weekly.js
+src/util/weekly_base.txt
