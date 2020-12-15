@@ -74,7 +74,7 @@ module.exports = class extends Command {
 
     async getBadWords() {
         const url = "https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt";
-        const body = await fetch(url, null, "text");
+        const body = await fetch(url, null, "text").split("\n");
         return body;
     }
 };
