@@ -8,9 +8,9 @@ const GuildSettingsManager = require(`../../database/managers/GuildSettingsManag
 const ClientUtil = require("../../database/managers/ClientUtil");
 const { settings, util } = require("../../database");
 
-require("../../extensions/Message");
-require("../../extensions/Guild");
-require("../../extensions/User");
+require("../extensions/Message");
+require("../extensions/Guild");
+require("../extensions/User");
 
 module.exports = class Robotman extends Client {
     constructor(options) {

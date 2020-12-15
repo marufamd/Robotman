@@ -1,6 +1,6 @@
 const { Structures } = require("discord.js");
-const Paginator = require("../core/classes/Paginator");
-const { botColors } = require("../util/constants");
+const Paginator = require("../classes/Paginator");
+const { botColors } = require("../../util/constants");
 
 module.exports = Structures.extend("Message", Message => {
     return class RobotMessage extends Message {

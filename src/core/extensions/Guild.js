@@ -1,5 +1,5 @@
 const { Structures } = require("discord.js");
-const GuildSettings = require("../core/classes/GuildSettings");
+const GuildSettings = require("../classes/GuildSettings");
 
 module.exports = Structures.extend("Guild", Guild => {
     return class RobotGuild extends Guild {
