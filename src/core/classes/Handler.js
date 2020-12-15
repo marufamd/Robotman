@@ -216,7 +216,8 @@ module.exports = class Handler {
         try {
             await command.run(message, params);
         } catch (e) {
-            message.channel.send(`An error occurred.`);
+            message.channel.send(`An error occurred: \`${e.message}\``);
+            message.delete({ timeout: 30000 });
             this.client.log(`Command: ${command.name}\n${e.stack}`, "error", { ping: true });
         } finally {
             if (command.typing) message.channel.stopTyping(true);
