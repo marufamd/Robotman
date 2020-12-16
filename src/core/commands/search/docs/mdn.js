@@ -44,7 +44,7 @@ module.exports = class extends Command {
         const r = query.toLowerCase().includes("typedarray") ? item : item.replace("TypedArray", "Array");
 
         const url = `https://developer.mozilla.org/en-US/docs/${r}`;
-        const body = await (await fetch(url + "$json")).json();
+        const body = await fetch(url + "$json");
 
         const turndown = new TurndownService()
             .addRule("hyperlink", {
