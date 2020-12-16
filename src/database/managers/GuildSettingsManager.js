@@ -10,7 +10,7 @@ class GuildSettingsManager {
         const found = await this.db.findOne({ where: { guild } });
         if (!found) return null;
 
-        if (prop && found[prop]) return found[prop];
+        if (prop) return found[prop];
         return found;
     }
 
