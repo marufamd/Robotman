@@ -26,7 +26,7 @@ module.exports = class extends Command {
         const dev = flags.dev && message.author.owner;
 
         const prefix = message.parsedPrefix;
-        const guild = await this.client.settings.get(message.guild.id);
+        const disabled = message.guild.settings.get("disabledCommands");
 
         if (!args.length || mod || dev) {
             embed
@@ -40,10 +40,10 @@ module.exports = class extends Command {
                 const found = this.handler.findGroup(group, true);
                 if (!found) continue;
 
-                const groupCommands = found.filter(c => {
-                    if (!guild) return true;
-                    return !guild.disabledCommands.includes(c.name);
-                }).map(cmd => `[\`${cmd.name}\`](https://notarealwebsi.te/ "${cmd.description}")`).join(" ");
+                const groupCommands = found
+                    .filter(c => !disabled.includes(c.name))
+                    .map(cmd => `[\`${cmd.name}\`](https://notarealwebsi.te/ "${cmd.description}")`)
+                    .join(" ");
                 embed.addField(title(group), groupCommands);
             }
         } else {
@@ -52,14 +52,14 @@ module.exports = class extends Command {
             const command = this.handler.findCommand(name);
 
             if (group) {
-                if ((Groups.dev.includes(group.first().group) && !message.author.owner) || (Groups.mod.includes(group.first().group) && !isMod)) return;  
+                if ((Groups.dev.includes(group.first().group) && !message.author.owner) || (Groups.mod.includes(group.first().group) && !isMod)) return;
                 embed.setTitle(`${title(group.first().group)} Commands`);
                 for (const c of group.values()) embed.addField(`${prefix}${c.name}${c.usage ? ` ${c.usage}` : ""}`, c.description);
             } else {
                 if (!command
                     || (command.group === "dev" && !message.author.owner)
                     || command.disableHelp
-                    || (guild && guild.disabledCommands.includes(command.name))) return message.respond("Invalid command or group. Please try a different one.");
+                    || (disabled?.includes(command.name))) return message.respond("Invalid command or group. Please try a different one.");
                 embed = command.makeHelp(prefix, embed);
             }
         }
