@@ -22,7 +22,7 @@ module.exports = class extends Command {
         if (defined === "error") return message.respond("Error fetching result. Try again later.");
         else if (!defined) return message.respond("No results found");
 
-        const embed = new Embed("https://i.imgur.com/Xv1NhhY.png")
+        const embed = new Embed("1b9eea")
             .setTitle(defined.word)
             .setURL(defined.permalink)
             .setThumbnail("https://i.imgur.com/Xv1NhhY.png")
@@ -42,7 +42,7 @@ module.exports = class extends Command {
         const res = await fetch("http://api.urbandictionary.com/v0/define", { term });
 
         if (res.error) return "error";
-        if (!res.list.length) return null;
+        if (!res.list?.length) return null;
 
         return res.list[0];
     }
