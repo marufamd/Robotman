@@ -34,8 +34,8 @@ module.exports = class extends Command {
                     if (defined.definitions.indexOf(a) === 0) return a;
                     return `• ${a}`;
                 }).join("\n\n"), 2040))
-                .addField("Part of Speech", capitalize(defined.type))
-                .addField("First Known Use", defined.date);
+                .addField("Part of Speech", capitalize(defined.type));
+            if (defined.date) embed.addField("First Known Use", defined.date);
         }
 
         return message.embed(embed);
@@ -55,7 +55,7 @@ module.exports = class extends Command {
             word: result.meta.stems[0],
             type: result.fl,
             definitions: result.shortdef,
-            date: result.date.replace(/\{(.*?)\}/gi, "")
+            date: result.date?.replace(/\{(.*?)\}/gi, "")
         };
     }
 };
