@@ -12,7 +12,6 @@ module.exports = class extends Command {
             examples: ["daredevil opening theme"],
             args: true,
             cooldown: 10,
-            disableEdits: true,
             typing: true
         });
     }
