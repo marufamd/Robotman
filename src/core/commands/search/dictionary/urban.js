@@ -22,10 +22,10 @@ module.exports = class extends Command {
         if (defined === "error") return message.respond("Error fetching result. Try again later.");
         else if (!defined) return message.respond("No results found");
 
-        const embed = new Embed()
+        const embed = new Embed("https://i.imgur.com/Xv1NhhY.png")
             .setTitle(defined.word)
             .setURL(defined.permalink)
-            .setThumbnail("https://i.imgur.com/UYmtNYu.png")
+            .setThumbnail("https://i.imgur.com/Xv1NhhY.png")
             .setDescription(trim(defined.definition, 2040).trim())
             .setFooter(`Defined by ${defined.author}`);
         if (defined.example) embed.addField("Example", trim(defined.example, 1020).trim());
