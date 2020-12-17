@@ -19,7 +19,7 @@ module.exports = class extends Command {
     async run(message, args) {
         const defined = await this.search(args.join(" "));
 
-        if (defined === "error") return message.respond("Error fetching result from the API. Try again later.");
+        if (defined === "error") return message.respond("Error fetching result. Try again later.");
         else if (!defined) return message.respond("No results found");
 
         const embed = new Embed()
@@ -39,7 +39,7 @@ module.exports = class extends Command {
 
     async search(term) {
         if (!term) throw new Error("No query provided");
-        const res = fetch("http://api.urbandictionary.com/v0/define", { term });
+        const res = await fetch("http://api.urbandictionary.com/v0/define", { term });
 
         if (res.error) return "error";
         if (!res.list.length) return null;

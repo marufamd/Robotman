@@ -14,6 +14,8 @@ module.exports = class extends Command {
             cooldown: 10,
             typing: true
         });
+
+        this.badWords = null;
     }
 
     async run(message, args) {
@@ -73,8 +75,10 @@ module.exports = class extends Command {
     }
 
     async getBadWords() {
+        if (this.badWords) return this.badWords;
         const url = "https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt";
         const body = (await fetch(url, null, "text")).split("\n");
-        return body;
+        this.badWords = body;
+        return this.badWords;
     }
 };
