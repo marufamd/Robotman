@@ -26,7 +26,7 @@ module.exports = class extends Command {
         const dev = flags.dev && message.author.owner;
 
         const prefix = message.parsedPrefix;
-        const disabled = message.guild.settings.get("disabledCommands");
+        const disabled = await message.guild.settings.get("disabledCommands");
 
         if (!args.length || mod || dev) {
             embed
