@@ -2,7 +2,10 @@ const Robotman = require("./core/classes/Client");
 const client = new Robotman({
     fetchAllMembers: true,
     restTimeOffset: 250,
-    disableMentions: "everyone",
+    allowedMentions: {
+        parse: ["users"], 
+        repliedUser: true
+    },
     ws: {
         intents: [
             "GUILDS", 
