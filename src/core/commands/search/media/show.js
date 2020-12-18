@@ -22,6 +22,7 @@ module.exports = class extends Command {
         if (!res.length) return message.respond("No results found.");
 
         const { show } = res[0];
+        const network = show.network || show.webChannel;
 
         const embed = new Embed("43958b")
             .setTitle(show.name)
@@ -34,7 +35,7 @@ module.exports = class extends Command {
             .addField("Genres", show.genres.join(", "), true)
             .setFooter("TVmaze", "https://i.imgur.com/ExggnTB.png");
 
-        if (show.network || show.webChannel) embed.addField("Network", (show.network ? show.network : show.webChannel).name, true);
+        if (network) embed.addField("Network", network.name, true);
         if (show.officialSite) embed.addField("Website", `[Click Here](${show.officialSite})`, true);
 
         if (embed.fields.length === 5) embed.addField("\u200b", "\u200b", true);
