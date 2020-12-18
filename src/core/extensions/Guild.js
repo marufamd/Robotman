@@ -32,5 +32,9 @@ module.exports = Structures.extend("Guild", Guild => {
         getTags() {
             return this.client.handler.tags.db.findAll({ where: { guild: this.id } });
         }
+
+        tagAliases(name, aliases) {
+            return this.client.handler.tags.alias(name, this.id, aliases);
+        }
     };
 });

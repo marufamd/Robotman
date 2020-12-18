@@ -1,3 +1,5 @@
+const { Op } = require("sequelize");
+
 class ShortcutManager {
     constructor(handler, db) {
         Object.defineProperty(this, "handler", { value: handler });
@@ -7,7 +9,14 @@ class ShortcutManager {
     }
 
     async get(name) {
-        const shortcut = await this.db.findOne({ where: { name } });
+        const shortcut = await this.db.findOne({
+            where: {
+                [Op.or]: [
+                    { name },
+                    { aliases: { [Op.contains]: [name] } }
+                ]
+            }
+        });
         if (!shortcut) return null;
         return shortcut;
     }
@@ -45,6 +54,12 @@ class ShortcutManager {
         if (!list || !list.length) return null;
 
         return list;
+    }
+
+    async alias(name, aliases) {
+        const updated = await this.db.update({ aliases }, { where: { name } });
+        if (updated > 0) return true;
+        return false;
     }
 }
 

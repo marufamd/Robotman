@@ -29,15 +29,18 @@ module.exports = class extends Command {
             contents = `\`\`\`md\n${contents}\`\`\``;
         }
 
-        const user = this.client.users.cache.has(tag.userid) ? this.client.users.cache.get(tag.userid).tag : tag.username;
+        const user = this.client.users.cache.has(tag.userID) ? this.client.users.cache.get(tag.userID).tag : tag.createdBy;
         const str = [
-            `• **Created on:** ${formatDate(tag.createdAt)} (UTC)`,
-            `• **Created by:** ${user} (${tag.userid})`
+            `• **Created on:** ${formatDate(tag.createdAt)}`,
+            `• **Created by:** ${user} (${tag.userID})`
         ];
 
         if (tag.edited_username) {
-            const editUser = this.client.users.cache.has(tag.edited_userid) ? this.client.users.cache.get(tag.edited_userid).tag : tag.edited_username;
-            str.push(`• **Last edited on:** ${formatDate(tag.updatedAt)} (UTC)`, `• **Last edited by:** ${editUser} (${tag.edited_userid})`);
+            const editUser = this.client.users.cache.has(tag.editedUserID) ? this.client.users.cache.get(tag.editedUserID).tag : tag.editedBy;
+            str.push(
+                `• **Last edited on:** ${formatDate(tag.updatedAt)}`,
+                `• **Last edited by:** ${editUser} (${tag.editedUserID})`
+            );
         }
 
         str.push(`• **Uses:** ${tag.uses}`);
@@ -45,11 +48,8 @@ module.exports = class extends Command {
         const embed = new Embed()
             .setTitle(`Showing info for ${tag.name}`)
             .setDescription(str);
-        if (tag.aliases.length) embed.addField("Aliases", tag.aliases.join(", "));
-        if (tag.attachments.length) {
-            let i = 0;
-            embed.addField("Attachments", tag.attachments.map(a => `[${++i}](${a})`).join(", "));
-        }
+        if (tag.aliases?.length) embed.addField("Aliases", tag.aliases.join(", "));
+        if (tag.attachments?.length) embed.addField("Attachments", tag.attachments.map((a, i) => `[${i}](${a})`).join(", "));
         if (tag.contents.length) embed.addField("Source", contents);
 
         return message.embed(embed);

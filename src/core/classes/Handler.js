@@ -104,11 +104,8 @@ module.exports = class Handler {
             return { parsed, command: cmd, params: args };
         }
 
-        const findItem = item => item.name === message.command || item.aliases.length && item.aliases.includes(message.command);
-
         /* Shortcuts */
-        const shortcuts = await this.shortcuts.db.findAll();
-        const shortcut = shortcuts.find(findItem);
+        const shortcut = this.shortcuts.get(message.command);
         if (shortcut) {
             if (shortcut.dev && !message.author.owner) return { parsed };
             const command = shortcut.get("command");
@@ -129,8 +126,7 @@ module.exports = class Handler {
         }
 
         /* Tags */
-        const tags = await message.guild.getTags();
-        const tag = tags.find(findItem);
+        const tag = this.tags.get(message.command, message.guild.id);
         if (tag) {
             parsed = "tag";
             return { parsed, command: tag };
@@ -254,10 +250,7 @@ module.exports = class Handler {
     }
 
     async exists(name, guild) {
-        const tags = await this.tags.db.findAll({ where: { guild } });
-        const shortcuts = await this.shortcuts.db.findAll();
-        const findItem = item => item.name === name || item.aliases.length && item.aliases.includes(name);
-        return Boolean(this.findCommand(name) || shortcuts.find(findItem) || tags.find(findItem));
+        return Boolean(this.findCommand(name) || this.shortcuts.get(name) || this.tags.get(name, guild));
     }
 
     /* Prefixes */

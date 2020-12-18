@@ -25,7 +25,13 @@ module.exports = class extends Command {
         contents = contents ? cleanContent(contents.join(" "), message) : "";
         const attachments = message.attachments.size ? message.attachments.map(a => a.proxyURL) : [];
 
-        const tag = await this.handler.tags.add(name, contents, attachments, message.guild.id, message.author);
+        const tag = await message.guild.createTag({
+            name, 
+            contents, 
+            attachments, 
+            user: message.author 
+        });
+        
         return message.respond(`Added tag \`${tag}\``);
     }
 };

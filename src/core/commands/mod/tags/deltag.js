@@ -19,13 +19,8 @@ module.exports = class extends Command {
         if (!args.length) return message.usage(this.usage);
 
         const name = args[0].toLowerCase();
-        const guild = message.guild.id;
-
-        let response;
-        const deleted = await this.handler.tags.delete(name, guild);
-
-        if (!deleted) response = `The tag \`${name}\` does not exist.`;
-        else response = `Deleted tag \`${name}\`.`;
+        const deleted = await message.guild.deleteTag(name);
+        const response = deleted ? `Deleted tag \`${name}\`.` : `The tag \`${name}\` does not exist.`;
 
         return message.respond(response);
     }

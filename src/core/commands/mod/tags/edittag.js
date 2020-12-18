@@ -26,7 +26,12 @@ module.exports = class extends Command {
             contents = contents ? cleanContent(contents.join(" "), message) : "";
 
             const attachments = message.attachments.size ? message.attachments.map(a => a.proxyURL) : [];
-            const updated = await this.handler.tags.edit(name, contents, attachments, message.guild.id, message.author);
+            const updated = await message.guild.editTag({
+                name, 
+                contents, 
+                attachments, 
+                user: message.author 
+            });
             const response = updated ? `Edited tag \`${name}\`` : `The tag \`${name}\` does not exist`;
 
             return message.respond(response);

@@ -12,12 +12,8 @@ module.exports = class extends Command {
     }
 
     async run(message) {
-        const list = await this.handler.tags.list(message.guild.id);
-        let response;
-
-        if (!list) response = "There are no tags for this server.";
-        else response = `Available tags (${list.length})\n\`\`\`\n${list.join(", ")}\`\`\``;
-
+        const list = await message.guild.listTags();
+        const response = list ? `Available tags (${list.length})\n\`\`\`\n${list.join(", ")}\`\`\`` : "There are no tags for this server.";
         return message.respond(response);
     }
 };

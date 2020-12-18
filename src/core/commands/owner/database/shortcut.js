@@ -22,7 +22,8 @@ module.exports = class extends Command {
                     source: { matches: ["source", "s"] },
                     hide: { matches: ["hide", "h"] },
                     unhide: { matches: ["unhide", "uh"] },
-                    list: { matches: ["list", "l"] }
+                    list:  { matches: ["list", "l"] },
+                    alias: { matches: ["alias"] }
                 }
             },
             disableEdits: true
