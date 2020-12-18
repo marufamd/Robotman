@@ -60,11 +60,15 @@ module.exports = class extends Command {
                 replacement: str => `\`\`\`js\n${str}\`\`\``
             });
 
-        return {
+        const obj = {
             title: `${res.Heading} (${res.AbstractSource})`,
             url: res.AbstractURL,
             description: turndown.turndown(res.Abstract),
             image: res.Image
         };
+
+        if (res.Image && res.Image.startsWith("/")) obj.image = `https://api.duckduckgo.com${res.Image}`;
+
+        return obj;
     }
 };
