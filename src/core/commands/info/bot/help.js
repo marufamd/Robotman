@@ -41,7 +41,10 @@ module.exports = class extends Command {
                 if (!found) continue;
 
                 const groupCommands = found
-                    .filter(c => !disabled.includes(c.name))
+                    .filter(c => {
+                        if (!disabled) return true;
+                        return !disabled.includes(c.name);   
+                    })
                     .map(cmd => `[\`${cmd.name}\`](https://notarealwebsi.te/ "${cmd.description}")`)
                     .join(" ");
                 embed.addField(title(group), groupCommands);
