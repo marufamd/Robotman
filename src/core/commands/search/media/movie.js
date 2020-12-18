@@ -23,7 +23,7 @@ module.exports = class extends Command {
             t: args.join(" ").replaceAll("spider man", "spider-man")
         };
 
-        const res = fetch("https://www.omdbapi.com/", params);
+        const res = await fetch("https://www.omdbapi.com/", params);
         if (res.Response === "False") return message.respond("No results found.");
 
         const embed = new Embed("33bad7")
