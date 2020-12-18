@@ -71,7 +71,7 @@ module.exports = class Handler {
         delete require.cache[require.resolve(cmd.path)];
         const Command = require(cmd.path);
 
-        return this.loadCommand(Command);
+        return this.loadCommand(Command, cmd.path);
     }
 
     findCommand(command) {
