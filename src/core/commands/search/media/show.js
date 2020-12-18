@@ -37,6 +37,8 @@ module.exports = class extends Command {
         if (show.network || show.webChannel) embed.addField("Network", (show.network ? show.network : show.webChannel).name, true);
         if (show.officialSite) embed.addField("Website", `[Click Here](${show.officialSite})`, true);
 
+        if (embed.fields.length === 5) embed.addField("\u200b", "\u200b");
+
         return message.embed(embed);
     }
 };
