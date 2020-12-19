@@ -1,7 +1,8 @@
-const Robotman = require('./classes/Client');
+const Robotman = require('./structures/Client');
 const client = new Robotman({
-    fetchAllMembers: true,
     restTimeOffset: 250,
+    messageCacheMaxSize: 150,
+    messageEditHistoryMaxSize: 0,
     allowedMentions: {
         parse: ['users'], 
         repliedUser: true
@@ -11,11 +12,7 @@ const client = new Robotman({
             'GUILDS', 
             'GUILD_MEMBERS', 
             'GUILD_BANS', 
-            'GUILD_EMOJIS', 
-            'GUILD_INTEGRATIONS', 
             'GUILD_WEBHOOKS', 
-            'GUILD_INVITES',
-            'GUILD_PRESENCES',
             'GUILD_MESSAGES',
             'GUILD_MESSAGE_REACTIONS'
         ]

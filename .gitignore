@@ -4,6 +4,7 @@ package-lock.json
 
 # Env
 .env
+.env.example
 
 # Development
 .eslintrc.json
