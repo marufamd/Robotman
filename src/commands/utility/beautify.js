@@ -11,6 +11,7 @@ module.exports = class extends Command {
                 usage: '<message id>',
                 examples: ['703478308469342214'],
             },
+            ownerOnly: true,
             args: [
                 {
                     id: 'codeblock',
@@ -29,14 +30,14 @@ module.exports = class extends Command {
 
             for (const msg of msgs) {
                 const groups = reg.exec(msg);
-                if (groups && groups[1].length) {
+                if (groups?.[1].length) {
                     code = groups[1];
                     break;
                 }
             }
         } else {
             const groups = reg.exec(codeblock.content);
-            if (groups && groups[1].length) code = groups[1];
+            if (groups?.[1].length) code = groups[1];
         }
 
         if (!code) return message.respond(`No code blocks found`);

@@ -6,7 +6,7 @@ class Database {
         this.loadAll();
     }
 
-    init(force) {
+    init(force = false) {
         this.db
             .authenticate()
             .then(() => this.db.sync({ force }))
