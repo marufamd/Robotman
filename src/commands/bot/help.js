@@ -15,8 +15,7 @@ module.exports = class extends Command {
                     id: 'mod',
                     type: Argument.union('commandAlias', 'commandCategory')
                 }
-            ],
-            ratelimit: 2
+            ]
         });
     }
 
