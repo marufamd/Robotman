@@ -11,6 +11,7 @@ module.exports = class extends Command {
                 info: 'Executes a command on the command line.',
                 usage: '<code>'
             },
+            regex: /^(?:\$>)(?:\s+)?(.+)/,
             ownerOnly: true,
             args: [
                 {
@@ -18,14 +19,15 @@ module.exports = class extends Command {
                     type: 'string',
                     match: 'content',
                     prompt: {
-                        start: 'What commands(s) would you like to execute?'
+                        start: 'What command would you like to execute?'
                     }
                 }
             ]
         });
     }
 
-    async exec(message, { command }) {
+    async exec(message, { command, match }) {
+        if (!command && match) command = match[1];
         const msg = await message.util.send("Executing...");
 
         let str = "";

@@ -180,7 +180,7 @@ class Util {
     }
 
     static plural(word, length) {
-        return `${word}${length === 1 ? 's' : ''}`;
+        return `${word}${length === 1 ? '' : 's'}`;
     }
 
     static escapeRegex(str) {

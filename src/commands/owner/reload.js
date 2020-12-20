@@ -16,7 +16,7 @@ module.exports = class extends Command {
             args: [
                 {
                     id: 'mod',
-                    type: Argument.union('commandAlias', 'commandCategory', 'listener')
+                    type: Argument.union('commandAlias', 'commandCategory', 'listener', 'inhibitor')
                 },
                 {
                     id: 'all',

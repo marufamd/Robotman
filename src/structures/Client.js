@@ -1,11 +1,12 @@
 require('dotenv').config();
 
-const { AkairoClient, CommandHandler, ListenerHandler, SequelizeProvider } = require('discord-akairo');
+const { AkairoClient, CommandHandler, ListenerHandler, SequelizeProvider, InhibitorHandler } = require('discord-akairo');
 const ClientUtil = require('./ClientUtil');
 const { join } = require('path');
 
 const Sequelize = require('sequelize');
 const Database = require('./Database');
+const { plural } = require('../util');
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
 module.exports = class Robotman extends AkairoClient {
@@ -50,6 +51,10 @@ module.exports = class Robotman extends AkairoClient {
             automateCategories: true
         });
 
+        this.inhibitorHandler = new InhibitorHandler(this, {
+            directory: join(__dirname, '..', 'inhibitors'),
+        });
+
         this.ratelimits = 0;
         this.schedule = null;
         this.development = process.env.NODE_ENV === 'development';
@@ -60,8 +65,12 @@ module.exports = class Robotman extends AkairoClient {
         this.settings.init();
 
         this.load('commandHandler');
+
         this.commandHandler.useListenerHandler(this.listenerHandler);
         this.load('listenerHandler');
+        
+        this.commandHandler.useInhibitorHandler(this.inhibitorHandler);
+        this.load('inhibitorHandler');
 
         this.login();
     }
@@ -73,7 +82,7 @@ module.exports = class Robotman extends AkairoClient {
         const modules = this[handler].modules;
         const item = handler.replace('Handler', '');
         
-        this.log(`Loaded ${modules.map(m => m.id).join(', ')} ${item}${modules.size === 1 ? '' : 's'}`);
+        this.log(`Loaded ${modules.size} ${plural(item, modules.size)}${modules.size ? `:\`\`\`js\n${modules.map(m => m.id).join(', ')}\`\`\`` : ''}`);
     }
 
     log(text, type, options) {
