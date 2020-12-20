@@ -39,6 +39,12 @@ module.exports = class Robotman extends AkairoClient {
             }
         });
 
+        this.commandHandler.resolver.addType('commandCategory', (_, phrase) => {
+            if (!phrase) return null;
+            if (this.commandHandler.categories.has(phrase)) return this.commandHandler.categories.get(phrase);
+            return null;
+        });
+
         this.listenerHandler = new ListenerHandler(this, {
             directory: join(__dirname, '..', 'listeners'),
             automateCategories: true

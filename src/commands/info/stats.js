@@ -32,6 +32,6 @@ module.exports = class extends Command {
             • **CPU Usage:** ${cpuUsage}%
             • **Uptime:** ${uptime}`);
 
-        return message.util.send(null, { embed });
+        return message.util.send(embed);
     }
 };
