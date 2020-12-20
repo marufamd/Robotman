@@ -1,6 +1,6 @@
-const { stripIndents } = require('common-tags');
 const { Command } = require('discord-akairo');
 const { escapeMarkdown } = require('discord.js');
+const { stripIndents } = require('common-tags');
 const { title, formatDate, difference } = require('../../util');
 
 module.exports = class extends Command {
@@ -8,30 +8,27 @@ module.exports = class extends Command {
         super('user-info', {
             aliases: ['user-info', 'who-is', 'user', 'u-info'],
             description: {
-                info: 'Shows info about a user. Defaults to you.',
+                info: 'Displays info about a user. Defaults to the command executor.',
                 usage: '<user>',
                 examples: [
                     'maruf',
                     'maruf#9900',
-                    '9900',
                     '196034947004366849',
                     '@Maruf#9900'
                 ],
             },
             args: [
                 {
-                    id: 'user',
-                    type: 'user',
-                    default: message => message.author
+                    id: 'member',
+                    type: 'member',
+                    default: message => message.member
                 }
-            ],
-            ratelimit: 2
+            ]
         });
     }
 
-    async exec(message, { user }) {
-        const member = await message.guild.members.fetch(user);
-
+    async exec(message, { member }) {
+        const user = member.user;
         const avatar = user.displayAvatarURL({ format: 'png', size: 4096, dynamic: true });
 
         const roles = member.roles.cache.filter(r => r.id !== message.guild.id);

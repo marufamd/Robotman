@@ -60,6 +60,7 @@ module.exports = class Robotman extends AkairoClient {
         this.settings.init();
 
         this.load('commandHandler');
+        this.commandHandler.useListenerHandler(this.listenerHandler);
         this.load('listenerHandler');
 
         this.login();

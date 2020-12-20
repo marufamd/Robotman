@@ -1,5 +1,6 @@
 const Robotman = require('./structures/Client');
 const client = new Robotman({
+    fetchAllMembers: true,
     restTimeOffset: 250,
     messageCacheMaxSize: 150,
     messageEditHistoryMaxSize: 0,

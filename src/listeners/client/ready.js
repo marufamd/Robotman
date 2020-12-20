@@ -4,7 +4,8 @@ module.exports = class extends Listener {
     constructor() {
         super('ready', {
             event: 'ready',
-            emitter: 'client'
+            emitter: 'client',
+            type: 'once'
         });
     }
 
