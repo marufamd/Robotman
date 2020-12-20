@@ -37,6 +37,8 @@ module.exports = class extends Command {
 
                 embed.addField(title(category.first().categoryID), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
             }
+
+            if ([5, 8].includes(embed.fields.length)) embed.addField('\u200b', '\u200b', true);
         } else {
             if (mod instanceof Command) {
                 if (mod.ownerOnly || disabled.includes(mod.id)) return this.invalid(message);
