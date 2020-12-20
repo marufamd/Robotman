@@ -35,12 +35,12 @@ module.exports = class extends Command {
                 category = category.filter(c => !c.ownerOnly && !disabled.includes(c.id));
                 if (!category.size) continue;
 
-                embed.addField(title(category.first().categoryID), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.constructor.description(c)}')`).join(' '));
+                embed.addField(title(category.first().categoryID), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
             }
         } else {
             if (mod instanceof Command) {
                 if (mod.ownerOnly || disabled.includes(mod.id)) return this.invalid(message);
-                let desc = this.constructor.description(mod);
+                let desc = this.getDescription(mod);
                 if (mod.description.extended?.length) desc += `\n\n${mod.description.extended.join('\n').replaceAll('{p}', prefix)}`;
 
                 embed
@@ -56,14 +56,14 @@ module.exports = class extends Command {
 
                 embed.setTitle(`${title(mod.first().categoryID)} Commands`);
 
-                for (const c of mod.values()) embed.addField(`${prefix}${c.id} ${c.description.usage || ''}`, this.constructor.description(c));
+                for (const c of mod.values()) embed.addField(`${prefix}${c.id} ${c.description.usage || ''}`, this.getDescription(c));
             }
         }
 
         return message.util.send(embed);
     }
 
-    static description(command) {
+    getDescription(command) {
         return typeof command.description !== 'string' ? command.description.info : command.description;
     }
 
