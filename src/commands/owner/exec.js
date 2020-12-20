@@ -8,7 +8,7 @@ module.exports = class extends Command {
         super('exec', {
             aliases: ['exec', 'execute', 'commandline'],
             description: {
-                info: 'Executes a command on the command line',
+                info: 'Executes a command on the command line.',
                 usage: '<code>'
             },
             ownerOnly: true,

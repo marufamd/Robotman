@@ -7,7 +7,7 @@ module.exports = class extends Command {
     constructor() {
         super('server-info', {
             aliases: ['server-info', 'guild-info', 'server', 'guild', 's-info'],
-            description: 'Displays info about the server'
+            description: 'Displays info about the server.'
         });
     }
 

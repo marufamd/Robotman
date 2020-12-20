@@ -4,7 +4,7 @@ module.exports = class extends Command {
     constructor() {
         super('ping', {
             aliases: ['ping'],
-            description: 'Checks the bot\'s connection'
+            description: 'Checks the bot\'s connection.'
         });
     }
 

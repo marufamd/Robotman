@@ -5,7 +5,7 @@ module.exports = class extends Command {
         super('reload', {
             aliases: ['reload'],
             description: {
-                info: 'Reloads a module or category',
+                info: 'Reloads a module or category.',
                 usage: '<module or category>',
                 examples: [
                     'ping',

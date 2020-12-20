@@ -32,7 +32,7 @@ module.exports = class Robotman extends AkairoClient {
                     modifyRetry: (_, text) => `${text}\n\nTo cancel the command, type \`cancel\`.`,
                     timeout: 'You took too long to respond. The command has been cancelled.',
                     ended: 'You\'ve retried too many times. The command has been cancelled.',
-                    cancel: 'The command has been cancelled.',
+                    cancel: 'Cancelled the command.',
                     retries: 2,
                     time: 30000
                 }

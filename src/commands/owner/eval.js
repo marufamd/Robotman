@@ -7,7 +7,7 @@ module.exports = class extends Command {
         super('eval', {
             aliases: ['eval'],
             description: {
-                info: 'Evaluates code',
+                info: 'Evaluates code.',
                 usage: '<code>'
             },
             ownerOnly: true,

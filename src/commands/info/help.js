@@ -4,9 +4,9 @@ const { title, plural } = require('../../util');
 module.exports = class extends Command {
     constructor() {
         super('help', {
-            aliases: ['help', 'command', 'group'],
+            aliases: ['help', 'command', 'category', 'group'],
             description: {
-                info: 'Shows information on a command or group',
+                info: 'Shows information on a command or category.',
                 usage: '<command or category>',
                 examples: ['help ping'],
             },
