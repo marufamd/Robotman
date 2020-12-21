@@ -98,6 +98,28 @@ module.exports = class Handler {
             return { parsed, command: cmd, params: args };
         }
 
+        /* Shortcuts */
+        /*const shortcut = this.shortcuts.get(message.command);
+        if (shortcut) {
+            console.log(shortcut);
+            if (shortcut.dev && !message.author.owner) return { parsed };
+            const command = shortcut.get("command");
+
+            const cmd = this.findCommand(command);
+            if (!cmd) return { parsed };
+
+            let params = shortcut.get("params");
+
+            params = params
+                .replaceAll(/{content}/g, args.join(" "))
+                .replaceAll(/{escapedContent}/g, args.join(" ").replaceAll(/('|")/g, a => `\\${a}`))
+                .replaceAll(/{([0-9])}/g, (_, p1) => args[p1])
+                .split(" ");
+
+            parsed = "shortcut";
+            return { parsed, command: cmd, params };
+        } */
+
         /* Tags */
         const tag = this.tags.get(message.command, message.guild.id);
         if (tag) {
