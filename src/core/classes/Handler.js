@@ -9,12 +9,6 @@ const { shortcuts, tags } = require(`../../database`);
 const ShortcutManager = require(`../../database/managers/ShortcutManager`);
 const TagManager = require(`../../database/managers/TagManager`);
 
-const format = arr => Array.isArray(arr) ? arr : [arr];
-const check = (ex, id) => {
-    ex = format(ex);
-    return ex.includes(id);
-};
-
 module.exports = class Handler {
     constructor(client) {
         Object.defineProperty(this, "client", { value: client });
@@ -102,27 +96,6 @@ module.exports = class Handler {
 
             parsed = "command";
             return { parsed, command: cmd, params: args };
-        }
-
-        /* Shortcuts */
-        const shortcut = this.shortcuts.get(message.command);
-        if (shortcut) {
-            if (shortcut.dev && !message.author.owner) return { parsed };
-            const command = shortcut.get("command");
-
-            const cmd = this.findCommand(command);
-            if (!cmd) return { parsed };
-
-            let params = shortcut.get("params");
-
-            params = params
-                .replaceAll(/{content}/g, args.join(" "))
-                .replaceAll(/{escapedContent}/g, args.join(" ").replaceAll(/('|")/g, a => `\\${a}`))
-                .replaceAll(/{([0-9])}/g, (_, p1) => args[p1])
-                .split(" ");
-
-            parsed = "shortcut";
-            return { parsed, command: cmd, params };
         }
 
         /* Tags */
