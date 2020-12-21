@@ -22,7 +22,7 @@ module.exports = class extends Command {
     async exec(message, { mod }) {
         const embed = this.client.util.embed();
         const disabled = this.client.settings.get(message.guild.id, 'disabledCommands', []);
-        const prefix = new RegExp(`<@!?${this.client.user.id}>`).test(message.util.parsed.prefix) ? `@${this.client.user.tag} ` : message.util.parsed.prefix;
+        const prefix = this.getPrefix(message);
 
         if (!mod) {
             embed
@@ -62,6 +62,10 @@ module.exports = class extends Command {
         }
 
         return message.util.send(embed);
+    }
+
+    getPrefix(message) {
+        return new RegExp(`<@!?${this.client.user.id}>`).test(message.util.parsed.prefix) ? `@${this.client.user.tag} ` : message.util.parsed.prefix;
     }
 
     getDescription(command) {
