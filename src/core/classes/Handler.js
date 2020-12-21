@@ -183,16 +183,6 @@ module.exports = class Handler {
     async runCommand(message, command, params, editEvent) {
         if (editEvent && command.disableEdits) return;
 
-        if (command.exclusive) {
-            const ex = command.exclusive;
-            if (ex.roles) {
-                ex.roles = format(ex.roles);
-                if (!message.member.roles.cache.some(r => ex.roles.includes(r.id))) return;
-            }
-            if (ex.guilds && !check(ex.guilds, message.guild.id) && !message.guild.development) return;
-            if (ex.channels && !check(ex.channels, message.channel.id) && !message.guild.development) return;
-        }
-
         if (command.args) {
             const { args } = command;
             if (!params.length && !args.hasOwnProperty("min")) return message.usage(command);

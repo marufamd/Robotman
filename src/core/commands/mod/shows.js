@@ -1,6 +1,6 @@
 const Command = require("../../classes/Command");
 const { pastee: paste, fetch } = require("../../../util");
-const { shows, roles } = require("../../../util/constants");
+const { shows } = require("../../../util/constants");
 const moment = require("moment");
 
 module.exports = class extends Command {
