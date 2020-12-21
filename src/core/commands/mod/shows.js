@@ -31,7 +31,7 @@ module.exports = class extends Command {
         const dates = [];
         const dtf = moment(new Date(parsedDate)).isValid() ? new Date(parsedDate) : new Date();
 
-        for (let i = 0; i < 7; i++) {
+        for (let i = 1; i < 8; i++) {
             const toPush = moment(dtf).day(i).format("YYYY-MM-DD");
             dates.push(toPush);
         }
