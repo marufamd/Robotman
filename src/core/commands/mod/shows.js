@@ -9,7 +9,6 @@ module.exports = class extends Command {
             name: "shows",
             group: "moderation",
             aliases: ["wshows", "weeklyshows"],
-            exclusive: { roles: roles.guardian },
             disableHelp: true,
             disableEdits: true,
             cooldown: 0,
