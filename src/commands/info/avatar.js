@@ -15,7 +15,7 @@ module.exports = class extends Command {
                     type: 'user',
                     default: message => message.author
                 }
-            ],
+            ]
         });
     }
 
