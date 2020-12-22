@@ -93,7 +93,7 @@ module.exports = class Robotman extends AkairoClient {
             const modules = this[handler].modules;
             const item = handler.replace('Handler', '');
 
-            this.log(`Loaded ${modules.size} ${plural(item, modules.size)}${modules.size ? `:\`\`\`js\n${modules.map(m => m.id).join(', ')}\`\`\`` : ''}`);
+            this.log(`Loaded ${modules.size} ${plural(item, modules.size)}${modules.size ? `:\`\`\`css\n${modules.map(m => m.id).join(', ')}\`\`\`` : ''}`);
         }
     }
 

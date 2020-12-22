@@ -10,12 +10,12 @@ module.exports = class extends Command {
                 usage: '<color>',
                 extended: [`Color can be a hex code, integer, RGB value, or a specific name of a color from a pre-defined list.`],
                 examples: [
-                    "#e67E22",
-                    "0xE67E22",
-                    "dark orange",
-                    "3447003",
-                    "(230, 126, 34)",
-                    "230 126 34"
+                    '#e67E22',
+                    '0xE67E22',
+                    'dark orange',
+                    '3447003',
+                    '(230, 126, 34)',
+                    '230 126 34'
                 ]
             },
             args: [
@@ -53,7 +53,7 @@ module.exports = class extends Command {
         if (embed.color === 16777215) embed.color = 16777200;
 
         const final = resolvedColor.toString(16);
-        if (final === "NaN") color = "0";
+        if (final === 'NaN') color = '0';
 
         const url = `https://www.beautycolorcode.com/${final}-1000x1000.png`;
         const hex = this.makeHex(final);
@@ -61,7 +61,7 @@ module.exports = class extends Command {
         embed
             .setDescription([
                 `• Hex: ${hex}`,
-                `• RGB: (${rgb.join(", ")})`,
+                `• RGB: (${rgb.join(', ')})`,
                 `• Integer: ${isNaN(resolvedColor) ? 0 : resolvedColor}`
             ])
             .setImage(url);
@@ -74,7 +74,7 @@ module.exports = class extends Command {
     }
 
     parseRGB(str) {
-        return parseInt(str.replace(/,/g, "").replace(/(\(|\))/g, ""));
+        return parseInt(str.replace(/,/g, '').replace(/(\(|\))/g, ''));
     }
 
     decimalToRGB(decimal) {
@@ -82,16 +82,16 @@ module.exports = class extends Command {
     }
 
     resolveColor(color) {
-        if (typeof color === "string") {
-            if (color === "RANDOM") return Math.floor(Math.random() * (0xffffff + 1));
-            if (color === "DEFAULT") return 0;
+        if (typeof color === 'string') {
+            if (color === 'RANDOM') return Math.floor(Math.random() * (0xffffff + 1));
+            if (color === 'DEFAULT') return 0;
             if (color in colors) color = colors[color];
             else {
-                color = color.replace("#", "");
+                color = color.replace('#', '');
                 if (color.length > 6) return null;
-                color = `#${"0".repeat(6 - color.length)}${color}`.toUpperCase();
+                color = `#${'0'.repeat(6 - color.length)}${color}`.toUpperCase();
                 if (!/^#[0-9A-F]{6}$/i.test(color)) return null;
-                color = parseInt(color.replace("#", ""), 16);
+                color = parseInt(color.replace('#', ''), 16);
             }
         } else if (Array.isArray(color)) {
             color = (color[0] << 16) + (color[1] << 8) + color[2];
