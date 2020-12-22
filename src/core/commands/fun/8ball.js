@@ -19,7 +19,7 @@ module.exports = class extends Command {
     }
 
     async run(message) {
-        const imageDir = join(__dirname, "..", "..", "data", "8balls");
+        const imageDir = join(__dirname, "..", "..", "..", "util", "8balls");
         const answers = (await readdir(imageDir)).filter(f => extname(f) === ".png");
         const random = randomResponse(answers);
 
