@@ -5,7 +5,7 @@ const { title, formatDate, difference } = require('../../util');
 
 module.exports = class extends Command {
     constructor() {
-        super('user-info', {
+        super('userinfo', {
             aliases: ['user-info', 'who-is', 'user', 'u-info'],
             description: {
                 info: 'Displays info about a user. Defaults to the command executor.',

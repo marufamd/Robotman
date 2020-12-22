@@ -5,7 +5,7 @@ const { formatDate, difference, title } = require('../../util');
 
 module.exports = class extends Command {
     constructor() {
-        super('role-info', {
+        super('roleinfo', {
             aliases: ['role-info', 'role', 'r-info'],
             description: {
                 info: 'Displays info about a role',

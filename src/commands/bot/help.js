@@ -34,7 +34,7 @@ module.exports = class extends Command {
                 category = category.filter(c => !c.ownerOnly && !disabled.includes(c.id));
                 if (!category.size) continue;
 
-                embed.addField(title(category.first().categoryID), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
+                embed.addField(title(category.first().categoryID.replace('-', ' & ')).replace('Tv', 'TV'), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
             }
 
             if ([5, 8].includes(embed.fields.length)) embed.addField('\u200b', '\u200b', true);
