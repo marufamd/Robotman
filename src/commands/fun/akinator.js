@@ -1,0 +1,42 @@
+const { Command } = require('discord-akairo');
+const Akinator = require("../../games/Akinator");
+
+module.exports = class extends Command {
+    constructor() {
+        super('akinator', {
+            aliases: ['akinator', 'aki'],
+            description: {
+                info: 'Starts an Akinator game.',
+                extended: [
+                    "You have 40 seconds to answer each question, or else you automatically lose.",
+                    "Aliases for answers:",
+                    "Yes: `y`, `yeah`, `ye`",
+                    "No: `n`, `nah`",
+                    "Don't Know: `d`, `dk`, `idk`, `dunno`",
+                    "Probably: `p`, `prob`, `probs`",
+                    "Probably Not: `pn`, `prob not`, `probs not`",
+                    "Back: `b`",
+                    "Stop: `s`"
+                ],
+            }
+        });
+    }
+
+    async exec(message) {
+        if (this.client.aki.has(message.channel.id)) return message.util.send('There is already an Akinator game in progress in this channel.');
+
+        message.channel.send("Starting...");
+
+        try {
+            this.client.util.stat("akiGames");
+            this.client.aki.add(message.channel.id);
+            const aki = new Akinator(message.author.id);
+            await aki.startGame(message);
+        } catch (e) {
+            message.util.send('An error occurred.');
+            this.client.log(`Akinator Error\n${e.stack}`, "error");
+        } finally {
+            this.client.aki.delete(message.channel.id);
+        }
+    }
+};
