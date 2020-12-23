@@ -214,20 +214,20 @@ class Util {
     static redact(str) {
         if (typeof str !== 'string') return str;
         const tokens = [
-            process.env.WEBHOOK_URL,
-            process.env.DISCORD_TOKEN,
-            process.env.DATABASE_URL,
-            process.env.GOOGLE_SEARCH_KEY,
-            process.env.GOOGLE_ENGINE_KEY,
-            process.env.SERVICE_ACCOUNT_EMAIL,
-            process.env.SERVICE_ACCOUNT_KEY,
-            process.env.SPREADSHEET,
-            process.env.COMICVINE_KEY,
-            process.env.PASTE_KEY,
-            process.env.DICTIONARY_KEY,
-            process.env.MOVIEDB_KEY
+            'WEBHOOK_URL',
+            'DISCORD_TOKEN',
+            'DATABASE_URL',
+            'GOOGLE_SEARCH_KEY',
+            'GOOGLE_ENGINE_KEY',
+            'SERVICE_ACCOUNT_EMAIL',
+            'SERVICE_ACCOUNT_KEY',
+            'SPREADSHEET',
+            'COMICVINE_KEY',
+            'PASTE_KEY',
+            'DICTIONARY_KEY',
+            'MOVIEDB_KEY'
         ];
-        return str.replaceAll(new RegExp(tokens.map(t => Util.escapeRegex(t)).join('|'), 'gi'), '[REDACTED]');
+        return str.replaceAll(new RegExp(tokens.map(t => Util.escapeRegex(process.env[t])).join('|'), 'gi'), '[REDACTED]');
     }
 
     static beautify(str, lang = 'js') {
@@ -301,6 +301,10 @@ class Util {
         return new Promise(resolve => {
             setTimeout(resolve, ms);
         });
+    }
+
+    static getPrefix(message) {
+        return new RegExp(`<@!?${message.client.user.id}>`).test(message.util.parsed.prefix) ? `@${message.client.user.tag} ` : message.util.parsed.prefix;
     }
 }
 

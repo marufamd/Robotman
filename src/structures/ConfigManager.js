@@ -1,6 +1,7 @@
+const { baseConfig } = require('../util/constants');
+
 module.exports = class ConfigManager {
-    constructor(client, table) {
-        this.client = client;
+    constructor(table) {
         this.table = table;
     }
 
@@ -11,19 +12,16 @@ module.exports = class ConfigManager {
     }
 
     async get(key) {
-        let data = await this.table.findOne({ where: { id: 1 } });
-        if (!data) data = await this.table.create({ data: {} });
-        data = data.data;
+        let item = await this.table.findOne({ where: { id: 1 } });
+        if (!item) item = await this.table.create({ data: baseConfig });
+        const { data } = item;
         if (key) return data[key];
         return data;
     }
 
     async stat(key) {
         const data = await this.get();
-        if (data[key]) {
-            data[key]++;
-            return this.set(key, data[key]);
-        }
+        if ((key in data) && !isNaN(data[key])) return this.set(key, ++data[key]);
         return null;
     }
 };

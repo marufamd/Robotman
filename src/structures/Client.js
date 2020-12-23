@@ -20,7 +20,10 @@ module.exports = class Robotman extends AkairoClient {
         this.db = new Database(db);
 
         this.settings = new SequelizeProvider(this.db.settings, { idColumn: 'guild', dataColumn: 'settings' });
-        this.config = new ConfigManager(this, this.db.config);
+        this.config = new ConfigManager(this.db.config);
+
+        this.aki = new Set();
+        this.hangman = new Set();
 
         this.commandHandler = new CommandHandler(this, {
             directory: join(__dirname, '..', 'commands'),
@@ -69,6 +72,8 @@ module.exports = class Robotman extends AkairoClient {
     }
 
     init() {
+        this.log('Initializing...');
+        
         this.db.init();
         this.settings.init();
 

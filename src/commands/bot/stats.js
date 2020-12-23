@@ -1,12 +1,11 @@
 const { Command } = require('discord-akairo');
-const { stripIndents } = require("common-tags");
-const { cpu } = require("node-os-utils");
+const { stripIndents } = require('common-tags');
+const { cpu } = require('node-os-utils');
+const moment = require('moment');
+require('moment-duration-format');
 
-const moment = require("moment");
-require("moment-duration-format");
-
-const { dependencies, version } = require("../../../package.json");
-const { formats } = require("../../util/constants");
+const { dependencies, version } = require('../../../package.json');
+const { formats } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -19,18 +18,31 @@ module.exports = class extends Command {
     }
 
     async exec(message) {
-        const uptime = moment.duration(this.client.uptime).format(formats.uptime);
-        const memUsage = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
-        const cpuUsage = await cpu.usage();
+        const stats = await this.client.config.get();
 
         const embed = this.client.util.embed()
-            .setTitle('Statistics')
-            .setDescription(stripIndents`
-            • **Version:** ${version}
-            • **Dependencies:** ${Object.keys(dependencies).length}
-            • **Memory Usage:** ${memUsage} MB
-            • **CPU Usage:** ${cpuUsage}%
-            • **Uptime:** ${uptime}`);
+            .setThumbnail(this.client.user.displayAvatarURL())
+            .addFields({
+                name: 'Statistics',
+                value: stripIndents`
+                • **Version:** ${version}
+                • **Dependencies:** ${Object.keys(dependencies).length}
+                • **Memory Usage:** ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
+                • **CPU Usage:** ${await cpu.usage()}%
+                • **Uptime:** ${moment.duration(this.client.uptime).format(formats.uptime)}
+                `,
+                inline: true
+            }, {
+                name: '\u200b',
+                value: stripIndents`
+                • **Commands Processed:** ${stats.commands_run}
+                • **Akinator Games:** ${stats.aki}
+                • **Connect Four Games:** ${stats.connect_four}
+                • **Hangman Games:** ${stats.hangman}
+                • **Trivia Games:** ${stats.trivia}
+                `,
+                inline: true
+            });
 
         return message.util.send(embed);
     }
