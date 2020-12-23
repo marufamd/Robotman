@@ -1,12 +1,14 @@
 require('dotenv').config();
 
 const { AkairoClient, CommandHandler, ListenerHandler, SequelizeProvider, InhibitorHandler } = require('discord-akairo');
-const ClientUtil = require('./ClientUtil');
 const { join } = require('path');
-
 const Sequelize = require('sequelize');
+
+const ClientUtil = require('./ClientUtil');
+const ConfigManager = require('./ConfigManager');
 const Database = require('./Database');
 const { plural } = require('../util');
+
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
 module.exports = class Robotman extends AkairoClient {
@@ -18,6 +20,7 @@ module.exports = class Robotman extends AkairoClient {
         this.db = new Database(db);
 
         this.settings = new SequelizeProvider(this.db.settings, { idColumn: 'guild', dataColumn: 'settings' });
+        this.config = new ConfigManager(this, this.db.config);
 
         this.commandHandler = new CommandHandler(this, {
             directory: join(__dirname, '..', 'commands'),
@@ -41,17 +44,15 @@ module.exports = class Robotman extends AkairoClient {
             }
         });
 
-        this.commandHandler.resolver.addType('commandCategory', (_, phrase) => {
-            if (!phrase) return null;
-            if (this.commandHandler.categories.has(phrase)) return this.commandHandler.categories.get(phrase);
-            return null;
-        });
-
-        this.commandHandler.resolver.addType('clientChannel', (_, phrase) => {
-            if (!phrase) return null;
-            if (this.channels.cache.has(phrase)) return this.channels.cache.get(phrase);
-            return null;
-        });
+        this.commandHandler.resolver
+            .addType('commandCategory', (_, phrase) => {
+                if (this.commandHandler.categories.has(phrase)) return this.commandHandler.categories.get(phrase);
+                return null;
+            })
+            .addType('clientChannel', (_, phrase) => {
+                if (this.channels.cache.has(phrase)) return this.channels.cache.get(phrase);
+                return null;
+            });
 
         this.listenerHandler = new ListenerHandler(this, {
             directory: join(__dirname, '..', 'listeners'),

@@ -15,7 +15,7 @@ class Database {
     }
 
     async loadAll() {
-        for (const model of ['Settings']) {
+        for (const model of ['Settings', 'Config']) {
             const table = require(`../models/${model}`)(this.db);
             this[model.toLowerCase()] = table;
         }
