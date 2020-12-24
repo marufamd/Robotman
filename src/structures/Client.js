@@ -8,6 +8,7 @@ const ClientUtil = require('./ClientUtil');
 const ConfigProvider = require('./ConfigProvider');
 const Database = require('./Database');
 const { plural } = require('../util');
+const TagsProvider = require('./TagsProvider');
 
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
@@ -21,6 +22,8 @@ module.exports = class Robotman extends AkairoClient {
 
         this.settings = new SequelizeProvider(this.db.settings, { idColumn: 'guild', dataColumn: 'settings' });
         this.config = new ConfigProvider(this.db.config);
+
+        this.tags = new TagsProvider(this.db.tags);
 
         this.aki = new Set();
         this.hangman = new Set();
@@ -74,7 +77,8 @@ module.exports = class Robotman extends AkairoClient {
                 }
 
                 return new Date(parsed);
-            });
+            })
+            .addType('tag', (message, phrase) => this.tags.get(phrase.toLowerCase(), message.guild.id) ?? null);
 
         this.listenerHandler = new ListenerHandler(this, {
             directory: join(__dirname, '..', 'listeners'),

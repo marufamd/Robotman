@@ -24,6 +24,8 @@ module.exports = class extends Command {
         const disabled = this.client.settings.get(message.guild.id, 'disabledCommands', []);
         const prefix = getPrefix(message);
 
+        const hidden = c => !c.ownerOnly && !c.description?.mod  && !c.description?.disableHelp && !disabled.includes(c.id);
+
         if (!mod) {
             embed
                 .setTitle('Commands')
@@ -31,7 +33,7 @@ module.exports = class extends Command {
                 .setFooter(`Hover over a command for descriptions`);
 
             for (let category of this.handler.categories.values()) {
-                category = category.filter(c => !c.ownerOnly && !c.description?.disableHelp && !disabled.includes(c.id));
+                category = category.filter(hidden);
                 if (!category.size) continue;
 
                 embed.addField(title(category.first().categoryID.replace('-', ' & ')).replace('Tv', 'TV'), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
@@ -52,7 +54,7 @@ module.exports = class extends Command {
                 if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.makeExamples(prefix));
                 if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));
             } else {
-                mod = mod.filter(c => !c.ownerOnly && !disabled.includes(c.id));
+                mod = mod.filter(hidden);
                 if (!mod.size) return this.invalid(message);
 
                 embed.setTitle(`${title(mod.first().categoryID)} Commands`);

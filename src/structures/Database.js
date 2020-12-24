@@ -11,11 +11,11 @@ class Database {
             .authenticate()
             .then(() => this.db.sync({ force }))
             .then(() => log('Initalized database'))
-            .catch(e => log(`Error initializing to database: ${e}`, "error"));
+            .catch(e => log(`Error initializing to database: ${e}`, 'error'));
     }
 
     async loadAll() {
-        for (const model of ['Settings', 'Config']) {
+        for (const model of ['Settings', 'Config', 'Tags']) {
             const table = require(`../models/${model}`)(this.db);
             this[model.toLowerCase()] = table;
         }

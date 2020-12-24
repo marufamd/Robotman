@@ -18,9 +18,21 @@ module.exports = class ConfigProvider extends StatelessProvider {
         return data;
     }
 
+    async delete(key) {
+        const data = await this.get();
+
+        if (key in data) {
+            delete data[key];
+            await this.table.update({ data }, { id: 1 });
+            return true;
+        }
+
+        return false;
+    }
+
     async stat(key) {
         const data = await this.get();
         if ((key in data) && !isNaN(data[key])) return this.set(key, ++data[key]);
-        return null;
+        return false;
     }
 };

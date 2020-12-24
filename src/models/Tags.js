@@ -1,9 +1,8 @@
-module.exports = (db, DataTypes) => db.define("Tags", {
+const { DataTypes } = require('sequelize');
+
+module.exports = database => database.define('Tags', {
     guild: DataTypes.STRING,
     name: DataTypes.STRING,
-    contents: DataTypes.TEXT,
-	user: DataTypes.JSONB,
-    editor: DataTypes.JSONB,
 	uses: {
 		type: DataTypes.INTEGER,
 		defaultValue: 0,
@@ -14,9 +13,20 @@ module.exports = (db, DataTypes) => db.define("Tags", {
         defaultValue: [],
         allowNull: false,
     },
-	attachments: {
-        type: DataTypes.ARRAY(DataTypes.TEXT),
-        defaultValue: [],
-        allowNull: false,
-    }
+    data: DataTypes.JSONB
 });
+
+/*
+data: {
+    content,
+    user: {
+        name,
+        id
+    },
+    editor: {
+        name,
+        id
+    },
+    attachments: []
+}
+*/
