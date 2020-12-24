@@ -45,7 +45,7 @@ module.exports = class extends Command {
             resolve = resolve.length !== 6 ? parseInt(resolve) ?? resolve : resolve;
         }
 
-        const resolvedColor = this.resolveColor(resolve ? resolve : 1);
+        const resolvedColor = this.resolveColor(resolve);
         if (resolvedColor == null) return message.util.send('Invalid color.');
 
         const embed = this.client.util.embed().setColor(resolvedColor);
