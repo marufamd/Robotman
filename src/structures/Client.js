@@ -97,7 +97,7 @@ module.exports = class Robotman extends AkairoClient {
     init() {
         this.log('Initializing...');
 
-        this.db.init();
+        this.db.init(true);
         this.settings.init();
 
         this.commandHandler.useListenerHandler(this.listenerHandler);
