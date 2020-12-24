@@ -10,7 +10,8 @@ module.exports = class extends Command {
             description: {
                 info: 'Starts a Hangman game.',
                 extended: [`Available Words: ${words.length}`]
-            }
+            },
+            editable: false
         });
     }
 

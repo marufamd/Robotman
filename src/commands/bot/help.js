@@ -31,7 +31,7 @@ module.exports = class extends Command {
                 .setFooter(`Hover over a command for descriptions`);
 
             for (let category of this.handler.categories.values()) {
-                category = category.filter(c => !c.ownerOnly && !disabled.includes(c.id));
+                category = category.filter(c => !c.ownerOnly && !c.description?.disableHelp && !disabled.includes(c.id));
                 if (!category.size) continue;
 
                 embed.addField(title(category.first().categoryID.replace('-', ' & ')).replace('Tv', 'TV'), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
@@ -40,7 +40,7 @@ module.exports = class extends Command {
             if ([5, 8].includes(embed.fields.length)) embed.addField('\u200b', '\u200b', true);
         } else {
             if (mod instanceof Command) {
-                if (mod.ownerOnly || disabled.includes(mod.id)) return this.invalid(message);
+                if (mod.ownerOnly || mod.description?.disableHelp || disabled.includes(mod.id)) return this.invalid(message);
                 let desc = this.getDescription(mod);
                 if (mod.description.extended?.length) desc += `\n\n${mod.description.extended.join('\n').replaceAll('{p}', prefix)}`;
 

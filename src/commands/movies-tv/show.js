@@ -1,6 +1,7 @@
 const { Command } = require('discord-akairo');
 const TurndownService = require('turndown');
 const { fetch } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -31,7 +32,7 @@ module.exports = class extends Command {
         const network = show.network || show.webChannel;
 
         const embed = this.client.util.embed()
-            .setColor("43958b")
+            .setColor(colors.TVMAZE)
             .setTitle(show.name)
             .setURL(show.url)
             .setDescription(new TurndownService().turndown(show.summary))

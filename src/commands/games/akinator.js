@@ -17,8 +17,9 @@ module.exports = class extends Command {
                     'Probably Not: `pn`, `prob not`, `probs not`',
                     'Back: `b`',
                     'Stop: `s`'
-                ],
-            }
+                ]
+            },
+            editable: false
         });
     }
 

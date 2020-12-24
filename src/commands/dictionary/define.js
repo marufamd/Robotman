@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { fetch, capitalize, trim } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -28,7 +29,7 @@ module.exports = class extends Command {
 
         if (!defined) return message.util.send('No results found');
         const embed = this.client.util.embed()
-            .setColor('#336078')
+            .setColor(colors.DICTIONARY)
             .setFooter('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png');
 
         if (Array.isArray(defined)) {

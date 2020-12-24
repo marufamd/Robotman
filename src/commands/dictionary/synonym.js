@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { fetch } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -28,7 +29,7 @@ module.exports = class extends Command {
 
         if (!defined || !defined.synonyms?.length) return message.util.send('No synonyms found');
         const embed = this.client.util.embed()
-            .setColor('#336078')
+            .setColor(colors.DICTIONARY)
             .setFooter('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png');
 
         if (Array.isArray(defined)) {

@@ -38,6 +38,7 @@ module.exports = class extends Command {
                     type: 'integer'
                 }
             ],
+            editable: false
         });
     }
 

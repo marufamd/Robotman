@@ -9,7 +9,8 @@ module.exports = class extends Command {
     constructor() {
         super('connectfour', {
             aliases: ['connect-four', 'connect', 'c4', 'c-four'],
-            description: 'Starts a Connect Four game.'
+            description: 'Starts a Connect Four game.',
+            editable: false
         });
     }
 
@@ -115,7 +116,7 @@ module.exports = class extends Command {
             const embed = this.client.util.embed()
                 .setColor(colors.CONNECT_FOUR)
                 .setDescription(game.currentBoard)
-                .setFooter(`To start another game, type ${prefix}${message.util.parsed.command}`);
+                .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);
 
             if (win) {
                 let winner = turn ? 'yellow' : 'red';

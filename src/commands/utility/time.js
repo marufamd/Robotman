@@ -28,7 +28,7 @@ module.exports = class extends Command {
                         start: 'What timezone would you like to view the current time in?'
                     }
                 }
-            ],
+            ]
         });
     }
 

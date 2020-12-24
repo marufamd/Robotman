@@ -23,7 +23,9 @@ exports.logTypes = {
 
 exports.formats = {
     log: 'MMMM Do YYYY, [at] h:mm:ss A',
-    uptime: 'D[d], H[h], m[m], s[s]'
+    uptime: 'D[d], H[h], m[m], s[s]',
+    locg: 'YYYY-MM-DD',
+    day: 'dddd'
 };
 
 exports.emojis = [
@@ -116,12 +118,19 @@ exports.groups = {
     mod: ['moderation', 'tags']
 };
 
-exports.guilds = {
-    dc: '246056996292395008'
+exports.pull = {
+    default: {
+        previous: ["pulllast", "pl", "plast", "releaseslast"],
+        next: ["pullnext", "pn", "pnext", "releasesnext"]
+    },
+    user: {
+        previous: ["pulllastuser", "plu", "plastuser", "pluser", "releaseslastuser"],
+        next: ["pullnextuser", "pnu", "pnextuser", "pnuser", "pullnu"]
+    }
 };
 
-exports.roles = {
-    guardian: '568584666487980032'
+exports.channels = {
+    rd: '549370319752921099'
 };
 
 exports.trivia = {
@@ -140,8 +149,8 @@ exports.hangmanEmojis = {
     head: '😐',
     shirt: '👕',
     leftHand: '🤚',
-    rightHand: '🖐️', 
-    pants: '🩳', 
+    rightHand: '🖐️',
+    pants: '🩳',
     shoe: '👞'
 };
 

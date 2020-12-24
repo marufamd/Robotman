@@ -57,6 +57,23 @@ module.exports = class Robotman extends AkairoClient {
             .addType('clientChannel', (_, phrase) => {
                 if (this.channels.cache.has(phrase)) return this.channels.cache.get(phrase);
                 return null;
+            })
+            .addType('parsedDate', (_, phrase) => {
+                let parsed = Date.parse(phrase);
+
+                if (isNaN(parsed)) {
+                    const month = phrase.match(/(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)/gi);
+                    const day = phrase.match(/[0-9]{1,2}(st|th|nd|rd|\s)/gi);
+                    const year = phrase.match(/[0-9]{4}/g);
+
+                    if (month && day && year) {
+                        parsed = `${month[0]} ${day[0].replace(/(st|nd|rd|th)/gi, '')} ${year[0]}`;
+                    } else {
+                        return null;
+                    }
+                }
+
+                return new Date(parsed);
             });
 
         this.listenerHandler = new ListenerHandler(this, {
@@ -75,7 +92,7 @@ module.exports = class Robotman extends AkairoClient {
 
     init() {
         this.log('Initializing...');
-        
+
         this.db.init();
         this.settings.init();
 

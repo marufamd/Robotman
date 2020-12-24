@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
 const { randomResponse, title } = require('../../util');
-const { pokemon } = require('../../util/constants');
+const { pokemon, colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -60,7 +60,7 @@ module.exports = class extends Command {
         const url = `https://japeal.prestocdn.net/wordpress/wp-content/themes/total/PKM/upload2/${first}X${second}X0.png`;
 
         const embed = this.client.util.embed()
-            .setColor('f04037')
+            .setColor(colors.POKEMON)
             .setAuthor(`${title(poke1)} + ${title(poke2)}`)
             .setTitle(title(this.getPart(poke1) + this.getPart(poke2, true)))
             .setImage(url)

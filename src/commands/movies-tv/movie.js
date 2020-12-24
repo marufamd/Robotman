@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { fetch } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -33,7 +34,7 @@ module.exports = class extends Command {
         if (res.Response === 'False') return message.util.send('No results found.');
 
         const embed = this.client.util.embed()
-            .setColor('33bad7')
+            .setColor(colors.MOVIE_DB)
             .setTitle(`${res.Title} (${res.Year})`)
             .setThumbnail(res.Poster === 'N/A' ? null : res.Poster)
             .setURL(`https://www.imdb.com/title/${res.imdbID}`)

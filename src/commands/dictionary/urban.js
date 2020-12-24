@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { fetch, trim } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -30,7 +31,7 @@ module.exports = class extends Command {
         else if (!defined) return message.respond('No results found');
 
         const embed = this.client.util.embed()
-            .setColor('1b9eea')
+            .setColor(colors.URBAN)
             .setTitle(defined.word)
             .setURL(defined.permalink)
             .setThumbnail('https://i.imgur.com/Xv1NhhY.png')

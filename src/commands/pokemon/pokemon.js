@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const { trim, formatQuery, fetch } = require('../../util');
+const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -37,7 +38,7 @@ module.exports = class extends Command {
         if (!poke) return message.util.send('No results found.');
 
         const embed = this.client.util.embed()
-            .setColor('a1cf31')
+            .setColor(colors.BULBAPEDIA)
             .setTitle(poke.title)
             .setURL(poke.link)
             .setDescription(poke.description)
