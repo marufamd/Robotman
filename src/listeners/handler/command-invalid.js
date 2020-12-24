@@ -9,12 +9,11 @@ module.exports = class extends Listener {
     }
 
     async exec(message) {
-        const parsed = message.util?.parsed;
-        if (!parsed?.prefix || !parsed?.alias || !parsed?.afterPrefix) return;
+        if (!message?.util?.parsed?.afterPrefix) return;
         const { commandHandler } = this.client;
 
         const command = commandHandler.modules.get('tag');
-        const args = await command.parse(message, parsed?.afterPrefix);
+        const args = await command.parse(message, message?.util?.parsed?.afterPrefix);
 
         return commandHandler.runCommand(message, command, args);
     }
