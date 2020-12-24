@@ -1,4 +1,4 @@
-const { connect: { pieces, nums } } = require('../util/constants');
+const { connectFour: { pieces, nums } } = require('../util/constants');
 
 class ConnectFour {
     constructor() {

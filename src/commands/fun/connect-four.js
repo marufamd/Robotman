@@ -21,10 +21,11 @@ module.exports = class extends Command {
         try {
             const game = new ConnectFour();
             game.players.push(message.author);
+            
             this.client.connectFour.add(message.channel.id);
             this.client.config.stat('connect_four');
 
-            message.respond(oneLine`**${message.author.username}** has started a game! Type \`${prefix}connectjoin\` to face them. 
+            message.channel.send(oneLine`**${message.author.username}** has started a game! Type \`${prefix}connectjoin\` to face them. 
         To cancel the game, type \`${prefix}connectend\`. The game will be automatically cancelled if no one joins in the next ${CANCEL_TIME} minutes.`);
 
             const command = (resp, cmd) => resp.content.toLowerCase() === `${message.util.parsed.prefix}connect${cmd}`;
@@ -56,10 +57,10 @@ module.exports = class extends Command {
                 yellow: { player: game.players[1], emoji: indicators.yellow }
             };
 
-            let turn = true;
-            let win = false;
-            let boardFull = false;
-            let lastSkipped = false;
+            let turn = true,
+                win = false,
+                boardFull = false,
+                lastSkipped = false;
 
             game.makeBoard();
 
@@ -114,7 +115,7 @@ module.exports = class extends Command {
             const embed = this.client.util.embed()
                 .setColor(colors.CONNECT_FOUR)
                 .setDescription(game.currentBoard)
-                .setFooter(`To start another game, type ${prefix}${message.command}`);
+                .setFooter(`To start another game, type ${prefix}${message.util.parsed.command}`);
 
             if (win) {
                 let winner = turn ? 'yellow' : 'red';
