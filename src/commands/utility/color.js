@@ -25,7 +25,6 @@ module.exports = class extends Command {
                     match: 'content',
                     prompt: {
                         start: 'What color would you like to view?',
-                        retry: 'Invalid color. Please try again.'
                     }
                 }
             ],
@@ -42,7 +41,7 @@ module.exports = class extends Command {
             resolve = color
                 .replaceAll(/ +/g, '_')
                 .replaceAll('#', '');
-            resolve = resolve.length !== 6 ? parseInt(resolve) ?? resolve : resolve;
+            resolve = resolve.length !== 6 ? (isNaN(parseInt(resolve)) ? resolve : parseInt(resolve)) : resolve;
         }
 
         const resolvedColor = this.resolveColor(resolve);
