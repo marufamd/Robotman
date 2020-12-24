@@ -12,5 +12,3 @@ package-lock.json
 # Other
 src/util/weekly.js
 src/util/weekly_base.txt
-core/
-database/
