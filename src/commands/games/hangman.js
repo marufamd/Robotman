@@ -92,7 +92,7 @@ module.exports = class extends Command {
 
             embed
                 .setDescription(game.board)
-                .setFooter(`To start another game, type ${prefix}${message.command}`);
+                .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);
             if (game.incorrectGuesses) embed.addField(`Guesses (${game.incorrectGuesses.split(' ').length}/7)`, game.incorrectGuesses);
 
             message.channel.send(embed);
