@@ -51,7 +51,7 @@ module.exports = class extends Command {
                     .setDescription(desc)
                     .setFooter(`Category: ${title(mod.categoryID)}${this.ratelimit > 2 ? ` | This command has a ${this.ratelimit} second cooldown.` : ''}`);
 
-                if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.makeExamples(prefix));
+                if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.makeExamples(mod, prefix));
                 if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));
             } else {
                 mod = mod.filter(hidden);
