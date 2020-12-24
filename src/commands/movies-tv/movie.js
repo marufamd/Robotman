@@ -20,6 +20,7 @@ module.exports = class extends Command {
                     }
                 }
             ],
+            ratelimit: 4
         });
     }
 

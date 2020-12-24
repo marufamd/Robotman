@@ -38,7 +38,8 @@ module.exports = class extends Command {
                     match: 'rest'
                 }
             ],
-            typing: true
+            typing: true,
+            ratelimit: 4
         });
     }
 

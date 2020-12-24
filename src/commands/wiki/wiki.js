@@ -19,7 +19,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            typing: true
+            typing: true,
+            ratelimit: 5
         });
 
         this.badWords = null;

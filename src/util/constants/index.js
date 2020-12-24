@@ -163,3 +163,5 @@ exports.baseConfig = {
     webhook_url: null,
     schedule: null
 };
+
+exports.MAX_SEARCH_RESULTS = 8;

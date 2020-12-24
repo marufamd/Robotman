@@ -6,7 +6,7 @@ const { googleColors } = require('../../util/constants');
 module.exports = class extends Command {
     constructor() {
         super('google', {
-            aliases: ['google', 'search'],
+            aliases: ['google', 'search', 'google-search'],
             description: {
                 info: 'Searches Google and returns the first three results.',
                 usage: '<query>',
@@ -29,7 +29,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            typing: true
+            typing: true,
+            ratelimit: 8
         });
     }
 

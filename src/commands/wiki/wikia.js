@@ -26,7 +26,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            typing: true
+            typing: true,
+            ratelimit: 5
         });
     }
 

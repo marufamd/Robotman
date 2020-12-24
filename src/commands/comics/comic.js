@@ -25,7 +25,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            typing: true
+            typing: true,
+            ratelimit: 10
         });
     }
 
@@ -51,7 +52,7 @@ module.exports = class extends Command {
         if (pageCount) embed.addField('Page Count', pageCount, true);
         if (releaseDate) embed.addField('Release Date', releaseDate, true);
 
-        if ([5, 8].includes(embed.fields.length)) embed.addField('\u200b', '\u200b', true);
+        embed.formatFields();
 
         return message.util.send(embed);
     }
