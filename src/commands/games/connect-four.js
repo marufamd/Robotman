@@ -35,7 +35,7 @@ module.exports = class extends Command {
             let join = await message.channel.awaitMessages(filter, { max: 1, time: CANCEL_TIME * 60000, errors: ['time'] }).catch(() => null);
 
             if (!join) {
-                if (this.client.games.connect4.has(message.channel.id)) {
+                if (this.client.connectFour.has(message.channel.id)) {
                     message.channel.send('A second player has not joined. The game has been cancelled.');
                     this.client.connectFour.delete(message.channel.id);
                 }
