@@ -78,7 +78,7 @@ module.exports = class extends Command {
         return mod.description.examples
             .map(example => {
                 if (mod.aliases.some(a => example.startsWith(a + ' '))) return `${prefix}${example}`;
-                return `${prefix}${this.name} ${example}`;
+                return `${prefix}${mod.id} ${example}`;
             })
             .join('\n');
     }
