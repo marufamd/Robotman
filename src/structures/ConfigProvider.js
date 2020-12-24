@@ -1,8 +1,9 @@
+const StatelessProvider = require('./StatelessProvider');
 const { baseConfig } = require('../util/constants');
 
-module.exports = class ConfigManager {
+module.exports = class ConfigProvider extends StatelessProvider {
     constructor(table) {
-        this.table = table;
+        super(table);
     }
 
     async set(key, val) {
@@ -12,9 +13,7 @@ module.exports = class ConfigManager {
     }
 
     async get(key) {
-        let item = await this.table.findOne({ where: { id: 1 } });
-        if (!item) item = await this.table.create({ data: baseConfig });
-        const { data } = item;
+        const { data } = (await this.table.findOne({ where: { id: 1 } })) ?? (await this.table.create({ data: baseConfig }));
         if (key) return data[key];
         return data;
     }

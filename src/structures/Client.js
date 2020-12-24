@@ -5,7 +5,7 @@ const { join } = require('path');
 const Sequelize = require('sequelize');
 
 const ClientUtil = require('./ClientUtil');
-const ConfigManager = require('./ConfigManager');
+const ConfigProvider = require('./ConfigProvider');
 const Database = require('./Database');
 const { plural } = require('../util');
 
@@ -20,10 +20,12 @@ module.exports = class Robotman extends AkairoClient {
         this.db = new Database(db);
 
         this.settings = new SequelizeProvider(this.db.settings, { idColumn: 'guild', dataColumn: 'settings' });
-        this.config = new ConfigManager(this.db.config);
+        this.config = new ConfigProvider(this.db.config);
 
         this.aki = new Set();
         this.hangman = new Set();
+        this.trivia = new Set();
+        this.connectFour = new Set();
 
         this.commandHandler = new CommandHandler(this, {
             directory: join(__dirname, '..', 'commands'),

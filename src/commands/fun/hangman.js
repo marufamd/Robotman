@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const Hangman = require('../../games/Hangman');
+const Hangman = require('../../structures/Hangman');
 const { randomResponse, getPrefix } = require('../../util');
 const { words } = require('../../util/constants');
 

@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const Akinator = require('../../games/Akinator');
+const Akinator = require('../../structures/Akinator');
 
 module.exports = class extends Command {
     constructor() {

@@ -88,7 +88,7 @@ exports.aki = {
     }
 };
 
-exports.connect = {
+exports.connectFour = {
     pieces: {
         default: '<:blank:769981408990068836>',
         yellow: '<:yellow:769980715697700874>',
@@ -103,7 +103,12 @@ exports.connect = {
         '<:c6:771557388057706538>',
         '<:c7:771557387814567939>'
     ],
-    color: 813765
+    indicators: {
+        red: '🔴',
+        yellow: '🟡'
+    },
+    CANCEL_TIME: 15,
+    WAIT_TIME: 1
 };
 
 exports.groups = {
@@ -126,7 +131,9 @@ exports.trivia = {
         'dctv'
     ],
     DEFAULT_NUM: 30,
-    MAX_UNANSWERED: 15
+    MAX_UNANSWERED: 15,
+    STOP_RESPONSE: 'triviastop',
+    SCOREBOARD_RESPONSE: 'scoreboard'
 };
 
 exports.hangmanEmojis = {
