@@ -28,7 +28,7 @@ module.exports = class extends Command {
         const params = {
             apikey: process.env.MOVIEDB_KEY,
             type: 'movie',
-            t: query.replaceAll('spider man', 'spider-man')
+            t: query.replaceAll(/spider man/gi, 'spider-man')
         };
 
         const res = await fetch('https://www.omdbapi.com/', params);
@@ -48,7 +48,7 @@ module.exports = class extends Command {
                 `**Runtime:** ${res.Runtime}`,
                 '',
                 `**Directed by:** ${res.Director}`,
-                `**Credits:** ${res.Writer}`,
+                `**Credits:** ${res.Writer.replaceAll(' by', '')}`,
                 `**Starring:** ${res.Actors}`,
                 `**Production Companies:** ${res.Production}`
             ])

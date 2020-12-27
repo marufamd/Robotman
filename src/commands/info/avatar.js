@@ -11,17 +11,17 @@ module.exports = class extends Command {
             },
             args: [
                 {
-                    id: 'user',
-                    type: 'user',
-                    default: message => message.author
+                    id: 'member',
+                    type: 'member',
+                    default: message => message.member
                 }
             ]
         });
     }
 
-    async exec(message, { user }) {
-        const avatar = user.displayAvatarURL({ format: "png", size: 4096, dynamic: true });
-        const member = message.guild.members.cache.get(user.id);
+    async exec(message, { member }) {
+        const { user } = member;
+        const avatar = user.displayAvatarURL({ format:'png', size: 4096, dynamic: true });
 
         const embed = this.client.util.embed()
             .setTitle(`${user.tag}'s Avatar`)
