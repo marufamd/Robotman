@@ -95,17 +95,21 @@ class Locg {
     static async resolveUser(name) {
         const url = `https://leagueofcomicgeeks.com/profile/${name.toLowerCase()}/pull-list`;
 
-        const body = await fetch(url, null, 'text');
-        const $ = cheerio.load(body);
+        try {
+            const body = await fetch(url, null, 'text');
+            const $ = cheerio.load(body);
 
-        const details = $('#comic-list-block')[0];
-        if (!details) return null;
+            const details = $('#comic-list-block')[0];
+            if (!details) return null;
 
-        return {
-            id: details.attribs['data-user'],
-            name: $('title').text().slice(0, -47),
-            url
-        };
+            return {
+                id: details.attribs['data-user'],
+                name: $('title').text().slice(0, -47),
+                url
+            };
+        } catch {
+            return 'private';
+        }
     }
 
     static getPullDate(dc = false) {
@@ -122,7 +126,7 @@ class Locg {
         switch (type) {
             case 'singles':
                 match = c => !c.name.match(/((\d:\d+)|((R|K)E|XXX|HC|TP)|(Cover(e)?|Shop) [A-Z])/)
-                          && !c.name.match(/\s(var(iant)?|omnibus|printing|incentive|facsimile|exclusive|limited|cover|graded|box\s*set|lotay|giang|khoi pham|mckelvie|uncanny knack virgin|vinyl|newsstand|edition)/i);
+                    && !c.name.match(/\s(var(iant)?|omnibus|printing|incentive|facsimile|exclusive|limited|cover|graded|box\s*set|lotay|giang|khoi pham|mckelvie|uncanny knack virgin|vinyl|newsstand|edition)/i);
                 break;
             case 'trades':
                 match = t => t.name.match(/(hc|tp|omnibus|box\s*set)/i) && !t.name.match(/(var(iant)?|printing|incentive)/i);
