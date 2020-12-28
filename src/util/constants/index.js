@@ -161,7 +161,7 @@ exports.baseConfig = {
     connect_four: 0,
     commands_run: 0,
     webhook_url: null,
-    schedule: null
+    schedule: []
 };
 
 exports.MAX_SEARCH_RESULTS = 8;

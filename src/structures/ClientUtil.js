@@ -1,5 +1,6 @@
 const { ClientUtil } = require('discord-akairo');
 const { MessageEmbed } = require('discord.js');
+const { basename, dirname } = require('path');
 const { botColors } = require('../util/constants');
 
 module.exports = class extends ClientUtil {
@@ -32,6 +33,15 @@ module.exports = class extends ClientUtil {
                 return `${prefix}${command.id} ${example}`;
             })
             .join('\n');
+    }
+
+    parseWebhook(url) {
+        let id, token;
+        if (url) {
+            id = basename(dirname(url));
+            token = basename(url);
+        }
+        return { id, token };
     }
 };
 

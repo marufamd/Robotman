@@ -9,6 +9,7 @@ const ConfigProvider = require('./ConfigProvider');
 const Database = require('./Database');
 const { plural } = require('../util');
 const TagsProvider = require('./TagsProvider');
+const { RecurrenceRule, scheduleJob } = require('node-schedule');
 
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
@@ -69,8 +70,8 @@ module.exports = class Robotman extends AkairoClient {
                     const day = phrase.match(/[0-9]{1,2}(st|th|nd|rd|\s)/gi);
                     const year = phrase.match(/[0-9]{4}/g);
 
-                    if (month && day && year) {
-                        parsed = `${month[0]} ${day[0].replace(/(st|nd|rd|th)/gi, '')} ${year[0]}`;
+                    if (month && day) {
+                        parsed = `${month[0]} ${day[0].replace(/(st|nd|rd|th)/gi, '')} ${year?.[0] ?? new Date().getFullYear()}`;
                     } else {
                         return null;
                     }
@@ -78,7 +79,7 @@ module.exports = class Robotman extends AkairoClient {
 
                 return new Date(parsed);
             })
-            .addType('tag', (message, phrase) => this.tags.get(phrase.toLowerCase(), message.guild.id) ?? null);
+            .addType('tag', async (message, phrase) => await this.tags.get(phrase.toLowerCase(), message.guild.id) ?? null);
 
         this.listenerHandler = new ListenerHandler(this, {
             directory: join(__dirname, '..', 'listeners'),
@@ -110,6 +111,7 @@ module.exports = class Robotman extends AkairoClient {
         });
 
         this.loadHandlers('commandHandler', 'listenerHandler', 'inhibitorHandler');
+        this.loadSchedule();
 
         this.login();
     }
@@ -124,6 +126,21 @@ module.exports = class Robotman extends AkairoClient {
 
             this.log(`Loaded ${modules.size} ${plural(item, modules.size)}${modules.size ? `:\`\`\`css\n${modules.map(m => m.id).join(', ')}\`\`\`` : ''}`);
         }
+    }
+
+    async loadSchedule() {
+        const schedule = await this.config.get('schedule');
+        if (!schedule?.length) return;
+
+        const rule = new RecurrenceRule();
+        rule.dayOfWeek = schedule[0];
+        rule.hour = schedule[1];
+        rule.minute = schedule[2];
+
+        const func = () => this.commandHandler.modules.get('release-list').exec();
+
+        if (this.schedule) this.schedule.cancel();
+        this.schedule = scheduleJob(rule, func);
     }
 
     log(text, type, options) {
