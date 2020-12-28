@@ -141,6 +141,8 @@ module.exports = class Robotman extends AkairoClient {
 
         if (this.schedule) this.schedule.cancel();
         this.schedule = scheduleJob(rule, func);
+
+        this.log('Loaded Schedule');
     }
 
     log(text, type, options) {
