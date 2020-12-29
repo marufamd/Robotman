@@ -5,7 +5,7 @@ const util = require('../../util');
 module.exports = class extends Command {
     constructor() {
         super('eval', {
-            aliases: ['eval'],
+            aliases: ['eval', 'async'],
             description: {
                 info: 'Evaluates code.',
                 usage: '<code>'
@@ -58,13 +58,13 @@ module.exports = class extends Command {
             const oldInput = code;
             code = code.replaceAll(/(\S*\.)?(client|config).token$/gi, 'util.randomToken()');
 
-            if (/(await|async)/g.test(code) || message.command === 'async') evaled = eval(`(async () => {${code}})();`);
+            if (/(await|async)/g.test(code) || message.util.parsed.alias === 'async') evaled = eval(`(async () => {${code}})();`);
             else evaled = eval(code);
 
             executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
             
             if (evaled instanceof Promise) evaled = await evaled;
-            const type = (evaled === null || evaled === undefined) ? '' : (evaled.constructor?.name && evaled.constructor.name.length ? evaled.constructor.name : (Object.getPrototypeOf(evaled.constructor)?.name || ''));
+            const type = evaled?.constructor?.name ? evaled?.constructor?.name : (evaled.constructor ? Object.getPrototypeOf(evaled.constructor).name : null);
 
             if (evaled instanceof Object && typeof evaled !== 'function') evaled = inspect(evaled, { depth });
 
@@ -73,7 +73,7 @@ module.exports = class extends Command {
 
             if (typeof evaled === 'string' && !evaled.length) evaled = '\u200b';
 
-            evaled = util.redact(this.clean(evaled.toString()));
+            evaled = util.redact(this.clean(evaled.toString ? evaled.toString() : inspect(JSON.parse(JSON.stringify(evaled)))));
 
             this.lastInput = oldInput;
             this.lastResult = evaled;

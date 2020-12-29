@@ -121,7 +121,7 @@ class Locg {
     }
 
     static filter(pulls, type = 'singles') {
-        let match;
+        let match = () => true;
 
         switch (type) {
             case 'singles':
