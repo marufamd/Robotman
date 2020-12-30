@@ -14,18 +14,21 @@ module.exports = class extends Command {
                     'Providing no Pokemon will fuse two random Pokemon'
                 ],
                 examples: ['bulbasaur pikachu', 'squirtle charmander', '"mr. mime" alakazam']
-            },
-            args: [
-                {
-                    id: 'first',
-                    type: 'lowercase'
-                },
-                {
-                    id: 'second',
-                    type: 'lowercase'
-                }
-            ],
+            }
         });
+    }
+
+    *args() {
+        const first = yield { type: 'lowercase' };
+        let second;
+        if (first) second = yield {
+            type: 'lowercase',
+            prompt: {
+                start: `Which Pokemon would you like to fuse **${first}** with? Respond with \`random\` to fuse it with a random Pokemon.`
+            } 
+        };
+
+        return { first, second };
     }
 
     async exec(message, { first, second }) {
@@ -36,9 +39,9 @@ module.exports = class extends Command {
             first = pokemon.indexOf(poke1) + 1;
             second = pokemon.indexOf(poke2) + 1;
         } else {
-            if (!second) {
+            if (second === 'random') {
                 poke2 = this.getRandom();
-                second = second = pokemon.indexOf(poke2) + 1;
+                second = pokemon[pokemon.indexOf(poke2) + 1];
             }
 
             [first, second] = [first, second].map(a => a

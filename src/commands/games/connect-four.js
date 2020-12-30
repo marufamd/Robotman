@@ -2,7 +2,7 @@ const { oneLine } = require('common-tags');
 const { Command } = require('discord-akairo');
 const ConnectFour = require('../../structures/ConnectFour');
 
-const { getPrefix } = require('../../util');
+const { getPrefix, plural } = require('../../util');
 const { connectFour: { CANCEL_TIME, WAIT_TIME, indicators }, colors } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -73,7 +73,7 @@ module.exports = class extends Command {
                     .setColor(colors.CONNECT_FOUR)
                     .setTitle(`\\${emoji} ${player.username}, it's your turn!`)
                     .setDescription(`Type a number from 1-7 to place a piece, or \`${prefix}connectstop\` to forfeit.\n\n${game.currentBoard}`)
-                    .setFooter(`You have 1 minute to make a move.`);
+                    .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move.`);
 
                 const msg = await message.channel.send(embed);
 
