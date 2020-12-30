@@ -28,13 +28,18 @@ exports.formats = {
     day: 'dddd'
 };
 
-exports.emojis = [
-    '776869773123387392', // First Page
-    '776869773127581708', // Previous Page
-    '776869773278445576', // Next Page
-    '776869773031374849', // Last Page
-    '776865156180607006'  // Cancel
-];
+exports.emojis = {
+    timer: '<a:Timer:654794151841366058>',
+    paginator: [
+        '776869773123387392', // First Page
+        '776869773127581708', // Previous Page
+        '776869773278445576', // Next Page
+        '776869773031374849', // Last Page
+        '776865156180607006'  // Cancel
+    ]
+};
+
+
 
 exports.shows = [
     13,    // The Flash

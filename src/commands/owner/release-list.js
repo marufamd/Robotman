@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
 const moment = require('moment');
-const { split } = require('../../util');
+const { split, parseWebhook } = require('../../util');
 const { colors, formats } = require('../../util/constants');
 const { getComics } = require('../../util/locg');
 
@@ -16,7 +16,7 @@ module.exports = class extends Command {
         const { webhook_url } = await this.client.config.get();
         if (!webhook_url) return;
 
-        const { id, token } = this.client.util.parseWebhook(webhook_url);
+        const { id, token } = parseWebhook(webhook_url);
         const webhook = await this.client.fetchWebhook(id, token);
         const date = (moment().weekday() <= 2 ? moment().day(2) : moment().day(2).add(7, "days")).format(formats.locg);
 

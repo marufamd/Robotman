@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
 const Hangman = require('../../structures/Hangman');
 const { randomResponse, getPrefix } = require('../../util');
-const { words } = require('../../util/constants');
+const { words, emojis } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -37,7 +37,8 @@ module.exports = class extends Command {
                         `You can guess one letter, or try guessing the entire word.`,
                         game.board
                     ])
-                    .addField('Word', game.formattedWord)
+                    .addField('Word', game.formattedWord, true)
+                    .addField('Time', emojis.timer, true)
                     .setFooter('You have 1 minute to make a guess');
 
                 if (game.incorrectGuesses) embed.addField(`Guesses (${game.incorrectGuesses.split(' ').length}/7)`, game.incorrectGuesses);

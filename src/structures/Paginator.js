@@ -1,4 +1,4 @@
-const { emojis } = require('../util/constants');
+const { emojis: { paginator: emojis } } = require('../util/constants');
 
 module.exports = class Paginator {
     constructor({ embeds = [], time = 30000 }) {
