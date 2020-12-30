@@ -39,6 +39,11 @@ module.exports = class extends Command {
             first = pokemon.indexOf(poke1) + 1;
             second = pokemon.indexOf(poke2) + 1;
         } else {
+            if (first === 'random') {
+                poke1 = this.getRandom();
+                first = pokemon[pokemon.indexOf(poke1) + 1];
+            }
+            
             if (second === 'random') {
                 poke2 = this.getRandom();
                 second = pokemon[pokemon.indexOf(poke2) + 1];
