@@ -64,7 +64,7 @@ module.exports = class extends Command {
 
                 if (letter === `${message.util.parsed.prefix}hangmanstop`) {
                     this.client.hangman.delete(message.channel.id);
-                    return message.channel.send('Game has been stopped.');
+                    return message.channel.send('The game has been stopped.');
                 } else if (letter === word) {
                     guessWin = true;
                     msg.delete();
