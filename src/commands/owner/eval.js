@@ -64,7 +64,7 @@ module.exports = class extends Command {
             executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
             
             if (evaled instanceof Promise) evaled = await evaled;
-            const type = evaled?.constructor?.name ? evaled?.constructor?.name : (evaled.constructor ? Object.getPrototypeOf(evaled.constructor).name : null);
+            const type = evaled?.constructor?.name ? evaled?.constructor?.name : (evaled?.constructor ? Object.getPrototypeOf(evaled.constructor).name : null);
 
             if (evaled instanceof Object && typeof evaled !== 'function') evaled = inspect(evaled, { depth });
 

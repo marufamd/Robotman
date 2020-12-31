@@ -10,8 +10,8 @@ module.exports = class extends Command {
                 info: 'Fuses two Pokemon together.',
                 usage: '<first pokemon> <second pokemon>',
                 extended: [
-                    'Providing one Pokemon will fuse it with a random Pokemon',
-                    'Providing no Pokemon will fuse two random Pokemon'
+                    'Providing `random` as an argument will use a random Pokemon.',
+                    'Providing no Pokemon will fuse two random Pokemon.'
                 ],
                 examples: ['bulbasaur pikachu', 'squirtle charmander', '"mr. mime" alakazam']
             }
@@ -43,7 +43,7 @@ module.exports = class extends Command {
                 poke1 = this.getRandom();
                 first = pokemon[pokemon.indexOf(poke1) + 1];
             }
-            
+
             if (second === 'random') {
                 poke2 = this.getRandom();
                 second = pokemon[pokemon.indexOf(poke2) + 1];
