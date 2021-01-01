@@ -25,10 +25,31 @@ module.exports = class extends Command {
         });
     }
 
-    async exec(message, { word }) {
-        const defined = await this.search(word);
+    interactionOptions = {
+        name: 'synonym',
+        description: 'Shows synonyms for a word from the thesaurus.',
+        options: [
+            {
+                type: 'string',
+                name: 'word',
+                description: 'The word to search for.',
+                required: true
+            }
+        ]
+    }
 
-        if (!defined || !defined.synonyms?.length) return message.util.send('No synonyms found');
+    async exec(message, { word }) {
+        return message.util.send(await this.main(word));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('word')));
+    }
+
+    async main(word) {
+        const defined = await this.search(word);
+        if (!defined?.synonyms?.length) return 'No synonyms found';
+
         const embed = this.client.util.embed()
             .setColor(colors.DICTIONARY)
             .setFooter('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png');
@@ -44,7 +65,7 @@ module.exports = class extends Command {
                 .setDescription(defined.synonyms.map(s => `[${s}](https://www.merriam-webster.com/dictionary/${encodeURIComponent(s)})`));
         }
 
-        return message.util.send(embed);
+        return embed;
     }
 
     async search(word) {
