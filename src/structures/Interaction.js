@@ -49,7 +49,7 @@ class Interaction extends Base {
     }
 
     option(name) {
-        return this.options.find(o => o.name === name)?.value;
+        return this.options?.find(o => o.name === name)?.value;
     }
 
     findOptions(...names) {

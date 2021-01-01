@@ -12,6 +12,8 @@ module.exports = class InteractionHandler {
     }
 
     create(data, guild) {
+        if (typeof data === 'string') data = this.client.commandHandler.findCommand(data)?.interactionOptions;
+        if (!data) return;
         let path = this.client.api.applications(this.client.user.id);
         if (guild) path = path.guilds(guild);
         return path.commands.post({ data });

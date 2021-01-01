@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const Interaction = require('../../structures/Interaction');
 const { randomResponse, title } = require('../../util');
 const { pokemon, colors } = require('../../util/constants');
 
@@ -25,13 +26,44 @@ module.exports = class extends Command {
             type: 'lowercase',
             prompt: {
                 start: `Which Pokemon would you like to fuse **${first}** with? Respond with \`random\` to fuse it with a random Pokemon.`
-            } 
+            }
         };
 
         return { first, second };
     }
 
+    interactionOptions = {
+        name: 'fuse',
+        description: 'Fuses two Pokemon together.',
+        options: [
+            {
+                type: 3,
+                name: 'first',
+                description: 'The first Pokemon to fuse.'
+            },
+            {
+                type: 3,
+                name: 'second',
+                description: 'The Pokemon to fuse the first with.'
+            },
+        ]
+    }
+
     async exec(message, { first, second }) {
+        return this.main(first, second, message.util);
+    }
+
+    interact(interaction) {
+        const [first, second] = interaction.findOptions('first', 'second');
+        return this.main(first, second, interaction);
+    }
+
+    main(first, second, type) {
+        let fn;
+        if (type instanceof Interaction) fn = type.respond;
+        else fn = type.send;
+        fn = fn.bind(type);
+
         let poke1, poke2;
 
         if (!first) {
@@ -60,7 +92,7 @@ module.exports = class extends Command {
             if (pokemon[first] === null) first = this.getProper(first);
             if (pokemon[second] === null) second = this.getProper(second);
 
-            if (!pokemon[first] || !pokemon[second]) return message.util.send('Invalid Pokemon.');
+            if (!pokemon[first] || !pokemon[second]) return fn('Invalid Pokemon.');
 
             [poke1, poke2] = [pokemon[first - 1], pokemon[second - 1]];
         }
@@ -74,7 +106,7 @@ module.exports = class extends Command {
             .setImage(url)
             .setFooter('Pokemon Fusion Generator');
 
-        return message.util.send(embed);
+        return fn(embed);
     }
 
     getRandom(amount = 1) {
