@@ -119,7 +119,8 @@ module.exports = Interaction;
 
 function resolveData(content, options) {
     if (content) {
-        if (typeof content === 'object') options = content;
+        if (content instanceof MessageEmbed) options = { embed: content };
+        else if (typeof content === 'object') options = content;
         else options.content = content;
     }
 

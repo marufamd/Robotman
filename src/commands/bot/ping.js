@@ -44,9 +44,6 @@ module.exports = class extends Command {
                 inline: true
             });
 
-        return interaction.respond({
-            type: 4,
-            embed
-        });
+        return interaction.respond(embed);
     }
 };

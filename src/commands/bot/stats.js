@@ -17,7 +17,22 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'stats',
+        description: 'Displays the bot\'s statistics.',
+    }
+
     async exec(message) {
+        const embed = await this.main();
+        return message.util.send(embed);
+    }
+
+    async interact(interaction) {
+        const embed = await this.main();
+        return interaction.respond(embed);
+    }
+
+    async main() {
         const stats = await this.client.config.get();
 
         const embed = this.client.util.embed()
@@ -44,6 +59,6 @@ module.exports = class extends Command {
                 inline: true
             });
 
-        return message.util.send(embed);
+        return embed;
     }
 };

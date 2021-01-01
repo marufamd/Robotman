@@ -66,27 +66,23 @@ module.exports = class extends Command {
         if (next.includes(message.util.parsed.alias)) date = date.add(7, 'days');
         else if (previous.includes(message.util.parsed.alias)) date = date.subtract(7, 'days');
 
-        publisher = publishers[publisher];
-
-        const pull = await getComics(publisher.id, date.format(formats.locg));
-
-        date = (publisher.id === 1 ? date.subtract(1, 'days') : date).format(formats.locg);
-
-        const embed = this.client.util.embed()
-            .setColor(publisher.color)
-            .setTitle(`${publisher.name} Pull List for the Week of ${date}`)
-            .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
-            .setThumbnail(publisher.thumbnail);
+        const embed = await this.main(publisher, date);
 
         return message.util.send(embed);
     }
 
     async interact(interaction) {
-        let [publisher, date] = interaction.findOptions('publisher', 'date');
+        let [publisher, date] = interaction.findOptions('publisher', 'date'); // eslint-disable-line prefer-const
 
         date = this.handler.resolver.type('parsedDate')(null, date);
         date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
 
+        const embed = await this.main(publisher, date);
+
+        return interaction.respond(embed);
+    }
+
+    async main(publisher, date) {
         publisher = publishers[publisher];
 
         const pull = await getComics(publisher.id, date.format(formats.locg));
@@ -98,7 +94,7 @@ module.exports = class extends Command {
             .setTitle(`${publisher.name} Pull List for the Week of ${date}`)
             .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
             .setThumbnail(publisher.thumbnail);
-
-        return interaction.respond({ embed });
+        
+        return embed;
     }
 };
