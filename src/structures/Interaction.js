@@ -1,6 +1,5 @@
-const { MessageEmbed } = require('discord.js');
-const { SnowflakeUtil, APIMessage, Webhook, WebhookClient } = require('discord.js');
-const { Base } = require('discord.js');
+const { SnowflakeUtil, APIMessage, Webhook, WebhookClient, MessageEmbed, Base } = require('discord.js');
+const { ResponseTypes } = require('../util/constants');
 
 Object.defineProperty(APIMessage, 'create', {
     value: function create(target, content, options, extra = {}) {
@@ -9,14 +8,6 @@ Object.defineProperty(APIMessage, 'create', {
         return new this(target, transformed);
     }
 });
-
-const ResponseTypes = {
-    pong: 1,
-    acknowledge: 2,
-    message: 3,
-    messageWithSource: 4,
-    acknowledgeWithSource: 5
-};
 
 class Interaction extends Base {
     constructor(client, data) {

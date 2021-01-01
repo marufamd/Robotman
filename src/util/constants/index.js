@@ -39,8 +39,6 @@ exports.emojis = {
     ]
 };
 
-
-
 exports.shows = [
     13,    // The Flash
     689,   // Young Justice
@@ -170,3 +168,11 @@ exports.baseConfig = {
 };
 
 exports.MAX_SEARCH_RESULTS = 8;
+
+exports.ResponseTypes = {
+    pong: 1,
+    acknowledge: 2,
+    message: 3,
+    messageWithSource: 4,
+    acknowledgeWithSource: 5
+};
