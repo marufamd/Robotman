@@ -46,14 +46,14 @@ module.exports = class extends Command {
         description: 'Gets the pull list for a publisher for a specified week.',
         options: [
             {
-                type: 3,
+                type: 'string',
                 name: 'publisher',
                 description: 'The publisher to view the pull list for.',
                 choices: Object.entries(publishers).map(([k, v]) => ({ name: v.name, value: k })).slice(0, 10),
                 required: true
             },
             {
-                type: 3,
+                type: 'string',
                 name: 'date',
                 description: 'The week to view the pull list for.'
             }
@@ -66,20 +66,23 @@ module.exports = class extends Command {
         if (next.includes(message.util.parsed.alias)) date = date.add(7, 'days');
         else if (previous.includes(message.util.parsed.alias)) date = date.subtract(7, 'days');
 
-        const embed = await this.main(publisher, date);
-
-        return message.util.send(embed);
+        return message.util.send(await this.main(publisher, date));
     }
 
     async interact(interaction) {
         let [publisher, date] = interaction.findOptions('publisher', 'date'); // eslint-disable-line prefer-const
 
-        date = this.handler.resolver.type('parsedDate')(null, date);
-        date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
+        const newDate = moment();
+        const parsed = this.handler.resolver.type('parsedDate')(null, date);
 
-        const embed = await this.main(publisher, date);
+        if (date === 'next') date = newDate.add(7, 'days');
+        else if (date === 'last') date = newDate.subtract(7, 'days');
+        else if (parsed) date = moment(parsed);
+        else date = newDate;
 
-        return interaction.respond(embed);
+        date = (date !== newDate) || (date.weekday() <= 3) ? date.day(3) : date.day(3).add(7, 'days');
+
+        return interaction.respond(await this.main(publisher, date));
     }
 
     async main(publisher, date) {

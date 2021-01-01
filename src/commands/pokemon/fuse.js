@@ -1,5 +1,4 @@
 const { Command } = require('discord-akairo');
-const Interaction = require('../../structures/Interaction');
 const { randomResponse, title } = require('../../util');
 const { pokemon, colors } = require('../../util/constants');
 
@@ -37,12 +36,12 @@ module.exports = class extends Command {
         description: 'Fuses two Pokemon together.',
         options: [
             {
-                type: 3,
+                type: 'string',
                 name: 'first',
                 description: 'The first Pokemon to fuse.'
             },
             {
-                type: 3,
+                type: 'string',
                 name: 'second',
                 description: 'The Pokemon to fuse the first with.'
             },
@@ -50,16 +49,15 @@ module.exports = class extends Command {
     }
 
     async exec(message, { first, second }) {
-        return this.main(first, second, message.util);
+        return message.util.send(this.main(first, second));
     }
 
     interact(interaction) {
         const [first, second] = interaction.findOptions('first', 'second');
-        return this.main(first, second, interaction);
+        return interaction.respond(this.main(first, second));
     }
 
-    main(first, second, type) {
-        const fn = (type instanceof Interaction ? type.respond : type.send).bind(type);
+    main(first, second) {
         let poke1, poke2;
 
         if (!first) {
@@ -88,7 +86,7 @@ module.exports = class extends Command {
             if (pokemon[first] === null) first = this.getProper(first);
             if (pokemon[second] === null) second = this.getProper(second);
 
-            if (!pokemon[first] || !pokemon[second]) return fn('Invalid Pokemon.');
+            if (!pokemon[first] || !pokemon[second]) return 'Invalid Pokemon.';
 
             [poke1, poke2] = [pokemon[first - 1], pokemon[second - 1]];
         }
@@ -102,7 +100,7 @@ module.exports = class extends Command {
             .setImage(url)
             .setFooter('Pokemon Fusion Generator');
 
-        return fn(embed);
+        return embed;
     }
 
     getRandom(amount = 1) {

@@ -2,7 +2,7 @@ const { Listener } = require('discord-akairo');
 
 module.exports = class extends Listener {
     constructor() {
-        super('interactionCreate', {
+        super('interaction-create', {
             event: 'INTERACTION_CREATE',
             emitter: 'websocket'
         });

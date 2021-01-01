@@ -169,10 +169,27 @@ exports.baseConfig = {
 
 exports.MAX_SEARCH_RESULTS = 8;
 
-exports.ResponseTypes = {
-    pong: 1,
-    acknowledge: 2,
-    message: 3,
-    messageWithSource: 4,
-    acknowledgeWithSource: 5
-};
+exports.ResponseTypes = indexMirror([
+    'pong',
+    'acknowledge',
+    'message',
+    'messageWithSource',
+    'acknowledgeWithSource'
+]);
+
+exports.CommandOptionTypes = indexMirror([
+    'subCommand',
+    'subCommandGroup',
+    'string',
+    'integer',
+    'boolean',
+    'user',
+    'channel',
+    'role'
+]);
+
+function indexMirror(arr) {
+    const obj = {};
+    for (const [index, val] of arr.entries()) obj[val] = index + 1;
+    return obj;
+}

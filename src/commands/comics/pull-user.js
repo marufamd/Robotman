@@ -43,17 +43,55 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'pull-user',
+        description: 'Gets the pull list for a user on League of Comic Geeks for a specified week.',
+        options: [
+            {
+                type: 'string',
+                name: 'username',
+                description: 'The username to view the pull list for.',
+                required: true
+            },
+            {
+                type: 'string',
+                name: 'date',
+                description: 'The week to view the pull list for.'
+            }
+        ]
+    }
+
     async exec(message, { username, date }) {
         date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
 
         if (next.includes(message.util.parsed.alias)) date = date.add(7, 'days');
         else if (previous.includes(message.util.parsed.alias)) date = date.subtract(7, 'days');
 
+        return message.util.send(await this.main(username, date));
+    }
+
+    async interact(interaction) {
+        let [username, date] = interaction.findOptions('username', 'date'); // eslint-disable-line prefer-const
+        
+        const newDate = moment();
+        const parsed = this.handler.resolver.type('parsedDate')(null, date);
+
+        if (date === 'next') date = newDate.add(7, 'days');
+        else if (date === 'last') date = newDate.subtract(7, 'days');
+        else if (parsed) date = moment(parsed);
+        else date = newDate;
+
+        date = (date !== newDate) || (date.weekday() <= 3) ? date.day(3) : date.day(3).add(7, 'days');
+
+        return interaction.respond(await this.main(username, date));
+    }
+
+    async main(username, date) {
         date = date.format(formats.locg);
 
         const user = await resolveUser(username);
-        if (!user) return message.util.send('That account does not exist.');
-        else if (user === 'private') return message.util.send('That account is private or does not exist.');
+        if (!user) return 'That account does not exist.';
+        else if (user === 'private') return 'That account is private or does not exist.';
 
         const pulls = await getPulls(user.id, date);
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll("$", ""))).reduce((a, b) => a + b).toFixed(2) : null;
@@ -67,6 +105,6 @@ module.exports = class extends Command {
 
         if (prices) embed.addField('Total', `$${prices} USD`);
 
-        return message.util.send(embed);
+        return embed;
     }
 };
