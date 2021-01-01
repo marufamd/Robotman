@@ -30,9 +30,30 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'comic',
+        description: 'Searches ComiXology for an issue/trade',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The issue/trade to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { query }) {
+        return message.util.send(await this.main(query));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('query')));
+    }
+
+    async main(query) {
         const comic = await this.search(query);
-        if (!comic) return message.util.send('No results found. Please try a different query.');
+        if (!comic) return 'No results found. Please try a different query.';
 
         const embed = this.client.util.embed()
             .setColor(COMIXOLOGY)
@@ -52,9 +73,7 @@ module.exports = class extends Command {
         if (pageCount) embed.addField('Page Count', pageCount, true);
         if (releaseDate) embed.addField('Release Date', releaseDate, true);
 
-        embed.inlineFields();
-
-        return message.util.send(embed);
+        return embed.inlineFields();
     }
 
     async search(query) {
