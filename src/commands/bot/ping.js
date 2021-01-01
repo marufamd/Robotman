@@ -40,7 +40,7 @@ module.exports = class extends Command {
                 inline: true
             }, {
                 name: 'Heartbeat',
-                value: `💓 ${this.client.ws.ping}ms`,
+                value: `❤️ ${this.client.ws.ping}ms`,
                 inline: true
             });
 
