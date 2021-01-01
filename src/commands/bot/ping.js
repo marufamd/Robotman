@@ -16,8 +16,7 @@ module.exports = class extends Command {
     async exec(message) {
         const msg = await message.util.send('Getting Ping...');
 
-        const embed = this.client.util.embed()
-            .setTitle('🏓 Pong!')
+        const embed = this.main()
             .addFields({
                 name: 'Roundtrip',
                 value: `⏱️ ${(msg.editedTimestamp || msg.createdTimestamp) - (message.editedTimestamp || message.createdTimestamp)}ms`,
@@ -32,8 +31,7 @@ module.exports = class extends Command {
     }
 
     interact(interaction) {
-        const embed = this.client.util.embed()
-            .setTitle('🏓 Pong!')
+        const embed = this.main()
             .addFields({
                 name: 'Roundtrip',
                 value: `⏱️ ${Date.now() - interaction.createdTimestamp}ms`,
@@ -45,5 +43,9 @@ module.exports = class extends Command {
             });
 
         return interaction.respond(embed);
+    }
+
+    main() {
+        return this.client.util.embed().setTitle('🏓 Pong!');
     }
 };
