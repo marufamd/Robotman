@@ -1,13 +1,13 @@
 module.exports = {
-    commandCategory: (_, phrase) => {
+    commandCategory: (message, phrase) => {
         if (!phrase) return null;
-        if (this.commandHandler.categories.has(phrase)) return this.commandHandler.categories.get(phrase);
+        if (message.client.commandHandler.categories.has(phrase)) return message.client.commandHandler.categories.get(phrase);
         return null;
     },
 
-    clientChannel: (_, phrase) => {
+    clientChannel: (message, phrase) => {
         if (!phrase) return null;
-        if (this.channels.cache.has(phrase)) return this.channels.cache.get(phrase);
+        if (message.client.channels.cache.has(phrase)) return message.client.channels.cache.get(phrase);
         return null;
     },
 
@@ -32,6 +32,6 @@ module.exports = {
 
     tag: async (message, phrase) => {
         if (!phrase) return null;
-        return await this.tags.get(phrase.toLowerCase(), message.guild.id) ?? null;
+        return await message.client.tags.get(phrase.toLowerCase(), message.guild.id) ?? null;
     }
 };

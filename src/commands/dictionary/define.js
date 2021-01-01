@@ -7,7 +7,7 @@ module.exports = class extends Command {
         super('define', {
             aliases: ['define', 'dictionary'],
             description: {
-                info: 'Displays a definition for a word from the dictionary.',
+                info: 'Shows a definition for a word from the dictionary.',
                 usage: '<word>',
                 examples: ['robot'],
             },
@@ -25,10 +25,31 @@ module.exports = class extends Command {
         });
     }
 
-    async exec(message, { word }) {
-        const defined = await this.search(word);
+    interactionOptions = {
+        name: 'define',
+        description: 'Shows a definition for a word from the dictionary.',
+        options: [
+            {
+                type: 'string',
+                name: 'word',
+                description: 'The word to search for.',
+                required: true
+            }
+        ]
+    }
 
-        if (!defined) return message.util.send('No results found');
+    async exec(message, { word }) {
+        return message.util.send(await this.main(word));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('word')));
+    }
+
+    async main(word) {
+        const defined = await this.search(word);
+        if (!defined) return 'No results found';
+
         const embed = this.client.util.embed()
             .setColor(colors.DICTIONARY)
             .setFooter('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png');
@@ -51,7 +72,7 @@ module.exports = class extends Command {
             if (defined.date) embed.addField('First Known Use', defined.date);
         }
 
-        return message.util.send(embed);
+        return embed;
     }
 
     async search(word) {
