@@ -29,13 +29,16 @@ module.exports = class extends Command {
                 }
             ]
         });
-
-        this.lastInput = null;
-        this.lastResult = null;
     }
 
+    lastInput = null;
+    lastResult = null;
+
     async exec(message, { code, depth }) {
-        const { lastInput, lastResult, client } = this; /* eslint-disable-line no-unused-vars */
+        /* eslint-disable no-unused-vars */
+        const { lastInput, lastResult, client } = this;
+        const { interactionHandler } = client;
+        /* eslint-enable no-unused-vars */
 
         code = code
             .replace(/^\s*```(js|javascript)?/, '')

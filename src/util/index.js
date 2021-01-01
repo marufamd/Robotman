@@ -216,6 +216,8 @@ class Util {
         const tokens = [
             'WEBHOOK_URL',
             'DISCORD_TOKEN',
+            'PROD_TOKEN',
+            'DEV_TOKEN',
             'DATABASE_URL',
             'GOOGLE_SEARCH_KEY',
             'GOOGLE_ENGINE_KEY',

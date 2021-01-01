@@ -26,9 +26,30 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'series',
+        description: 'Searches League of Comic Geeks for a series.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The series to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { query }) {
+        return message.util.send(await this.main(query));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('query')));
+    }
+
+    async main(query) {
         const results = await search(query);
-        if (!results.length) return message.util.send('No results found.');
+        if (!results.length) return 'No results found.';
 
         let num = MAX_SEARCH_RESULTS;
         const half = num / 2;
@@ -56,7 +77,7 @@ module.exports = class extends Command {
             .setFooter("League of Comic Geeks", "https://leagueofcomicgeeks.com/assets/images/user-menu-logo-icon.png");
 
         if (page2 && page2.length) embed.addField("Page 2", page2.join("\n"), true);
-        
-        return message.util.send(embed);
+
+        return embed;
     }
 };

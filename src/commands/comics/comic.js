@@ -32,7 +32,7 @@ module.exports = class extends Command {
 
     interactionOptions = {
         name: 'comic',
-        description: 'Searches ComiXology for an issue/trade',
+        description: 'Searches ComiXology for an issue/trade.',
         options: [
             {
                 type: 'string',
