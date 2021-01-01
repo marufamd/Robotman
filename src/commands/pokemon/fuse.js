@@ -59,11 +59,7 @@ module.exports = class extends Command {
     }
 
     main(first, second, type) {
-        let fn;
-        if (type instanceof Interaction) fn = type.respond;
-        else fn = type.send;
-        fn = fn.bind(type);
-
+        const fn = (type instanceof Interaction ? type.respond : type.send).bind(type);
         let poke1, poke2;
 
         if (!first) {
@@ -76,7 +72,7 @@ module.exports = class extends Command {
                 first = pokemon[pokemon.indexOf(poke1) + 1];
             }
 
-            if (second === 'random') {
+            if (second === 'random' || !second) {
                 poke2 = this.getRandom();
                 second = pokemon[pokemon.indexOf(poke2) + 1];
             }
