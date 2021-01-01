@@ -1,5 +1,5 @@
 const { Command, Argument } = require('discord-akairo');
-const { title, plural, getPrefix } = require('../../util');
+const { title, plural } = require('../../util');
 
 module.exports = class extends Command {
     constructor() {
@@ -22,9 +22,9 @@ module.exports = class extends Command {
     async exec(message, { mod }) {
         const embed = this.client.util.embed();
         const disabled = this.client.settings.get(message.guild.id, 'disabledCommands', []);
-        const prefix = getPrefix(message);
+        const prefix = this.client.util.getPrefix(message);
 
-        const hidden = c => !c.ownerOnly && !c.description?.mod  && !c.description?.disableHelp && !disabled.includes(c.id);
+        const hidden = c => !c.ownerOnly && !c.description?.mod && !c.description?.disableHelp && !disabled.includes(c.id);
 
         if (!mod) {
             embed
@@ -36,14 +36,18 @@ module.exports = class extends Command {
                 category = category.filter(hidden);
                 if (!category.size) continue;
 
-                embed.addField(title(category.first().categoryID.replace('-', ' & ')).replace('Tv', 'TV'), category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '), true);
+                embed.addField(
+                    title(category.id.replace('-', ' & ')).replace('Tv', 'TV'),
+                    category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.getDescription(c)}')`).join(' '),
+                    true
+                );
             }
 
-            embed.formatFields();
+            embed.inlineFields();
         } else {
             if (mod instanceof Command) {
                 if (mod.ownerOnly || mod.description?.disableHelp || disabled.includes(mod.id)) return this.invalid(message);
-                let desc = this.getDescription(mod);
+                let desc = this.client.util.getDescription(mod);
                 if (mod.description.extended?.length) desc += `\n\n${mod.description.extended.join('\n').replaceAll('{p}', prefix)}`;
 
                 embed

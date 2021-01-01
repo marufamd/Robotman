@@ -3,13 +3,15 @@ require('dotenv').config();
 const { AkairoClient, CommandHandler, ListenerHandler, SequelizeProvider, InhibitorHandler } = require('discord-akairo');
 const { join } = require('path');
 const Sequelize = require('sequelize');
+const { RecurrenceRule, scheduleJob } = require('node-schedule');
 
 const ClientUtil = require('./ClientUtil');
-const ConfigProvider = require('./ConfigProvider');
 const Database = require('./Database');
-const { plural } = require('../util');
+const ConfigProvider = require('./ConfigProvider');
 const TagsProvider = require('./TagsProvider');
-const { RecurrenceRule, scheduleJob } = require('node-schedule');
+
+const { plural } = require('../util');
+const types = require('../util/types');
 
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
@@ -53,33 +55,7 @@ module.exports = class Robotman extends AkairoClient {
             }
         });
 
-        this.commandHandler.resolver
-            .addType('commandCategory', (_, phrase) => {
-                if (this.commandHandler.categories.has(phrase)) return this.commandHandler.categories.get(phrase);
-                return null;
-            })
-            .addType('clientChannel', (_, phrase) => {
-                if (this.channels.cache.has(phrase)) return this.channels.cache.get(phrase);
-                return null;
-            })
-            .addType('parsedDate', (_, phrase) => {
-                let parsed = Date.parse(phrase);
-
-                if (isNaN(parsed)) {
-                    const month = phrase.match(/(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)/gi);
-                    const day = phrase.match(/[0-9]{1,2}(st|th|nd|rd|\s)/gi);
-                    const year = phrase.match(/[0-9]{4}/g);
-
-                    if (month && day) {
-                        parsed = `${month[0]} ${day[0].replace(/(st|nd|rd|th)/gi, '')} ${year?.[0] ?? new Date().getFullYear()}`;
-                    } else {
-                        return null;
-                    }
-                }
-
-                return new Date(parsed);
-            })
-            .addType('tag', async (message, phrase) => await this.tags.get(phrase.toLowerCase(), message.guild.id) ?? null);
+        for (const [name, fn] of Object.entries(types)) this.commandHandler.resolver.addType(name, fn);
 
         this.listenerHandler = new ListenerHandler(this, {
             directory: join(__dirname, '..', 'listeners'),

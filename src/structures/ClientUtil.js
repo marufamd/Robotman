@@ -14,24 +14,30 @@ module.exports = class extends ClientUtil {
     }
 
     getDescription(command) {
+        if (!command?.description) return null;
         return typeof command.description !== 'string' ? command.description.info : command.description;
+    }
+
+    getExtended(command, prefix) {
+        if (!command?.description?.extended?.length) return this.getDescription(command);
+        return `${command.description.info}\n\n${command.description.extended.join('\n').replaceAll('{p}', prefix)}`;
     }
 
     formatPrefix(message) {
         return new RegExp(`<@!?${message.client.user.id}>`).test(message.util.parsed.prefix) ? `@${message.client.user.tag} ` : message.util.parsed.prefix;
     }
 
-    formatUsage(command) {
-        if (!command.args?.length) return;
-    }
-
     formatExamples(command, prefix) {
         return command.description.examples
-            .map(example => {
-                if (command.aliases.some(a => example.startsWith(a + ' '))) return `${prefix}${example}`;
-                return `${prefix}${command.id} ${example}`;
+            .map(e => {
+                if (command.aliases.some(a => e.startsWith(a + ' '))) return `${prefix}${e}`;
+                return `${prefix}${command.id} ${e}`;
             })
             .join('\n');
+    }
+
+    getPrefix(message) {
+        return new RegExp(`<@!?${message.client.user.id}>`).test(message.util.parsed.prefix) ? `@${message.client.user.tag} ` : message.util.parsed.prefix;
     }
 };
 

@@ -52,7 +52,7 @@ module.exports = class extends Command {
         if (pageCount) embed.addField('Page Count', pageCount, true);
         if (releaseDate) embed.addField('Release Date', releaseDate, true);
 
-        embed.formatFields();
+        embed.inlineFields();
 
         return message.util.send(embed);
     }

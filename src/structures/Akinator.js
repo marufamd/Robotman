@@ -84,7 +84,7 @@ class Akinator {
                 const guess = await this.guess(message);
                 if (guess === 'loss') {
                     loss = true;
-                    message.respond('I couldn\'t think of anyone.');
+                    message.channel.send('I couldn\'t think of anyone.');
                     break;
                 }
 
@@ -109,11 +109,11 @@ class Akinator {
                             loss = true;
                             break;
                         } else {
-                            message.respond('Hmmm, Should I keep going then? `Yes` | `No`');
+                            message.channel.send('Hmmm, Should I keep going then? `Yes` | `No`');
                             const resp = await this.getResponse(message, newFilter);
 
                             if (['n', 'nah', 'no', 'nope', 'timeout'].includes(resp)) {
-                                if (resp === 'timeout') message.respond('I guess that means no then.');
+                                if (resp === 'timeout') message.channel.send('I guess that means no then.');
                                 loss = true;
                             } else {
                                 keepGoing = true;
