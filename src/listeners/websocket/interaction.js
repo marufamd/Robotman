@@ -9,6 +9,7 @@ module.exports = class extends Listener {
     }
 
     exec(data) {
-        return this.client.interactionHandler.handle(data);
+        this.client.interactionHandler.handle(data);
+        this.client.config.stat('commands_run');
     }
 };
