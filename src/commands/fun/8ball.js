@@ -24,13 +24,35 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: '8ball',
+        description: 'Asks the Magic 8-Ball a question.',
+        options: [
+            {
+                type: 'string',
+                name: 'question',
+                description: 'The question to ask.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message) {
+        return message.util.send(await this.main());
+    }
+
+    async interact(interaction) {        
+        await interaction.respond({ type: 'acknowledgeWithSource' });
+        return interaction.send(await this.main());
+    }
+
+    async main() {
         const imageDir = join(__dirname, '..', '..', 'util', '8balls');
         const answers = (await readdir(imageDir)).filter(f => extname(f) === '.png');
-        const random = randomResponse(answers);
 
+        const random = randomResponse(answers);
         const file = await readFile(join(imageDir, random));
 
-        return message.util.send({ files: [{ name: random, attachment: file }] });
+        return this.client.util.attachment(file, random);
     }
 };

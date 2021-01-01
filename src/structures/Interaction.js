@@ -54,7 +54,7 @@ class Interaction extends Base {
 
     async respond(content, options = {}) {
         if (this.response) return;
-        options = resolveData(content, options);
+        options = this.constructor.resolveData(content, options);
 
         await this.client.api.interactions(this.id, this.token).callback.post({ data: options });
 
@@ -65,7 +65,7 @@ class Interaction extends Base {
     async edit(content, options) {
         if (!this.response) return;
 
-        options = resolveData(content, options);
+        options = this.constructor.resolveData(content, options);
         await this.client.api.webhooks(this.client.user.id, this.token).messages('@original').patch({ data: options.data });
 
         return true;
@@ -78,6 +78,7 @@ class Interaction extends Base {
     }
 
     async send(content, options) {
+        if (!this.response) return;
         let apiMessage;
 
         if (content instanceof APIMessage) {
@@ -91,7 +92,7 @@ class Interaction extends Base {
 
         const { data, files } = await apiMessage.resolveFiles();
         return this.client.api
-            .webhooks(this.id, this.token)
+            .webhooks(this.client.user.id, this.token)
             .post({
                 data,
                 files,
@@ -104,43 +105,43 @@ class Interaction extends Base {
                 return channel.messages.add(d, false);
             });
     }
+
+    static resolveData(content, options) {
+        if (content) {
+            if (content instanceof MessageEmbed) options = { embed: content };
+            else if (typeof content === 'object') options = content;
+            else options.content = content;
+        }
+    
+        if (options.content?.length > 2000) throw new Error('Message content exceeds maximum length (2000).');
+    
+        if (options.embed) {
+            options.embeds = [options.embed],
+            delete options.embed;
+        }
+    
+        if (options.embeds && Array.isArray(options.embeds)) options.embeds = options.embeds.map(e => {
+            if (e instanceof MessageEmbed) return e.toJSON();
+            if (e && typeof e === 'object') return e;
+            return undefined;
+        });
+    
+        let type;
+    
+        if (typeof options.type !== 'undefined') {
+            type = !isNaN(options.type) ? options.type : ResponseTypes[options.type];
+            delete options.type;
+        } else {
+            type = 4;
+        }
+    
+        if (options.ephemeral) {
+            options.flags = 64;
+            delete options.ephemeral;
+        }
+    
+        return { type, data: options };
+    }
 }
 
 module.exports = Interaction;
-
-function resolveData(content, options) {
-    if (content) {
-        if (content instanceof MessageEmbed) options = { embed: content };
-        else if (typeof content === 'object') options = content;
-        else options.content = content;
-    }
-
-    if (options.content?.length > 2000) throw new Error('Message content exceeds maximum length (2000).');
-
-    if (options.embed) {
-        options.embeds = [options.embed],
-        delete options.embed;
-    }
-
-    if (options.embeds && Array.isArray(options.embeds)) options.embeds = options.embeds.map(e => {
-        if (e instanceof MessageEmbed) return e.toJSON();
-        if (e && typeof e === 'object') return e;
-        return undefined;
-    });
-
-    let type;
-
-    if (typeof options.type !== 'undefined') {
-        type = !isNaN(options.type) ? options.type : ResponseTypes[options.type];
-        delete options.type;
-    } else {
-        type = 4;
-    }
-
-    if (options.ephemeral) {
-        options.flags = 64;
-        delete options.ephemeral;
-    }
-
-    return { type, data: options };
-}
