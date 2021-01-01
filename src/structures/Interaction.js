@@ -137,5 +137,10 @@ function resolveData(content, options) {
         type = 4;
     }
 
+    if (options.ephemeral) {
+        options.flags = 64;
+        delete options.ephemeral;
+    }
+
     return { type, data: options };
 }

@@ -16,7 +16,7 @@ module.exports = class extends Command {
     async exec(message) {
         const msg = await message.util.send('Getting Ping...');
 
-        const embed = this.main()
+        const embed = this.client.util.embed().setTitle('🏓 Pong!')
             .addFields({
                 name: 'Roundtrip',
                 value: `⏱️ ${(msg.editedTimestamp || msg.createdTimestamp) - (message.editedTimestamp || message.createdTimestamp)}ms`,
@@ -31,21 +31,6 @@ module.exports = class extends Command {
     }
 
     interact(interaction) {
-        const embed = this.main()
-            .addFields({
-                name: 'Roundtrip',
-                value: `⏱️ ${Date.now() - interaction.createdTimestamp}ms`,
-                inline: true
-            }, {
-                name: 'Heartbeat',
-                value: `❤️ ${this.client.ws.ping}ms`,
-                inline: true
-            });
-
-        return interaction.respond(embed);
-    }
-
-    main() {
-        return this.client.util.embed().setTitle('🏓 Pong!');
+        return interaction.respond(`🏓 **Pong!** Took ${Date.now() - interaction.createdTimestamp}ms`, { type: 'message', ephemeral: true });
     }
 };
