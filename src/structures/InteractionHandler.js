@@ -5,7 +5,7 @@ module.exports = class InteractionHandler {
         Object.defineProperty(this, 'client', { value: client });
     }
 
-    fetch(guild) {
+    fetchCommands(guild) {
         let path = this.client.api.applications(this.client.user.id);
         if (guild) path = path.guilds(guild);
         return path.commands.get();
