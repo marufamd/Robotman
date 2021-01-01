@@ -44,28 +44,29 @@ class Akinator {
                     back = true;
                     break;
                 case 'yeah':
-                case 'y':
-                case 'ye':
                 case 'yep':
+                case 'ye':
+                case 'y':
                     answer = answers.indexOf('yes');
                     break;
+                case 'nope':
                 case 'nah':
                 case 'n':
-                case 'nope':
                     answer = answers.indexOf('no');
                     break;
-                case 'p':
                 case 'probs':
                 case 'prob':
+                case 'p':
                     answer = answers.indexOf('probably');
                     break;
-                case 'pn':
                 case 'probs not':
                 case 'prob not':
+                case 'pn':
                     answer = answers.indexOf('probably not');
                     break;
-                case 'idk':
+                case 'dont know':
                 case 'dunno':
+                case 'idk':
                 case 'dk':
                 case 'd':
                     answer = answers.indexOf('don\'t know');

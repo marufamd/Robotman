@@ -12,6 +12,7 @@ const TagsProvider = require('./TagsProvider');
 
 const { plural } = require('../util');
 const types = require('../util/types');
+const InteractionHandler = require('./InteractionHandler');
 
 const db = new Sequelize(process.env.DATABASE_URL, { logging: false });
 
@@ -32,6 +33,8 @@ module.exports = class Robotman extends AkairoClient {
         this.hangman = new Set();
         this.trivia = new Set();
         this.connectFour = new Set();
+
+        this.interactionHandler = new InteractionHandler(this);
 
         this.commandHandler = new CommandHandler(this, {
             directory: join(__dirname, '..', 'commands'),
@@ -83,7 +86,8 @@ module.exports = class Robotman extends AkairoClient {
         this.listenerHandler.setEmitters({
             commandHandler: this.commandHandler,
             inhibitorHandler: this.inhibitorHandler,
-            listenerHandler: this.listenerHandler
+            listenerHandler: this.listenerHandler,
+            websocket: this.ws
         });
 
         this.loadHandlers('commandHandler', 'listenerHandler', 'inhibitorHandler');

@@ -29,6 +29,7 @@
     "turndown": "^7.0.0"
   },
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.16.0"
   },
   "scripts": {

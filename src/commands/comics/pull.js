@@ -41,6 +41,25 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'pull',
+        description: 'Gets the pull list for a publisher for a specified week.',
+        options: [
+            {
+                type: 3,
+                name: 'publisher',
+                description: 'The publisher to view the pull list for.',
+                choices: Object.entries(publishers).map(([k, v]) => ({ name: v.name, value: k })).slice(0, 10),
+                required: true
+            },
+            {
+                type: 3,
+                name: 'date',
+                description: 'The week to view the pull list for.'
+            }
+        ]
+    }
+
     async exec(message, { publisher, date }) {
         date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
 
@@ -60,5 +79,26 @@ module.exports = class extends Command {
             .setThumbnail(publisher.thumbnail);
 
         return message.util.send(embed);
+    }
+
+    async interact(interaction) {
+        let [publisher, date] = interaction.findOptions('publisher', 'date');
+
+        date = this.handler.resolver.type('parsedDate')(null, date);
+        date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
+
+        publisher = publishers[publisher];
+
+        const pull = await getComics(publisher.id, date.format(formats.locg));
+
+        date = (publisher.id === 1 ? date.subtract(1, 'days') : date).format(formats.locg);
+
+        const embed = this.client.util.embed()
+            .setColor(publisher.color)
+            .setTitle(`${publisher.name} Pull List for the Week of ${date}`)
+            .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
+            .setThumbnail(publisher.thumbnail);
+
+        return interaction.respond({ embed });
     }
 };
