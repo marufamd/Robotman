@@ -52,8 +52,8 @@ module.exports = class extends Command {
     async main(pokemon) {
         let query = formatQuery(pokemon).replaceAll(/(m(r(s|)|s)|jr)/gi, `$&.`);
 
-        const num = pokemon.replaceAll('#', '');
-        if (!isNaN(parseInt(num))) {
+        const num = parseInt(pokemon.replaceAll('#', ''));
+        if (!isNaN(num)) {
             const isDex = await this.getDexNum(num);
             if (isDex) query = isDex;
         }
