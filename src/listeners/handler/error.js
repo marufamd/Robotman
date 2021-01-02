@@ -1,4 +1,6 @@
 const { Listener } = require('discord-akairo');
+const { e } = require('mathjs');
+const Interaction = require('../../structures/Interaction');
 
 module.exports = class extends Listener {
     constructor() {
@@ -8,8 +10,12 @@ module.exports = class extends Listener {
         });
     }
 
-    exec(error, message, command) {
-        const channel = message?.util ? message.util : message?.channel; 
+    async exec(error, message, command) {
+        if (message instanceof Interaction && !message.response && e.message !== 'Unknown interaction') {
+            await message.respond({ type: 'acknowledgeWithSource' });
+        }
+
+        const channel = message?.util ?? message?.channel; 
         if (channel) channel.send('An error occurred.');
 
         const str = [error.stack];
