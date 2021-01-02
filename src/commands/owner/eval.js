@@ -1,4 +1,5 @@
 const { Command } = require('discord-akairo');
+const { Util: { cleanCodeBlockContent } } = require('discord.js');
 const { inspect } = require('util');
 const util = require('../../util');
 
@@ -76,7 +77,9 @@ module.exports = class extends Command {
 
             if (typeof evaled === 'string' && !evaled.length) evaled = '\u200b';
 
-            evaled = util.redact(this.clean(evaled.toString ? evaled.toString() : inspect(JSON.parse(JSON.stringify(evaled)))));
+            evaled = util.redact(this.clean(
+                evaled.toString?.() ?? inspect(this.parse(evaled))
+                ));
 
             this.lastInput = oldInput;
             this.lastResult = evaled;
@@ -102,5 +105,9 @@ module.exports = class extends Command {
 
     clean(str) {
         return str.replace(/`/g, '`' + String.fromCharCode(8203));
+    }
+
+    parse(obj) {
+        return JSON.parse(JSON.stringify(obj));
     }
 };
