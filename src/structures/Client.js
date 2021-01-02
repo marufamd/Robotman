@@ -9,6 +9,7 @@ const ClientUtil = require('./ClientUtil');
 const Database = require('./Database');
 const ConfigProvider = require('./ConfigProvider');
 const TagsProvider = require('./TagsProvider');
+const Logger = require('../util/logger');
 
 const { plural } = require('../util');
 const types = require('../util/types');
@@ -20,7 +21,7 @@ module.exports = class Robotman extends AkairoClient {
     constructor(options) {
         super({ ownerID: process.env.OWNER }, options);
 
-        this.logger = require('../util/logger');
+        this.logger = Logger;
         this.util = new ClientUtil(this);
         this.db = new Database(db);
 
@@ -74,6 +75,8 @@ module.exports = class Robotman extends AkairoClient {
         this.development = process.env.NODE_ENV === 'development';
     }
 
+    log = Logger.log;
+
     init() {
         this.log('Initializing...');
 
@@ -125,8 +128,8 @@ module.exports = class Robotman extends AkairoClient {
         this.log('Loaded Schedule');
     }
 
-    log(text, type, options) {
-        return this.logger.log(text, type, options);
+    async invite() {
+        return (await this.generateInvite({ number: process.env.BOT_PERMISSIONS ?? 70778177 })) + '+applications.commands';
     }
 
     get owner() {
