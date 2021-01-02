@@ -1,5 +1,5 @@
 const { oneLine } = require('common-tags');
-const { Command } = require('discord-akairo');
+const { Command, Argument } = require('discord-akairo');
 const { google, randomResponse } = require('../../util');
 const { googleColors } = require('../../util/constants');
 
@@ -8,7 +8,7 @@ module.exports = class extends Command {
         super('google', {
             aliases: ['google', 'search', 'google-search'],
             description: {
-                info: 'Searches Google and returns the first three results.',
+                info: 'Searches Google.',
                 usage: '<query>',
                 extended: ['You can put `--first` in the command to only send the first result'],
                 examples: ['comicbooks'],
@@ -16,17 +16,19 @@ module.exports = class extends Command {
             regex: /^(?:ok(?:ay)?|hey) google,?\s(.+)/i,
             args: [
                 {
-                    id: 'first',
-                    match: 'flag',
-                    flag: ['--first', '-first']
-                },
-                {
                     id: 'query',
                     type: 'string',
                     match: 'rest',
                     prompt: {
                         start: 'What would you like to search for?'
                     }
+                },
+                {
+                    id: 'amount',
+                    type: Argument.range('number', 1, 5, true),
+                    match: 'option',
+                    flag: ['--amount=', '-amount=', '--results=', '-results=', 'amount:'],
+                    default: 1
                 }
             ],
             typing: true,
@@ -34,18 +36,51 @@ module.exports = class extends Command {
         });
     }
 
-    async exec(message, { query, first, match }) {
+    interactionOptions = {
+        name: 'google',
+        description: 'Searches Google.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The query to search for.',
+                required: true
+            },
+            {
+                type: 'integer',
+                name: 'amount',
+                description: 'The amount of results to return (Max 5).'
+            }
+        ]
+    }
+
+    async exec(message, { query, amount, match }) {
         if (!query && match) {
             query = match[1];
-            first = true;
+            amount = 1;
         }
 
+        const result = await this.main(query, amount, message);
+        return message.util.send(result);
+    }
+
+    async interact(interaction) {
+        let [query, amount] = interaction.findOptions('query', 'amount'); // eslint-disable-line prefer-const
+        if (!amount) amount = 1;
+
+        const result = await this.main(query, amount, interaction);
+        return interaction.respond(result);
+    }
+
+    async main(query, amount, message) {
+        if (amount > 5) amount = 5;
+
         let response;
-        const results = await this.search(query, first ? 1 : 3, !message.channel.nsfw);
+        const results = await this.search(query, amount, !message.channel?.nsfw ?? true);
 
         if (!results) {
             response = 'No results found';
-        } else if (first) {
+        } else if (amount === 1) {
             response = results.results[0].link;
         } else {
             response = this.client.util.embed()
@@ -60,8 +95,7 @@ module.exports = class extends Command {
                 .setFooter(`About ${results.totalResults} results (${results.time} seconds)`);
         }
 
-
-        return message.util.send(response);
+        return response;
     }
 
     async search(query, amount = 1, safe = false) {

@@ -9,7 +9,7 @@ module.exports = class extends Command {
             aliases: ['pull', 'p', 'releases', previous, next].flat(),
             description: {
                 info: 'Gets the pull list for a publisher for a specified week. Defaults to DC.',
-                usage: '<publisher> <date>',
+                usage: '<publisher> [date]',
                 extended: [
                     'To get next week\'s pull list, do `{p}pullnext`',
                     'To get last week\'s pull list, do `{p}pulllast`',

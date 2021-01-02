@@ -88,6 +88,9 @@ module.exports = class extends Command {
                     .setDescription(desc)
                     .setFooter(`Category: ${title(mod.categoryID)}${this.ratelimit > 2 ? ` | This command has a ${this.ratelimit} second cooldown.` : ''}`);
 
+                if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.client.util.formatExamples(mod, prefix));
+                if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));
+
                 if (mod.interactionOptions) embed.addField('Slash Command', `/${mod.interactionOptions.name} ${mod.interactionOptions.options
                     ?.map(o => {
                         let name = `[${o.name}\\]`;
@@ -96,9 +99,6 @@ module.exports = class extends Command {
                     })
                     .join(' ') ?? ''}
                     `);
-
-                if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.client.util.formatExamples(mod, prefix));
-                if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));
             } else {
                 mod = mod.filter(hidden);
                 if (!mod.size) return INVALID;

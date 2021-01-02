@@ -16,7 +16,7 @@ module.exports = class extends Command {
                     id: 'depth',
                     type: 'integer',
                     match: 'option',
-                    flag: ['-inspect=', '-depth='],
+                    flag: ['--inspect=', '-inspect=', '--depth='],
                     default: 0
                 },
                 {
