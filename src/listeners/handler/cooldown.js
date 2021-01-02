@@ -18,13 +18,13 @@ module.exports = class extends Listener {
 
         const msg = await fn({
             content: oneLine`
-            **${message.author.username}**, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
-            before using \`${command.id}\` again. This message will delete when the cooldown ends.`,
+            **${message.author}**, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
+            before using \`${command.id}\` again. ${message instanceof Interaction ? '' : 'This message will delete when the cooldown ends.'}`,
             type: 'message',
             ephemeral: true
         });
 
         await wait(remaining);
-        msg.delete();
+        msg?.delete();
     }
 };
