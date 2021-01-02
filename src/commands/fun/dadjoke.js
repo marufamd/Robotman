@@ -20,6 +20,6 @@ module.exports = class extends Command {
     }
 
     async interact(interaction) {
-        return interaction.respond(await dadJoke(), { type: 'message', ephemeral: true });
+        return interaction.respond(await dadJoke());
     }
 };
