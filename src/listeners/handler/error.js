@@ -12,15 +12,15 @@ module.exports = class extends Listener {
 
     async exec(error, message, command) {
         if (message instanceof Interaction && !message.response && e.message !== 'Unknown interaction') {
-            await message.respond({ type: 'acknowledgeWithSource' });
+            await message.respond('An error occurred', { type: 'message', ephemeral: true });
+        } else {
+            const channel = message?.util ?? message?.channel;
+            if (channel) channel.send('An error occurred.');
         }
-
-        const channel = message?.util ?? message?.channel; 
-        if (channel) channel.send('An error occurred.');
 
         const str = [error.stack];
         if (command) str.unshift(`Command: ${command.id}`);
-        
+
         this.client.log(str, 'error', { ping: true });
     }
 };
