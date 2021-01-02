@@ -48,6 +48,7 @@ module.exports = class InteractionHandler {
     async handle(data) {
         const interaction = new Interaction(this.client, data);
         const command = this.client.commandHandler.findCommand(interaction.command.name);
+        
         if (!command?.interact) return;
         if (this.client.commandHandler.runCooldowns(interaction, command)) return;
 

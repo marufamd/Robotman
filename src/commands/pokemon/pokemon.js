@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
-const { trim, formatQuery, fetch } = require('../../util');
+const fetch = require('node-fetch');
+const { trim, formatQuery } = require('../../util');
 const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -50,8 +51,8 @@ module.exports = class extends Command {
     async main(pokemon) {
         let query = formatQuery(pokemon).replaceAll(/(m(r(s|)|s)|jr)/gi, `$&.`);
 
-        const num = parseInt(pokemon.split(/ +/)[0].replaceAll('#', ''));
-        if (num) {
+        const num = pokemon.replaceAll('#', '');
+        if (!isNaN(parseInt(num))) {
             const isDex = await this.getDexNum(num);
             if (isDex) query = isDex;
         }
@@ -91,7 +92,7 @@ module.exports = class extends Command {
         const main = poke.title;
         const dexNum = poke.pageimage ? poke.pageimage.slice(0, 3) : null;
 
-        const title = `${(dexNum && parseInt(dexNum)) ? `#${dexNum} - ` : ''}${main}`;
+        const title = `${(dexNum && !isNaN(parseInt(dexNum))) ? `#${dexNum} - ` : ''}${main}`;
         const link = this.getLink(main);
         let description = trim(poke.extract.split('\n\n')[0].trimEnd(), 2048);
         if (/(several\s)?refer(rals)?/gi.test(description)) {
