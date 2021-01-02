@@ -37,7 +37,7 @@ module.exports = class extends ClientUtil {
     }
 
     getPrefix(message) {
-        return new RegExp(`<@!?${message.client.user.id}>`).test(message.util.parsed.prefix) ? `@${message.client.user.tag} ` : message.util.parsed.prefix;
+        return new RegExp(`<@!?${message.client.user.id}>`).test(message.util?.parsed?.prefix) ? `@${message.client.user.tag} ` : (message.util?.parsed?.prefix ?? process.env.CLIENT_PREFIX);
     }
 };
 
