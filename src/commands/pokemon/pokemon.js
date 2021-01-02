@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
 const fetch = require('node-fetch');
+const { stringify } = require('querystring');
 const { trim, formatQuery } = require('../../util');
 const { colors } = require('../../util/constants');
 
@@ -85,7 +86,7 @@ module.exports = class extends Command {
             pithumbsize: 1000,
         };
 
-        const res = await fetch('https://bulbapedia.bulbagarden.net/w/api.php', params);
+        const res = await fetch(`https://bulbapedia.bulbagarden.net/w/api.php?${stringify(params)}`).then(res => res.json());
         const poke = res.query.pages[0];
         if (poke.missing) return null;
 
