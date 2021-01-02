@@ -1,9 +1,9 @@
 const { Command } = require('discord-akairo');
 const { stripIndents } = require('common-tags');
-const { cpu } = require('node-os-utils');
 const moment = require('moment');
 require('moment-duration-format');
 
+const cpu = require('../../util/cpu');
 const { dependencies, version } = require('../../../package.json');
 const { formats } = require('../../util/constants');
 
