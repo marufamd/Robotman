@@ -8,7 +8,8 @@ module.exports = class extends Command {
     constructor() {
         super('release-list', {
             aliases: ['release-list'],
-            description: 'Displays the release list.'
+            description: 'Displays the release list.',
+            ownerOnly: true
         });
     }
 
