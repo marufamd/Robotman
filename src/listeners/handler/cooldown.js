@@ -1,5 +1,6 @@
 const { oneLine } = require('common-tags');
 const { Listener } = require('discord-akairo');
+const Interaction = require('../../structures/Interaction');
 const { plural, wait } = require('../../util');
 
 module.exports = class extends Listener {
@@ -11,12 +12,17 @@ module.exports = class extends Listener {
     }
 
     async exec(message, command, remaining) {
-        const seconds = remaining / 1000;
+        const seconds = (remaining / 1000).toFixed(1);
 
-        const msg = await message.util.send(oneLine`
-        **${message.author.username}**, please wait **${seconds}** ${plural('second', seconds)}
-        before using \`${command.id}\` again. This message will delete when the cooldown ends.
-        `);
+        const fn = (message instanceof Interaction ? message.respond : message.util.send).bind(message.util ?? message);
+
+        const msg = await fn({
+            content: oneLine`
+            **${message.author.username}**, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
+            before using \`${command.id}\` again. This message will delete when the cooldown ends.`,
+            type: 'message',
+            ephemeral: true
+        });
 
         await wait(remaining);
         msg.delete();
