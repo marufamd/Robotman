@@ -11,8 +11,22 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'random-dog',
+        description: 'Sends a random dog image/gif'
+    }
+
     async exec(message) {
+        return message.util.send(await this.main());
+    }
+
+    async interact(interaction) {        
+        await interaction.respond({ type: 'acknowledgeWithSource' });
+        return interaction.send(await this.main());
+    }
+
+    async main() {
         const { url } = await fetch('https://random.dog/woof.json');
-        return message.util.send({ files: [{ attachment: url, name: `dog${extname(url)}` }] });
+        return this.client.util.attachment(url, `dog${extname(url)}`);
     }
 };

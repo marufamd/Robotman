@@ -10,7 +10,16 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'dadjoke',
+        description: 'Sends a dad joke.'
+    }
+
     async exec(message) {
         return message.util.send(await dadJoke());
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await dadJoke(), { type: 'message', ephemeral: true });
     }
 };

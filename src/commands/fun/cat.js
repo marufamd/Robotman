@@ -11,8 +11,22 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'random-cat',
+        description: 'Sends a random cat image/gif'
+    }
+
     async exec(message) {
+        return message.util.send(await this.main());
+    }
+
+    async interact(interaction) {        
+        await interaction.respond({ type: 'acknowledgeWithSource' });
+        return interaction.send(await this.main());
+    }
+
+    async main() {
         const { file } = await fetch('https://aws.random.cat/meow');
-        return message.util.send({ files: [{ attachment: file, name: `cat${extname(file)}` }] });
+        return this.client.util.attachment(file, `cat${extname(file)}`);
     }
 };
