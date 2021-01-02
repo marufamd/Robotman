@@ -71,7 +71,7 @@ module.exports = class extends Command {
                 if (!category.size) continue;
 
                 embed.addField(
-                    title(category.id.replace('-', ' & ')).replace('Tv', 'TV'),
+                    title(category.first().categoryID.replace('-', ' & ')).replace('Tv', 'TV'),
                     category.map(c => `[\`${c.id}\`](https://notarealwebsi.te/ '${this.client.util.getDescription(c)}')`).join(' '),
                     true
                 );
