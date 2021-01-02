@@ -53,7 +53,7 @@ module.exports = class extends Command {
 
     async main(query) {
         const comic = await this.search(query);
-        if (!comic) return 'No results found. Please try a different query.';
+        if (!comic) return { content: 'No results found.', type: 'message', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor(COMIXOLOGY)

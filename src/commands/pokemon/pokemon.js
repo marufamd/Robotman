@@ -57,7 +57,7 @@ module.exports = class extends Command {
         }
 
         const poke = await this.search(query);
-        if (!poke) return 'No results found.';
+        if (!poke) return { content: 'No results found.', type: 'message', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor(colors.BULBAPEDIA)

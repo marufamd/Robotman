@@ -90,8 +90,7 @@ module.exports = class extends Command {
         date = date.format(formats.locg);
 
         const user = await resolveUser(username);
-        if (!user) return 'That account does not exist.';
-        else if (user === 'private') return 'That account is private or does not exist.';
+        if (!user || user === 'private') return { content: 'That account is private or does not exist.', type: 'message', ephemeral: true };
 
         const pulls = await getPulls(user.id, date);
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll("$", ""))).reduce((a, b) => a + b).toFixed(2) : null;

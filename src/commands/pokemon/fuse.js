@@ -86,7 +86,7 @@ module.exports = class extends Command {
             if (pokemon[first] === null) first = this.getProper(first);
             if (pokemon[second] === null) second = this.getProper(second);
 
-            if (!pokemon[first] || !pokemon[second]) return 'Invalid Pokemon.';
+            if (!pokemon[first] || !pokemon[second]) return { content: 'Invalid Pokemon.', type: 'message', ephemeral: true };
 
             [poke1, poke2] = [pokemon[first - 1], pokemon[second - 1]];
         }

@@ -79,7 +79,7 @@ module.exports = class extends Command {
         const results = await this.search(query, amount, !message.channel?.nsfw ?? true);
 
         if (!results) {
-            response = 'No results found';
+            response = { content: 'No results found.', type: 'message', ephemeral: true };
         } else if (amount === 1) {
             response = results.results[0].link;
         } else {

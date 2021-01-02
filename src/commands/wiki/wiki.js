@@ -26,12 +26,33 @@ module.exports = class extends Command {
         this.badWords = null;
     }
 
+    interactionOptions = {
+        name: 'wikipedia',
+        description: 'Searches Wikipedia.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The query to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { query }) {
+        return message.util.send(await this.main(query));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('query')));
+    }
+
+    async main(query) {
         const wordlist = await this.getBadWords();
-        if (query.split(/ +/).some(a => wordlist.includes(a))) return message.util.send('You cannot search for that term.');
+        if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', type: 'message', ephemeral: true };
 
         const page = await this.search(formatQuery(query));
-        if (!page) return message.util.send('No results found.');
+        if (!page) return { content: 'No results found.', type: 'message', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor('#F8F8F8')
@@ -42,7 +63,7 @@ module.exports = class extends Command {
 
         if (page.image) embed.setImage(page.image);
 
-        return message.util.send(embed);
+        return embed;
     }
 
     async search(query) {

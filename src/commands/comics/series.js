@@ -49,7 +49,7 @@ module.exports = class extends Command {
 
     async main(query) {
         const results = await search(query);
-        if (!results.length) return 'No results found.';
+        if (!results.length) return { content: 'No results found.', type: 'message', ephemeral: true };
 
         let num = MAX_SEARCH_RESULTS;
         const half = num / 2;

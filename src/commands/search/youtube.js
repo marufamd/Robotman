@@ -47,9 +47,8 @@ module.exports = class extends Command {
     }
 
     async main(query) {
-        let result = await this.search(query);
-        result = result ? `Showing top result for **${query}**\n${result.link}` : 'No results found';
-        return result;
+        const result = await this.search(query);
+        return result ? `Showing top result for **${query}**\n${result.link}` : ({ content: 'No results found.', type: 'message', ephemeral: true });
     }
 
     async search(query, safe = false) {
