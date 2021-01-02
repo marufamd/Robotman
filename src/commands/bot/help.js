@@ -46,7 +46,7 @@ module.exports = class extends Command {
                 option = command;
             } else {
                 const group = this.handler.resolver.type('commandCategory')(interaction, option);
-                if (group) option = group; 
+                if (group) option = group;
             }
         }
 
@@ -87,6 +87,15 @@ module.exports = class extends Command {
                     .setTitle(`${prefix}${mod.id} ${mod.description.usage || ''}`)
                     .setDescription(desc)
                     .setFooter(`Category: ${title(mod.categoryID)}${this.ratelimit > 2 ? ` | This command has a ${this.ratelimit} second cooldown.` : ''}`);
+
+                if (mod.interactionOptions) embed.addField('Slash Command', `/${mod.interactionOptions.name} ${mod.interactionOptions.options
+                    .map(o => {
+                        let name = `[${o.name}\\]`;
+                        if (o.required) name = `<${o.name}>`;
+                        return `[${name}](https://notarealwebsi.te/ '${o.description}')`;
+                    })
+                    .join(' ')}
+                    `);
 
                 if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.client.util.formatExamples(mod, prefix));
                 if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));
