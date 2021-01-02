@@ -25,14 +25,31 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'youtube',
+        description: 'Searches YouTube.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The query to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { query }) {
-        const result = await this.search(query);
-        let response;
+        return message.util.send(await this.main(query));
+    }
 
-        if (result) response = `Showing top result for **${query}**\n${result.link}`;
-        else response = 'No results found';
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('query')));
+    }
 
-        return message.util.send(response);
+    async main(query) {
+        let result = await this.search(query);
+        result = result ? `Showing top result for **${query}**\n${result.link}` : 'No results found';
+        return result;
     }
 
     async search(query, safe = false) {
