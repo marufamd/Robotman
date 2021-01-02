@@ -1,5 +1,4 @@
 const { Command } = require('discord-akairo');
-const { Util: { cleanCodeBlockContent } } = require('discord.js');
 const { inspect } = require('util');
 const util = require('../../util');
 
