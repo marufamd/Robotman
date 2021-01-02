@@ -32,7 +32,7 @@ module.exports = class extends Command {
                 }
             ],
             typing: true,
-            cooldown: 8
+            cooldown: 8e3
         });
     }
 

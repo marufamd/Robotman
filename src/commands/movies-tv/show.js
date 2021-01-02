@@ -21,7 +21,7 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            cooldown: 4
+            cooldown: 4e3
         });
     }
 

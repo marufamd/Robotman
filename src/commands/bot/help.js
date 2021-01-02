@@ -86,7 +86,7 @@ module.exports = class extends Command {
                 embed
                     .setTitle(`${prefix}${mod.id} ${mod.description.usage || ''}`)
                     .setDescription(desc)
-                    .setFooter(`Category: ${title(mod.categoryID)}${this.ratelimit > 2 ? ` | This command has a ${this.ratelimit} second cooldown.` : ''}`);
+                    .setFooter(`Category: ${title(mod.categoryID)}${this.cooldown > 2e3 ? ` | This command has a ${this.cooldown / 1000} second cooldown.` : ''}`);
 
                 if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.client.util.formatExamples(mod, prefix));
                 if (mod.aliases.length > 1) embed.addField('Aliases', mod.aliases.filter(a => a !== mod.id).join(', '));

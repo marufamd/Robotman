@@ -22,7 +22,7 @@ module.exports = class extends Command {
                 }
             ],
             typing: true,
-            cooldown: 3
+            cooldown: 4e3
         });
     }
 
