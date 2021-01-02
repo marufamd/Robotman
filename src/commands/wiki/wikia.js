@@ -6,7 +6,7 @@ module.exports = class extends Command {
         super('wikia', {
             aliases: ['wikia', 'fandom'],
             description: {
-                info: 'Searches a specifed Fandom site.',
+                info: 'Searches a specifed wikia site.',
                 usage: '<fandom> <query>',
                 examples: ['marvel daredevil'],
             },
@@ -31,7 +31,35 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'wikia',
+        description: 'Searches a specifed wikia site.',
+        options: [
+            {
+                type: 'string',
+                name: 'wikia',
+                description: 'The wikia to search in.',
+                required: true
+            },
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The query to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { wikia, content }) {
+        return message.util.send(await this.main(wikia, content));
+    }
+
+    async interact(interaction) {
+        const [wikia, content] = interaction.findOptions('wikia', 'query');
+        return interaction.respond(await this.main(wikia, content));
+    }
+
+    async main(wikia, content) {
         const baseURL = `https://${wikia}.fandom.com`;
 
         const params = {
@@ -43,11 +71,11 @@ module.exports = class extends Command {
         };
 
         const { query } = await fetch(`${baseURL}/api.php`, params);
-        if (!query?.pages?.length || query.pages[0].missing) return message.util.send('No results found.');
+        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', type: 'message', ephemeral: true };
         const { pageid } = query.pages[0];
 
         const result = await this.getData(`${baseURL}/api/v1/Articles/Details`, { ids: pageid, abstract: 500 }, pageid);
-        if (!result) return message.util.send('No results found');
+        if (!result) return { content: 'No results found.', type: 'message', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor('08d7d7')
@@ -57,7 +85,7 @@ module.exports = class extends Command {
             .setImage(result.image)
             .setFooter('FANDOM', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Fandom_heart-logo.svg/128px-Fandom_heart-logo.svg.png');
 
-        return message.util.send(embed);
+        return embed;
     }
 
     async getData(webURL, params, id) {
