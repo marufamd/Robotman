@@ -25,6 +25,8 @@ module.exports = class extends Listener {
         });
 
         await wait(remaining);
-        msg?.delete();
+        try {
+            msg.delete();
+        } catch {} // eslint-disable-line no-empty
     }
 };
