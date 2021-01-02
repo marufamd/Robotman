@@ -12,7 +12,7 @@ module.exports = class extends Listener {
 
     async exec(error, message, command) {
         if (message instanceof Interaction && !message.response && e.message !== 'Unknown interaction') {
-            await message.respond('An error occurred', { type: 'message', ephemeral: true });
+            message.respond('An error occurred', { type: 'message', ephemeral: true });
         } else {
             const channel = message?.util ?? message?.channel;
             if (channel) channel.send('An error occurred.');
