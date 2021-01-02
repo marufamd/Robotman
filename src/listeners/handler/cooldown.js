@@ -24,9 +24,8 @@ module.exports = class extends Listener {
             ephemeral: true
         });
 
+        console.log(msg);
         await wait(remaining);
-        try {
-            msg.delete();
-        } catch {} // eslint-disable-line no-empty
+        msg.delete?.();
     }
 };
