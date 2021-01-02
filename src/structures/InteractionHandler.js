@@ -49,6 +49,7 @@ module.exports = class InteractionHandler {
         const interaction = new Interaction(this.client, data);
         const command = this.client.commandHandler.findCommand(interaction.command.name);
         if (!command?.interact) return;
+        if (this.client.commandHandler.runCooldowns(interaction, command)) return;
 
         try {
             if (command.typing) interaction.channel?.startTyping();
