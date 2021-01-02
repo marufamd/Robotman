@@ -26,7 +26,28 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'pokemon',
+        description: 'Searches Bulbapedia for a Pokemon.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The Pokemon to search for.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { pokemon }) {
+        return message.util.send(await this.main(pokemon));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('query')));
+    }
+
+    async main(pokemon) {
         let query = formatQuery(pokemon).replaceAll(/(m(r(s|)|s)|jr)/gi, `$&.`);
 
         const num = parseInt(pokemon.split(/ +/)[0].replaceAll('#', ''));
@@ -36,7 +57,7 @@ module.exports = class extends Command {
         }
 
         const poke = await this.search(query);
-        if (!poke) return message.util.send('No results found.');
+        if (!poke) return 'No results found.';
 
         const embed = this.client.util.embed()
             .setColor(colors.BULBAPEDIA)
@@ -47,7 +68,7 @@ module.exports = class extends Command {
 
         if (poke.image) embed.setImage(poke.image);
 
-        return message.util.send(embed);
+        return embed;
     }
 
     async search(query) {

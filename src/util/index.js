@@ -41,7 +41,7 @@ class Util {
         return joke;
     }
 
-    static async paste(text, format = 'js', url = 'https://hasteb.in', raw = false) {
+    static async paste(text, format = 'js', url = 'https://hastebin.com', raw = false) {
         if (!text) throw new Error('No text provided');
 
         const res = await fetch(`${url}/documents`, { method: 'POST', body: text, headers: { 'Content-Type': 'text/plain' } });
