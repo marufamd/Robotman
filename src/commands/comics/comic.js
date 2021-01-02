@@ -8,7 +8,7 @@ module.exports = class extends Command {
         super('comic', {
             aliases: ['comic', 'comixology', 'issue', 'trade'],
             description: {
-                info: 'Searches ComiXology for an issue/trade',
+                info: 'Searches ComiXology for an issue/trade.',
                 usage: '<query>',
                 extended: ['More specific queries will give a more accurate result (e.g. including the launch year of the book, the writer, etc)'],
                 examples: [
