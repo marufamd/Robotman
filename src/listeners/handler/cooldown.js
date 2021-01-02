@@ -25,6 +25,6 @@ module.exports = class extends Listener {
         });
 
         await wait(remaining);
-        msg.delete?.();
+        msg?.delete?.();
     }
 };
