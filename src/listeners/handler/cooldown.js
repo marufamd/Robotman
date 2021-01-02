@@ -19,7 +19,7 @@ module.exports = class extends Listener {
 
         const msg = await fn({
             content: oneLine`
-            **${message.author}**, please wait **${seconds}** ${plural('second', seconds)}
+            ${message.author}, please wait **${seconds}** ${plural('second', seconds)}
             before using \`${command.id}\` again. ${interaction ? '' : 'This message will delete when the cooldown ends.'}`,
             type: 'message',
             ephemeral: true
