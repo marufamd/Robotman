@@ -26,7 +26,7 @@ module.exports = class extends Command {
                 }
             ],
             typing: true,
-            ratelimit: 10
+            cooldown: 10
         });
     }
 

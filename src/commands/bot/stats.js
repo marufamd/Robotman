@@ -12,7 +12,6 @@ module.exports = class extends Command {
         super('stats', {
             aliases: ['stats', 'stat', 'bot-stats'],
             description: 'Displays the bot\'s statistics.',
-            ratelimit: 2,
             typing: true
         });
     }

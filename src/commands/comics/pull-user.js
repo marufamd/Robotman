@@ -39,7 +39,7 @@ module.exports = class extends Command {
                 }
             ],
             typing: true,
-            ratelimit: 4
+            cooldown: 4
         });
     }
 
