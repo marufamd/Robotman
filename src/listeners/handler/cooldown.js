@@ -24,7 +24,6 @@ module.exports = class extends Listener {
             ephemeral: true
         });
 
-        console.log(msg);
         await wait(remaining);
         msg.delete?.();
     }
