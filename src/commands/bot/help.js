@@ -89,12 +89,12 @@ module.exports = class extends Command {
                     .setFooter(`Category: ${title(mod.categoryID)}${this.ratelimit > 2 ? ` | This command has a ${this.ratelimit} second cooldown.` : ''}`);
 
                 if (mod.interactionOptions) embed.addField('Slash Command', `/${mod.interactionOptions.name} ${mod.interactionOptions.options
-                    .map(o => {
+                    ?.map(o => {
                         let name = `[${o.name}\\]`;
                         if (o.required) name = `<${o.name}>`;
                         return `[${name}](https://notarealwebsi.te/ '${o.description}')`;
                     })
-                    .join(' ')}
+                    .join(' ') ?? ''}
                     `);
 
                 if (mod.description.examples?.length) embed.addField(plural('Example', mod.description.examples.length), this.client.util.formatExamples(mod, prefix));
