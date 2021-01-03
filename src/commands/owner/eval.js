@@ -2,6 +2,8 @@ const { Command } = require('discord-akairo');
 const { inspect } = require('util');
 const util = require('../../util');
 
+const parse = obj => JSON.parse(JSON.stringify(obj));
+
 module.exports = class extends Command {
     constructor() {
         super('eval', {
@@ -77,7 +79,7 @@ module.exports = class extends Command {
             if (typeof evaled === 'string' && !evaled.length) evaled = '\u200b';
 
             evaled = util.redact(this.clean(
-                evaled.toString?.() ?? inspect(this.parseObj(evaled))
+                evaled.toString?.() ?? inspect(parse(evaled))
                 ));
 
             this.lastInput = oldInput;
@@ -104,9 +106,5 @@ module.exports = class extends Command {
 
     clean(str) {
         return str.replace(/`/g, '`' + String.fromCharCode(8203));
-    }
-
-    parseObj(obj) {
-        return JSON.parse(JSON.stringify(obj));
     }
 };
