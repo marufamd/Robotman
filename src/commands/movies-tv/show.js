@@ -8,7 +8,7 @@ module.exports = class extends Command {
         super('show', {
             aliases: ['show', 'tv', 'tv-show'],
             description: {
-                info: 'Shpws information about a TV show.',
+                info: 'Shows information about a TV show.',
                 usage: '<query>',
                 examples: ['Daredevil'],
             },
@@ -28,7 +28,7 @@ module.exports = class extends Command {
 
     interactionOptions = {
         name: 'show',
-        description: 'Shpws information about a TV show.',
+        description: 'Shows information about a TV show.',
         options: [
             {
                 type: 'string',
@@ -44,7 +44,7 @@ module.exports = class extends Command {
     }
 
     async interact(interaction) {
-        return interaction.respond(interaction.option('query'));
+        return interaction.respond(await this.main(interaction.option('query')));
     }
 
     async main(query) {

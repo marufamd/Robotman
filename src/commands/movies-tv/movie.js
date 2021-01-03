@@ -43,7 +43,7 @@ module.exports = class extends Command {
     }
 
     async interact(interaction) {
-        return interaction.respond(interaction.option('query'));
+        return interaction.respond(await this.main(interaction.option('query')));
     }
 
     async main(query) {
