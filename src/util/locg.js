@@ -1,23 +1,23 @@
-const { fetch, sort } = require('./');
 const cheerio = require('cheerio');
+const request = require('node-superfetch');
+const { sort } = require('./');
+
+const BASE_URL = 'https://leagueofcomicgeeks.com';
 
 class Locg {
-    constructor() {
-        throw new Error('This class cannot be instantiated.');
-    }
-
     static async get(params, options = {}) {
         params.view = 'list';
         params.order = 'alpha-asc';
+
         if (!options.search) {
             params.date_type = 'week';
             params.list_option = 'thumbs';
         }
+        const { body } = await request
+            .get(`${BASE_URL}/comic/get_comics`)
+            .query(params);
 
-        const baseURL = 'https://leagueofcomicgeeks.com';
-
-        const res = await fetch(`${baseURL}/comic/get_comics`, params);
-        const $ = cheerio.load(res.list);
+        const $ = cheerio.load(body.list);
 
         function extract() {
             const name = $(this).find('.title.color-primary').text().trim();
@@ -25,18 +25,18 @@ class Locg {
 
             if (options.search) {
                 cover = $(this).find('.cover img').attr('data-src').replace('medium', 'large');
-                link = `${baseURL}${$(this).find('.cover a').attr('href')}`;
+                link = `${BASE_URL}${$(this).find('.cover a').attr('href')}`;
                 publisher = $(this).find('.publisher.color-offset').text().trim();
             } else {
                 cover = $(this).find('.comic-cover-art img').attr('data-src').replace('medium', 'large');
-                cover = cover === '/assets/images/no-cover-med.jpg' ? `${baseURL}${cover.replace('-med', '-lg')}` : cover;
+                cover = cover === '/assets/images/no-cover-med.jpg' ? `${BASE_URL}${cover.replace('-med', '-lg')}` : cover;
 
                 const details = $(this).find('.comic-details').text().split('·');
                 publisher = (details[0] || '').trim();
                 price = $(this).find('.price').text().trim();
 
                 description = $(this).find('.comic-description.col-feed-max');
-                link = `${baseURL}${description.find('a').attr('href')}`;
+                link = `${BASE_URL}${description.find('a').attr('href')}`;
 
                 description.find('a').remove();
                 description = description.text().trim();
@@ -93,11 +93,11 @@ class Locg {
     }
 
     static async resolveUser(name) {
-        const url = `https://leagueofcomicgeeks.com/profile/${name.toLowerCase()}/pull-list`;
+        const url = `${BASE_URL}/profile/${name.toLowerCase()}/pull-list`;
 
         try {
-            const body = await fetch(url, null, 'text');
-            const $ = cheerio.load(body);
+            const { text } = await request.get(url);
+            const $ = cheerio.load(text);
 
             const details = $('#comic-list-block')[0];
             if (!details) return null;

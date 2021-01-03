@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
+const request = require('node-superfetch');
 const { extname } = require("path");
-const { fetch } = require("../../util");
 
 module.exports = class extends Command {
     constructor() {
@@ -26,7 +26,7 @@ module.exports = class extends Command {
     }
 
     async main() {
-        const { url } = await fetch('https://random.dog/woof.json');
+        const { body: { url } } = await request.get('https://random.dog/woof.json');
         return this.client.util.attachment(url, `dog${extname(url)}`);
     }
 };

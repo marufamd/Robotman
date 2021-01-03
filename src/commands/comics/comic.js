@@ -1,6 +1,7 @@
 const cheerio = require('cheerio');
 const { Command } = require('discord-akairo');
-const { google, trim, fetch, title } = require('../../util');
+const request = require('node-superfetch');
+const { google, trim, title } = require('../../util');
 const { colors: { COMIXOLOGY } } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -84,9 +85,9 @@ module.exports = class extends Command {
         if (!found) return null;
 
         const link = found.link.replace('https://m.', 'https://www.');
-        const body = await fetch(link, null, 'text');
+        const { text } = await request.get(link);
 
-        const $ = cheerio.load(body);
+        const $ = cheerio.load(text);
         if (!$('img.icon').length) return null;
 
         const credits = $('div.credits')[0];

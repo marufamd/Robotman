@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
-const { fetch, trim } = require('../../util');
+const request = require('node-superfetch');
+const { trim } = require('../../util');
 const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -21,7 +22,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            cooldown: 4e3
+            cooldown: 4e3,
+            typing: true
         });
     }
 
@@ -49,9 +51,11 @@ module.exports = class extends Command {
 
     async search(term) {
         if (!term) throw new Error('No query provided');
-        const res = await fetch('http://api.urbandictionary.com/v0/define', { term });
+        const { body } = await request
+            .get('http://api.urbandictionary.com/v0/define')
+            .query({ term });
 
-        if (res.error) return 'error';
-        return res.list?.[0];
+        if (body.error) return 'error';
+        return body.list?.[0];
     }
 };

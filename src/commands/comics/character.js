@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const { fetch } = require('../../util');
+const request = require('node-superfetch');
 const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -57,10 +57,13 @@ module.exports = class extends Command {
             format: 'json'
         };
 
-        const res = await fetch('https://comicvine.gamespot.com/api/characters/', params);
-        if (!res.number_of_total_results || !res.results || !res.results.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+        const { body } = await request
+            .get('https://comicvine.gamespot.com/api/characters/')
+            .query(params);
+            
+        if (!body.number_of_total_results || !body.results?.length) return { content: 'No results found.', type: 'message', ephemeral: true };
 
-        const char = res.results[0];
+        const char = body.results[0];
 
         let str = char.deck ? (char.deck + '\n\n') : '';
 

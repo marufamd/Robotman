@@ -1,14 +1,14 @@
 const { Command } = require('discord-akairo');
+const request = require('node-superfetch');
 const TurndownService = require('turndown');
-const { fetch } = require('../../util');
 const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
         super('show', {
-            aliases: ['show', "tv", "tv-show"],
+            aliases: ['show', 'tv', 'tv-show'],
             description: {
-                info: 'Displays info about a TV show.',
+                info: 'Shpws information about a TV show.',
                 usage: '<query>',
                 examples: ['Daredevil'],
             },
@@ -21,15 +21,40 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            cooldown: 4e3
+            cooldown: 4e3,
+            typing: true
         });
     }
 
-    async exec(message, { query }) {
-        const res = await fetch("https://api.tvmaze.com/search/shows", { q: query });
-        if (!res?.length) return message.util.send("No results found.");
+    interactionOptions = {
+        name: 'show',
+        description: 'Shpws information about a TV show.',
+        options: [
+            {
+                type: 'string',
+                name: 'query',
+                description: 'The TV show to search for.',
+                required: true
+            }
+        ]
+    }
 
-        const { show } = res[0];
+    async exec(message, { query }) {
+        return message.util.send(await this.main(query));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(interaction.option('query'));
+    }
+
+    async main(query) {
+        const { body } = await request
+            .get('https://api.tvmaze.com/search/shows')
+            .query('q', query);
+
+        if (!body?.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+
+        const { show } = body[0];
         const network = show.network || show.webChannel;
 
         const embed = this.client.util.embed()
@@ -38,16 +63,16 @@ module.exports = class extends Command {
             .setURL(show.url)
             .setDescription(new TurndownService().turndown(show.summary))
             .setThumbnail(show.image.original)
-            .addField("Language", show.language, true)
-            .addField("Premiered", show.premiered, true)
-            .addField("Status", show.status, true)
-            .addField("Genres", show.genres.join(", "), true)
-            .setFooter("TVmaze", "https://i.imgur.com/ExggnTB.png");
+            .addField('Language', show.language, true)
+            .addField('Premiered', show.premiered, true)
+            .addField('Status', show.status, true)
+            .addField('Genres', show.genres.join(', '), true)
+            .setFooter('TVmaze', 'https://i.imgur.com/ExggnTB.png');
 
-        if (network) embed.addField("Network", network.name, true);
-        if (show.officialSite) embed.addField("Website", `[Click Here](${show.officialSite})`, true);
-        if (embed.fields.length === 5) embed.addField("\u200b", "\u200b", true);
+        if (network) embed.addField('Network', network.name, true);
+        if (show.officialSite) embed.addField('Website', `[Click Here](${show.officialSite})`, true);
+        if (embed.fields.length === 5) embed.addField('\u200b', '\u200b', true);
 
-        return message.util.send(embed);
+        return embed;
     }
 };

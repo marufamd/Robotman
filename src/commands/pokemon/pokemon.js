@@ -1,8 +1,7 @@
 const { Command } = require('discord-akairo');
-const fetch = require('node-fetch');
-const { stringify } = require('querystring');
+const request = require('node-superfetch');
 const { trim, formatQuery } = require('../../util');
-const { colors } = require('../../util/constants');
+const { colors, wikiParams } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -23,8 +22,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
+            cooldown: 4e3,
             typing: true,
-            cooldown: 4e3
         });
     }
 
@@ -74,20 +73,11 @@ module.exports = class extends Command {
     }
 
     async search(query) {
-        const params = {
-            action: 'query',
-            titles: query,
-            prop: 'extracts|pageimages|links',
-            format: 'json',
-            formatversion: 2,
-            exintro: true,
-            redirects: true,
-            explaintext: true,
-            pithumbsize: 1000,
-        };
+        const { body } = await request
+            .get(`https://bulbapedia.bulbagarden.net/w/api.php`)
+            .query(wikiParams(query));
 
-        const res = await fetch(`https://bulbapedia.bulbagarden.net/w/api.php?${stringify(params)}`).then(res => res.json());
-        const poke = res.query.pages[0];
+        const poke = body.query.pages[0];
         if (poke.missing) return null;
 
         const main = poke.title;
@@ -96,22 +86,24 @@ module.exports = class extends Command {
         const title = `${(dexNum && !isNaN(parseInt(dexNum))) ? `#${dexNum} - ` : ''}${main}`;
         const link = this.getLink(main);
         let description = trim(poke.extract.split('\n\n')[0].trimEnd(), 2048);
+
         if (/(several\s)?refer(rals)?/gi.test(description)) {
             const links = poke.links.map(l => `[${l.title}](${this.getLink(l.title)})`).join('\n');
             description += `\n${links}`;
         }
+
         const image = poke.thumbnail ? poke.thumbnail.source : null;
 
         return { title, link, description, image };
     }
 
     async getDexNum(num) {
-        let res = await fetch(`https://pokeapi.co/api/v2/pokemon/${num}`);
+        let res = await request.get(`https://pokeapi.co/api/v2/pokemon/${num}`);
 
         if (res.ok) {
-            res = await res.json();
-            let final;
+            res = res.body;
 
+            let final;
             const odd = ['ho-oh', 'kommo-o', 'hakamo-o', 'jangmo-o', 'porygon-z'];
 
             final = res.name.replaceAll(/(mr|ms|jr|mrs)/gi, `$&.`);

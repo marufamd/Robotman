@@ -1,5 +1,9 @@
 const { Command } = require('discord-akairo');
-const { trim, formatQuery, fetch } = require('../../util');
+const request = require('node-superfetch');
+const { trim, formatQuery } = require('../../util');
+const { wikiParams } = require('../../util/constants');
+
+const BAD_WORDS_URL = 'https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt';
 
 module.exports = class extends Command {
     constructor() {
@@ -67,21 +71,11 @@ module.exports = class extends Command {
     }
 
     async search(query) {
-        const params = {
-            action: 'query',
-            titles: query,
-            prop: 'extracts|pageimages|links',
-            format: 'json',
-            formatversion: 2,
-            exintro: true,
-            redirects: true,
-            explaintext: true,
-            pithumbsize: 1000
-        };
+        const { body } = await request
+            .get('https://en.wikipedia.org/w/api.php')
+            .query(wikiParams(query));
 
-        const res = await fetch('https://en.wikipedia.org/w/api.php', params);
-
-        const page = res.query.pages[0];
+        const page = body.query.pages[0];
         if (page.missing || !page.extract) return null;
         let description = page.extract;
 
@@ -106,9 +100,8 @@ module.exports = class extends Command {
 
     async getBadWords() {
         if (this.badWords) return this.badWords;
-        const url = 'https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt';
-        const body = (await fetch(url, null, 'text')).split('\n');
-        this.badWords = body;
+        const { text } = await request.get(BAD_WORDS_URL);
+        this.badWords = text.split('\n');
         return this.badWords;
     }
 };

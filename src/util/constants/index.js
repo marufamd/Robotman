@@ -188,6 +188,18 @@ exports.CommandOptionTypes = indexMirror([
     'role'
 ]);
 
+exports.wikiParams = query => ({
+    action: 'query',
+    titles: query,
+    prop: 'extracts|pageimages|links',
+    format: 'json',
+    formatversion: 2,
+    exintro: true,
+    redirects: true,
+    explaintext: true,
+    pithumbsize: 1000
+});
+
 function indexMirror(arr) {
     const obj = {};
     for (const [index, val] of arr.entries()) obj[val] = index + 1;

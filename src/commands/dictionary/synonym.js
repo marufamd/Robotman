@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const { fetch } = require('../../util');
+const { define } = require('../../util');
 const { colors } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -21,7 +21,8 @@ module.exports = class extends Command {
                     }
                 }
             ],
-            cooldown: 4e3
+            cooldown: 4e3,
+            typing: true
         });
     }
 
@@ -47,8 +48,8 @@ module.exports = class extends Command {
     }
 
     async main(word) {
-        const defined = await this.search(word);
-        if (!defined?.synonyms?.length) return 'No synonyms found';
+        const defined = await define(word, true);
+        if (!defined?.synonyms?.length) return { content: 'No synonyms found', type: 'message', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor(colors.DICTIONARY)
@@ -66,20 +67,5 @@ module.exports = class extends Command {
         }
 
         return embed;
-    }
-
-    async search(word) {
-        if (!word.length) throw new Error('No query provided');
-        const url = `https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${encodeURIComponent(word)}`;
-
-        const res = await fetch(url, { key: process.env.THESAURUS_KEY });
-
-        if (!res?.length) return null;
-        if (typeof res[0] === 'string') return res.slice(0, 3);
-        const found = res[0].meta;
-        return {
-            word: found.stems?.[0],
-            synonyms: found?.syns?.flat(3)
-        };
     }
 };

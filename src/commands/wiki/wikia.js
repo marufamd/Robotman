@@ -1,5 +1,6 @@
 const { Command } = require('discord-akairo');
-const { formatQuery, fetch } = require('../../util');
+const request = require('node-superfetch');
+const { formatQuery } = require('../../util');
 
 module.exports = class extends Command {
     constructor() {
@@ -62,15 +63,16 @@ module.exports = class extends Command {
     async main(wikia, content) {
         const baseURL = `https://${wikia}.fandom.com`;
 
-        const params = {
-            action: 'query',
-            titles: formatQuery(content),
-            format: 'json',
-            formatversion: 2,
-            redirects: true
-        };
+        const { body: { query } } = await request
+            .get(`${baseURL}/api.php`)
+            .query({
+                action: 'query',
+                titles: formatQuery(content),
+                format: 'json',
+                formatversion: 2,
+                redirects: true
+            });
 
-        const { query } = await fetch(`${baseURL}/api.php`, params);
         if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', type: 'message', ephemeral: true };
         const { pageid } = query.pages[0];
 
@@ -89,10 +91,13 @@ module.exports = class extends Command {
     }
 
     async getData(webURL, params, id) {
-        const res = await fetch(webURL, params);
-        if (res.ok === false) return null;
+        const res = await request
+            .get(webURL)
+            .query(params);
 
-        const { items, basepath } = res;
+        if (!res.ok) return null;
+
+        const { items, basepath } = res.body;
         const { title, url, abstract, thumbnail, original_dimensions } = this.getItem(items, id);
 
         const description = abstract.split(/1 (Powers and Abilities|Physical Appearance|History|Biology)/)[0].trimEnd();
