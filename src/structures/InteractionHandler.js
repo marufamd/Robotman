@@ -27,6 +27,7 @@ module.exports = class InteractionHandler {
     edit(command, data, guild) {
         if (typeof data === 'string') data = this.client.commandHandler.findCommand(data)?.interactionOptions;
         if (!data) return;
+        if (data.options) data.options = this.resolveOptions(data.options);
 
         if (command && typeof command === 'object') command = command.id;
 
