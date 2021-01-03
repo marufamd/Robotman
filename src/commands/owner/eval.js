@@ -77,7 +77,7 @@ module.exports = class extends Command {
             if (typeof evaled === 'string' && !evaled.length) evaled = '\u200b';
 
             evaled = util.redact(this.clean(
-                evaled.toString?.() ?? inspect(this.parse(evaled))
+                evaled.toString?.() ?? inspect(this.parseObj(evaled))
                 ));
 
             this.lastInput = oldInput;
@@ -106,7 +106,7 @@ module.exports = class extends Command {
         return str.replace(/`/g, '`' + String.fromCharCode(8203));
     }
 
-    parse(obj) {
+    parseObj(obj) {
         return JSON.parse(JSON.stringify(obj));
     }
 };
