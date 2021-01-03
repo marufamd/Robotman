@@ -28,19 +28,13 @@ module.exports = class extends Command {
     }
 
     async exec(message, { date }) {
-        let dtf = DateTime.fromJSDate(date);
-        const dates = [];
-
-        if (dtf.weekday === 7) {
-            dates.push(dtf.toFormat(formats.locg)); // Start from Sunday
-            dtf = dtf.plus({ days: 1 }); // Increment to Monday so that Luxon doesn't use the previous week
-        }
-
-        for (let i = 1; i < 7; i++) dates.push(dtf.set({ weekday: i }).toFormat(formats.locg));
+        const dtf = DateTime.fromJSDate(date);
 
         let final = [];
 
-        for (const date of dates) {
+        for (let i = 1; i < 8; i++) {
+            const date = dtf.set({ weekday: i }).toFormat(formats.locg);
+
             const { body } = await request
                 .get('http://api.tvmaze.com/schedule')
                 .query({ country: 'US', date});
@@ -49,7 +43,7 @@ module.exports = class extends Command {
             if (!found.length) continue;
 
             for (const episode of found) {
-                const day = DateTime.fromJSDate(new Date(episode.airdate));
+                const day = DateTime.fromJSDate(new Date(episode.airdate), { zone: 'utc' });
 
                 const season = episode.season.toString().padStart(2, '0');
                 const number = episode.number.toString().padStart(2, '0');
@@ -61,7 +55,7 @@ module.exports = class extends Command {
 
         if (!final.length) return message.channel.send('There are no episodes scheduled for this week.');
 
-        const str = `Episodes releasing for the week of ${dtf.minus({ days: 1 }).toFormat(formats.locg)}`;
+        const str = `Episodes releasing for the week of ${dtf.set({ weekday: 1 }).toFormat(formats.locg)}`;
         final = final.join('\n');
 
         final = final.length > 1900 ? await paste(final, str, 'markdown', true) : ['```md', final, '```'].join('\n');
