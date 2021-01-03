@@ -11,7 +11,7 @@ module.exports = class CPU {
         const cpus = os.cpus();
 
         for (const cpu of cpus) {
-            for (const type in cpu.times) total += cpu.times[type];
+            for (const type of Object.keys(cpu.times)) total += cpu.times[type];
             idle += cpu.times.idle;
         }
 
