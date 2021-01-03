@@ -1,9 +1,9 @@
 const os = require('os');
 const { wait } = require('./');
 
-const INTERVAL = 1000;
-
 module.exports = class CPU {
+    static INTERVAL = 1000;
+
     static average() {
         let idle = 0,
             total = 0;
@@ -22,9 +22,9 @@ module.exports = class CPU {
     }
 
     static async usage() {
-        const start = this.average();
-        await wait(INTERVAL);
-        const end = this.average();
+        const start = CPU.average();
+        await wait(CPU.INTERVAL);
+        const end = CPU.average();
 
         const idleDiff = (end.idle - start.idle);
         const totalDiff = (end.total - start.total);

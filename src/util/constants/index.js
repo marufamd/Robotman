@@ -117,11 +117,6 @@ exports.connectFour = {
     WAIT_TIME: 1
 };
 
-exports.groups = {
-    dev: ['owner'],
-    mod: ['moderation', 'tags']
-};
-
 exports.pull = {
     default: {
         previous: ["pulllast", "pl", "plast", "releaseslast"],
