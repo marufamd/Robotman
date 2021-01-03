@@ -59,12 +59,12 @@ module.exports = class extends Command {
         let executionTime;
 
         try {
-            let evaled;
             const oldInput = code;
+            
             code = code.replaceAll(/(\S*\.)?(client|config).token$/gi, 'util.randomToken()');
+            code = /(await|async)/g.test(code) || message.util.parsed.alias === 'async' ? `(async () => {${code}})();` : code;
 
-            if (/(await|async)/g.test(code) || message.util.parsed.alias === 'async') evaled = eval(`(async () => {${code}})();`);
-            else evaled = eval(code);
+            let evaled = eval(code);
 
             executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
             
