@@ -28,7 +28,7 @@ module.exports = class extends Command {
     }
 
     async exec(message, { date }) {
-        const dtf = DateTime.fromJSDate(date);
+        const dtf = DateTime.fromJSDate(date, { zone: 'utc' });
 
         let final = [];
 
