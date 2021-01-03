@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 const { pull: { user: { previous, next } }, formats, colors } = require('../../util/constants');
 const { getPulls, resolveUser } = require('../../util/locg');
 
@@ -62,10 +62,11 @@ module.exports = class extends Command {
     }
 
     async exec(message, { username, date }) {
-        date = date ? moment(date).day(3) : (moment().weekday() <= 3 ? moment().day(3) : moment().day(3).add(7, 'days'));
+        const day = DateTime.fromJSDate(date ?? new Date());
+        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
 
-        if (next.includes(message.util.parsed.alias)) date = date.add(7, 'days');
-        else if (previous.includes(message.util.parsed.alias)) date = date.subtract(7, 'days');
+        if (next.includes(message.util.parsed.alias)) date = date.plus({ days: 7 });
+        else if (previous.includes(message.util.parsed.alias)) date = date.minus({ days: 7 });
 
         return message.util.send(await this.main(username, date));
     }
@@ -73,21 +74,16 @@ module.exports = class extends Command {
     async interact(interaction) {
         let [username, date] = interaction.findOptions('username', 'date'); // eslint-disable-line prefer-const
         
-        const newDate = moment();
         const parsed = this.handler.resolver.type('parsedDate')(null, date);
 
-        if (date === 'next') date = newDate.add(7, 'days');
-        else if (date === 'last') date = newDate.subtract(7, 'days');
-        else if (parsed) date = moment(parsed);
-        else date = newDate;
-
-        date = (date !== newDate) || (date.weekday() <= 3) ? date.day(3) : date.day(3).add(7, 'days');
+        const day = DateTime.fromJSDate(parsed ?? new Date());
+        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
 
         return interaction.respond(await this.main(username, date));
     }
 
     async main(username, date) {
-        date = date.format(formats.locg);
+        date = date.toFormat(formats.locg);
 
         const user = await resolveUser(username);
         if (!user || user === 'private') return { content: 'That account is private or does not exist.', type: 'message', ephemeral: true };

@@ -1,8 +1,8 @@
-const request = require('node-superfetch');
-const moment = require('moment');
-const beautify = require('js-beautify');
 const { SnowflakeUtil } = require('discord.js');
+const beautify = require('js-beautify');
+const request = require('node-superfetch');
 const { dirname, basename } = require('path');
+const { DateTime } = require('luxon');
 const { formats } = require('./constants');
 
 class Util {
@@ -184,12 +184,12 @@ class Util {
         return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    static formatDate(date) {
-        return moment.utc(date).format(formats.log);
+    static formatDate(date, format = formats.log) {
+        return DateTime.fromJSDate(date, { zone: 'utc' }).toFormat(format);
     }
 
-    static difference(date) {
-        return moment().diff(date, 'years', true).toFixed(2);
+    static difference(date, format = 'd') {
+        return DateTime.local().diff(DateTime.fromJSDate(date), 'years').toFormat(format);
     }
 
     static formatQuery(str) {

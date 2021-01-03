@@ -22,10 +22,11 @@ exports.logTypes = {
 };
 
 exports.formats = {
-    log: 'MMMM Do YYYY, [at] h:mm:ss A',
-    uptime: 'D[d], H[h], m[m], s[s]',
-    locg: 'YYYY-MM-DD',
-    day: 'dddd'
+    log: "MMMM d yyyy, 'at' ttt",
+    uptime: "d'd', h'h', m'm', s's'",
+    locg: 'y-MM-dd',
+    day: 'EEEE',
+    clock: "h':'mm a"
 };
 
 exports.emojis = {

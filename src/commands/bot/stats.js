@@ -1,7 +1,6 @@
 const { Command } = require('discord-akairo');
 const { stripIndents } = require('common-tags');
-const moment = require('moment');
-require('moment-duration-format');
+const { Duration } = require('luxon');
 
 const cpu = require('../../util/cpu');
 const { dependencies, version } = require('../../../package.json');
@@ -43,7 +42,7 @@ module.exports = class extends Command {
                 • **Dependencies:** ${Object.keys(dependencies).length}
                 • **Memory Usage:** ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
                 • **CPU Usage:** ${await cpu.usage()}%
-                • **Uptime:** ${moment.duration(this.client.uptime).format(formats.uptime)}
+                • **Uptime:** ${Duration.fromMillis(this.client.uptime).toFormat(formats.uptime)}
                 `,
                 inline: true
             }, {

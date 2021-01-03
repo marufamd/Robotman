@@ -53,8 +53,8 @@ module.exports = class extends Command {
             .setURL(avatar)
             .setThumbnail(avatar)
             .setDescription(stripIndents`
-                        • **Created On:** ${formatDate(user.createdAt)} UTC (${difference(user.createdAt)} years ago)
-                        • **Joined On:** ${formatDate(member.joinedAt)} UTC (${difference(member.joinedAt)} years ago)
+                        • **Created On:** ${formatDate(user.createdAt)} (${difference(user.createdAt)} days ago)
+                        • **Joined On:** ${formatDate(member.joinedAt)} (${difference(member.joinedAt)} days ago)
                         • **Status:** ${statuses[user.presence.status]}
                         • **Nickname:** ${member.nickname ? escapeMarkdown(member.nickname) : 'None'}`)
             .setFooter(`ID: ${user.id}`);

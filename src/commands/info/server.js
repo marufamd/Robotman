@@ -29,7 +29,7 @@ module.exports = class extends Command {
         };
 
         let str = stripIndents`
-            • **Created On:** ${formatDate(guild.createdAt)} UTC (${difference(guild.createdAt)} years ago)
+            • **Created On:** ${formatDate(guild.createdAt)} (${difference(guild.createdAt, 'd')} days ago)
             • **Owner:** ${escapeMarkdown(guild.owner.user.tag)}
             • **Region:** ${this.formatRegion(guild.region)}
             • **Members:** ${guild.memberCount} (${users.size} Users, ${bots.size} Bots)

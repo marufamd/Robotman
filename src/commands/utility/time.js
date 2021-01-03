@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
-const moment = require('moment-timezone');
+const { DateTime } = require('luxon');
 const { title, closest } = require('../../util');
-const { timezones } = require('../../util/constants');
+const { timezones, formats } = require('../../util/constants');
 
 module.exports = class extends Command {
     constructor() {
@@ -35,7 +35,7 @@ module.exports = class extends Command {
         timezone = timezone.split(' ').join('_');
         const target = closest(timezone, timezones.map(t => t.toLowerCase()));
 
-        const formatted = moment().tz(target).format('h:mm A');
+        const formatted = DateTime.local().setZone(timezones.find(t => t.toLowerCase() === target)).toFormat(formats.clock);
         let formatText = (target.length <= 3) ? target.toUpperCase() : title (target.replaceAll(/(_|\/)/gi, ' '));
         formatText = target.includes('/') ? formatText.replace(' ', '/') : formatText;
 

@@ -42,7 +42,7 @@ module.exports = class extends Command {
             .setTitle(`${escapeMarkdown(role.name)}`)
             .setThumbnail(image)
             .setDescription(stripIndents`
-                • **Created On:** ${formatDate(role.createdAt)} UTC (${difference(role.createdAt)} years ago)
+                • **Created On:** ${formatDate(role.createdAt)} (${difference(role.createdAt)} days ago)
                 • **Mentionable:** ${role.mentionable ? 'Yes' : 'No'}
                 • **Hoisted:** ${role.hoist ? 'Yes' : 'No'}
                 • **Integration:** ${role.managed ? 'Yes' : 'No'}
