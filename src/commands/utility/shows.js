@@ -1,10 +1,9 @@
 const { Command } = require('discord-akairo');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 const request = require('node-superfetch');
+
 const { pastee: paste } = require('../../util');
 const { shows, formats } = require('../../util/constants');
-
-const zero = str => str.length <= 1 ? `0${str}` : str;
 
 module.exports = class extends Command {
     constructor() {
@@ -29,33 +28,40 @@ module.exports = class extends Command {
     }
 
     async exec(message, { date }) {
-        const dtf = moment(date);
+        let dtf = DateTime.fromJSDate(date);
+        const dates = [];
+
+        if (dtf.weekday === 7) {
+            dates.push(dtf.toFormat(formats.locg)); // Start from Sunday
+            dtf = dtf.plus({ days: 1 }); // Increment to Monday so that Luxon doesn't use the previous week
+        }
+
+        for (let i = 1; i < 7; i++) dates.push(dtf.set({ weekday: i }).toFormat(formats.locg));
+
         let final = [];
 
-        for (let i = 1; i < 8; i++) {
-            const day = dtf.day(i).format(formats.locg);
-
+        for (const date of dates) {
             const { body } = await request
                 .get('http://api.tvmaze.com/schedule')
-                .query({ country: 'US', date: day });
+                .query({ country: 'US', date});
 
             const found = body.filter(s => shows.includes(s.show.id));
             if (!found.length) continue;
 
             for (const episode of found) {
-                const day = moment(new Date(episode.airdate));
+                const day = DateTime.fromJSDate(new Date(episode.airdate));
 
-                const season = zero(episode.season.toString());
-                const number = zero(episode.number.toString());
+                const season = episode.season.toString().padStart(2, '0');
+                const number = episode.number.toString().padStart(2, '0');
 
-                const str = `* **${day.format(formats.day)}:** [***${episode.show.name}*** **s${season}e${number}** - *${episode.name}*](${episode.show.image.original})`;
+                const str = `* **${day.toFormat(formats.day)}:** [***${episode.show.name}*** **s${season}e${number}** - *${episode.name}*](${episode.show.image.original})`;
                 final.push(str);
             }
         }
 
         if (!final.length) return message.channel.send('There are no episodes scheduled for this week.');
 
-        const str = `Episodes releasing for the week of ${dtf.day(1).format(formats.locg)}`;
+        const str = `Episodes releasing for the week of ${dtf.minus({ days: 1 }).toFormat(formats.locg)}`;
         final = final.join('\n');
 
         final = final.length > 1900 ? await paste(final, str, 'markdown', true) : ['```md', final, '```'].join('\n');

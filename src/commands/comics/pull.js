@@ -34,7 +34,8 @@ module.exports = class extends Command {
                 {
                     id: 'date',
                     type: 'parsedDate',
-                    match: 'rest'
+                    match: 'rest',
+                    default: new Date()
                 }
             ],
             typing: true
@@ -61,7 +62,7 @@ module.exports = class extends Command {
     }
 
     async exec(message, { publisher, date }) {
-        const day = DateTime.fromJSDate(date ?? new Date());
+        const day = DateTime.fromJSDate(date);
         date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
 
         if (next.includes(message.util.parsed.alias)) date = date.plus({ days: 7 });
