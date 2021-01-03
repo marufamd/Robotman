@@ -43,15 +43,15 @@ class Util {
     static async define(word, synonym = false) {
         if (!word?.length) throw new Error('No query provided');
         const url = `https://www.dictionaryapi.com/api/v3/references/${synonym ? 'thesaurus' : 'collegiate'}/json/${encodeURIComponent(word)}`;
-    
+
         const { body } = await request
             .get(url)
             .query('key', process.env[`${synonym ? 'THESAURUS' : 'DICTIONARY'}_KEY`]);
-    
+
         if (!body.length) return null;
         const result = body[0];
         if (typeof result[0] === 'string') return body.slice(0, 3);
-    
+
         if (synonym) {
             const found = body[0].meta;
             return {
@@ -94,9 +94,53 @@ class Util {
         return raw ? body.link.replace('/p/', '/r/') : body.link;
     }
 
+    static compare(first, second) {
+        first = first.replace(/\s+/g, '');
+        second = second.replace(/\s+/g, '');
+
+        if (first === second) return 1;
+        if ((!first.length || !second.length) || (first.length < 2 || second.length < 2)) return 0;
+
+        const compared = new Map();
+
+        for (let i = 0; i < first.length - 1; i++) {
+            const compare = first.substring(i, i + 2);
+            compared.set(compare, (compared.get(compare) ?? 0) + 1);
+        }
+
+        let size = 0;
+
+        for (let i = 0; i < second.length - 1; i++) {
+            const compare = second.substring(i, i + 2);
+            const count = compared.get(compare) ?? 0;
+
+            if (count > 0) {
+                compared.set(compare, count - 1);
+                size++;
+            }
+        }
+
+        return (2.0 * size) / (first.length + second.length - 2);
+    }
+
     static randomResponse(arr) {
         if (!Array.isArray(arr)) throw new TypeError('Function requires an array');
         return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    static closest(target, arr) {
+        if (typeof target !== 'string' || !Array.isArray(arr)) throw new TypeError('Invalid parameters');
+
+        const compared = [];
+        let match = 0;
+
+        for (const str of arr) {
+            const rating = Util.compare(target, str);
+            compared.push({ str, rating });
+            if (rating > compared[match].rating) match = arr.indexOf(str);
+        }
+
+        return compared[match].str;
     }
 
     static sort(arr) {

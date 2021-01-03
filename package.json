@@ -23,7 +23,6 @@
     "node-superfetch": "^0.1.10",
     "pg": "^8.5.1",
     "sequelize": "^6.3.5",
-    "string-similarity": "^4.0.3",
     "turndown": "^7.0.0"
   },
   "devDependencies": {

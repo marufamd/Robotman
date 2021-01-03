@@ -1,7 +1,6 @@
 const { Command } = require('discord-akairo');
 const moment = require('moment-timezone');
-const { findBestMatch } = require('string-similarity');
-const { title } = require('../../util');
+const { title, closest } = require('../../util');
 const { timezones } = require('../../util/constants');
 
 module.exports = class extends Command {
@@ -34,8 +33,7 @@ module.exports = class extends Command {
 
     async exec(message, { timezone }) {
         timezone = timezone.split(' ').join('_');
-        const { bestMatchIndex } = findBestMatch(timezone, timezones.map(t => t.toLowerCase()));
-        const target = timezones[bestMatchIndex];
+        const target = closest(timezone, timezones.map(t => t.toLowerCase()));
 
         const formatted = moment().tz(target).format('h:mm A');
         let formatText = (target.length <= 3) ? target.toUpperCase() : title (target.replaceAll(/(_|\/)/gi, ' '));
