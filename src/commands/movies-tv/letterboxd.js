@@ -5,7 +5,7 @@ const { colors } = require('../../util/constants');
 module.exports = class extends Command {
     constructor() {
         super('letterboxd', {
-            aliases: ['letterboxd'],
+            aliases: ['letterboxd', 'letterbox'],
             description: {
                 info: 'Shows movie reviews on a letterboxd account.',
                 usage: '<user> <film>'
