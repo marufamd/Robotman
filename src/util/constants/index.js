@@ -22,7 +22,7 @@ exports.logTypes = {
 };
 
 exports.formats = {
-    log: "MMMM d yyyy, 'at' ttt",
+    log: "MMMM d yyyy, 'at' tt",
     uptime: "d'd', h'h', m'm', s's'",
     locg: 'y-MM-dd',
     day: 'EEEE',

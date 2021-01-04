@@ -4,6 +4,10 @@ const util = require('../../util');
 
 const parse = obj => JSON.parse(JSON.stringify(obj));
 
+/* eslint-disable no-unused-vars */
+const { DateTime } = require('luxon');
+const request = require('node-superfetch');
+
 module.exports = class extends Command {
     constructor() {
         super('eval', {
@@ -37,10 +41,8 @@ module.exports = class extends Command {
     lastResult = null;
 
     async exec(message, { code, depth }) {
-        /* eslint-disable no-unused-vars */
         const { lastInput, lastResult, client } = this;
         const { interactionHandler } = client;
-        /* eslint-enable no-unused-vars */
 
         code = code
             .replace(/^\s*```(js|javascript)?/, '')
@@ -60,7 +62,7 @@ module.exports = class extends Command {
 
         try {
             const oldInput = code;
-            
+
             code = code.replaceAll(/(\S*\.)?(client|config).token$/gi, 'util.randomToken()');
             code = /(await|async)/g.test(code) || message.util.parsed.alias === 'async' ? `(async () => {${code}})();` : code;
 

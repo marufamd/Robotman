@@ -1,4 +1,4 @@
-const moment = require('moment-timezone');
+const { DateTime } = require('luxon');
 const colorette = require('colorette');
 const { WebhookClient } = require('discord.js');
 
@@ -20,7 +20,7 @@ module.exports = class Logger {
 
     static write(text, type = 'log') {
         return console[type](
-            colorette.gray(`[${moment().format(formats.log)}] `),
+            colorette.gray(`[${DateTime.local().setZone('est').toFormat(formats.log)}] `),
             colorette.bold(colorette[logTypes[type].name](text))
         );
     }
@@ -30,7 +30,7 @@ module.exports = class Logger {
         const embed = {
             title: mode.title + (development ? ' (Development)' : ''),
             color: botColors[mode.name],
-            footer: { text: moment().tz('America/Toronto').format(formats.log) }
+            footer: { text: DateTime.local().setZone('est').toFormat(formats.log) }
         };
 
         if (extra && typeof extra === 'object') Object.assign(embed, extra);
