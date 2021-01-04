@@ -79,7 +79,7 @@ module.exports = class extends Command {
         if (page.missing || !page.extract) return null;
         let description = page.extract;
 
-        if (/may (also )?refer to/gi.test(description)) {
+        if (/(may )?(also )?refer to/gi.test(description)) {
             const links = page.links.map(l => `[${l.title}](${this.getLink(l.title)})`).join('\n');
             description = `${trim(description.trimEnd(), 1015)}\n${trim(links, 1015)}`;
         } else {
