@@ -1,6 +1,12 @@
 const { Command } = require('discord-akairo');
 const letterboxd = require('letterboxd');
-const { colors } = require('../../util/constants');
+const { randomResponse } = require('../../util');
+
+const COLORS = [
+    16087596,
+    5029107,
+    3334244
+];
 
 module.exports = class extends Command {
     constructor() {
@@ -43,7 +49,7 @@ module.exports = class extends Command {
             if (!rating) return message.util.send('Cannot find a recent review for that film.');
 
             const embed = this.client.util.embed()
-                .setColor(colors.LETTERBOXD)
+                .setColor(randomResponse(COLORS))
                 .setTitle(`${rating.film.title} (${rating.film.year})`)
                 .setURL(rating.url)
                 .setDescription(rating.review ?? null)
