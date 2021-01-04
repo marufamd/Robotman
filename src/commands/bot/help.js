@@ -58,7 +58,7 @@ module.exports = class extends Command {
         const disabled = this.client.settings.get(message.guild?.id, 'disabledCommands', []) ?? [];
         const prefix = this.client.util.getPrefix(message);
 
-        const hidden = c => !c.ownerOnly && !c.description?.mod && !c.description?.disableHelp && !disabled.includes(c.id);
+        const hidden = c => !c.ownerOnly && !c.mod && !c.description?.disableHelp && !disabled.includes(c.id);
 
         if (!mod) {
             embed
@@ -80,7 +80,7 @@ module.exports = class extends Command {
             embed.inlineFields();
         } else {
             if (mod instanceof Command) {
-                if (mod.ownerOnly || mod.description?.disableHelp || disabled.includes(mod.id)) return INVALID;
+                if (mod.ownerOnly || mod.mod || mod.description?.disableHelp || disabled.includes(mod.id)) return INVALID;
                 const desc = this.client.util.getExtended(mod, prefix);
 
                 embed
