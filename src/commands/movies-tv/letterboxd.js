@@ -42,7 +42,8 @@ module.exports = class extends Command {
 
             if (!film || ['latest', 'recent'].includes(film)) rating = list[0];
             else {
-                film = closest(film, list.map(a => a.film?.title));
+                const films = list.map(a => a.film?.title).filter(a => a);
+                film = closest(film, films);
                 rating = list.find(m => m.film?.title === film);
             }
 
