@@ -26,7 +26,8 @@ exports.formats = {
     uptime: "d'd', h'h', m'm', s's'",
     locg: 'y-MM-dd',
     day: 'EEEE',
-    clock: "h':'mm a"
+    clock: "h':'mm a",
+    regular: "MMMM d',' y"
 };
 
 exports.emojis = {

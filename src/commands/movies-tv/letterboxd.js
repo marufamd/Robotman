@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
-const letterboxd = require('letterboxd');
 const { DateTime } = require('luxon');
 const { randomResponse, closest, trim } = require('../../util');
+const letterboxd = require('../../util/letterboxd');
 const { formats } = require('../../util/constants');
 
 const COLORS = [
@@ -36,53 +36,55 @@ module.exports = class extends Command {
     }
 
     async exec(message, { username, film }) {
-        try {
-            const list = (await letterboxd(username))?.filter?.(a => a.type === 'diary');
-            if (!list?.length) return message.util.send('That user does not have any reviews.');
+        const { user, list } = await letterboxd.get(username, 'diary');
 
-            let rating;
+        if (!list) return message.util.send('That user does not exist.');
+        if (!list.length) return message.util.send('That user does not have any reviews.');
 
-            const embed = this.client.util.embed()
-                .setColor(randomResponse(COLORS))
-                .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/');
+        let rating;
 
-            if (!film || film === 'all') {
-                const films = list.map(r => `[${r.film.title} (${r.film.year})](${r.uri}) ${r.rating?.text ?? ''}`);
+        const embed = this.client.util.embed()
+            .setColor(randomResponse(COLORS))
+            .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/');
 
-                embed
-                    .setTitle(`${username}'s Latest Reviews`)
-                    .setURL(`https://letterboxd.com/${username}/films/reviews/`)
-                    .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
-            } else {
-                if (['latest', 'recent'].includes(film)) rating = list[0];
-                else {
-                    film = closest(film, list.map(a => a.film?.title).filter(a => a));
-                    rating = list.find(m => m.film?.title === film);
-                }
+        if (!film || film === 'all') {
+            const films = list.map(r => `[${this.getFilm(r)}](${r.url}) ${r.rating ?? ''}`);
 
-                if (!rating) return message.util.send('Cannot find a recent review for that film.');
-
-                embed
-                    .setTitle(`${rating.film.title} (${rating.film.year})`)
-                    .setURL(rating.uri)
-                    .setThumbnail(rating.film.image.large)
-                    .setFooter(`Review by ${username}`)
-                    .setTimestamp(rating.date?.published);
-
-                if (rating.date?.watched) embed.addField('Watched On', DateTime.fromJSDate(new Date(rating.date?.watched)).toFormat(formats.locg));
-
-                if (rating.review?.length) {
-                    let desc = rating.review;
-                    if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
-                    embed.setDescription(desc);
-                }
-
-                if (rating.rating?.text) embed.addField('Rating', rating.rating.text);
+            embed
+                .setTitle(`${user}'s Latest Reviews`)
+                .setURL(`https://letterboxd.com/${user}/films/reviews/`)
+                .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
+        } else {
+            if (['latest', 'recent'].includes(film)) rating = list[0];
+            else {
+                film = closest(film, list.map(a => a.film?.title).filter(a => a));
+                rating = list.find(m => m.film?.title === film);
             }
 
-            return message.util.send(embed);
-        } catch {
-            return message.util.send('That user does not exist.');
+            if (!rating) return message.util.send('Cannot find a recent review for that film.');
+
+            embed
+                .setTitle(this.getFilm(rating))
+                .setURL(rating.url)
+                .setThumbnail(rating.film.image)
+                .setFooter(`Review by ${user}`)
+                .setTimestamp(rating.published);
+
+            if (rating.watched) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(formats.regular));
+
+            if (rating.review?.length) {
+                let desc = rating.review;
+                if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
+                embed.setDescription(desc);
+            }
+
+            if (rating.rating) embed.addField('Rating', rating.rating);
         }
+
+        return message.util.send(embed);
+    }
+
+    getFilm(rating) {
+        return `${rating.film.title} (${rating.film.year})`;
     }
 };
