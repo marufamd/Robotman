@@ -20,7 +20,7 @@ module.exports = {
         if (isNaN(parsed)) {
             if (['next', 'last'].includes(phrase.toLowerCase())) {
                 let date = DateTime.local();
-                date = date[phrase.toLowerCase() === 'next' ? 'plus' : 'minus']({ weeks: 1 });
+                date = date[phrase.toLowerCase() === 'next' ? 'plus' : 'minus']({ days: 7 });
                 parsed = date.toLocaleString();
             } else {
                 const month = phrase.match(/(jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)/gi);
