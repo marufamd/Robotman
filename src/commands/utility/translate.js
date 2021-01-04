@@ -2,6 +2,8 @@ const { Command, Argument } = require('discord-akairo');
 const translate = require('@vitalets/google-translate-api');
 const { trim, paste } = require('../../util');
 
+const supported = (m, p, str) => translate.languages.isSupported(str);
+
 module.exports = class extends Command {
     constructor() {
         super('translate', {
@@ -15,13 +17,13 @@ module.exports = class extends Command {
             args: [
                 {
                     id: 'from',
-                    type: Argument.validate('string', (m, _, str) => translate.languages.isSupported(str.toLowerCase())),
+                    type: Argument.validate('lowercase', supported),
                     match: 'option',
                     flag: ['-from=', 'from:', '--from=']
                 },
                 {
                     id: 'to',
-                    type: Argument.validate('string', (m, _, str) => translate.languages.isSupported(str.toLowerCase())),
+                    type: Argument.validate('lowercase', supported),
                     match: 'option',
                     flag: ['-to=', 'to:', '--to=']
                 },
@@ -34,6 +36,7 @@ module.exports = class extends Command {
                     }
                 }
             ],
+            cooldown: 10e3
         });
     }
 
@@ -44,7 +47,7 @@ module.exports = class extends Command {
         if (to) options.to = to.toLowerCase();
 
         const translated = await translate(text, options);
-        const result = translated.from?.text?.value || translated.text;
+        const result = translated.from?.text?.value ?? translated.text;
 
         const embed = this.client.util.embed()
             .setColor('#4d8cf5')

@@ -31,7 +31,7 @@ module.exports = class extends Command {
     }
 
     interactionOptions = {
-        name: 'wikipedia',
+        name: 'wiki',
         description: 'Searches Wikipedia.',
         options: [
             {
