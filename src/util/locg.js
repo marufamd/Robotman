@@ -112,12 +112,10 @@ class Locg {
         }
     }
 
-    static getPullDate(dc = false) {
-        const num = dc ? 2 : 3;
-        const date = new Date();
-        const day = date.getDay() || 7;
-        if (day !== num) date.setHours(-24 * (day - num));
-        return date.toISOString().split('T')[0];
+    static resolveDate(date) {
+        return (date.day !== new Date().getDay() && date.weekday <= 3)
+            ? date.set({ weekday: 3 })
+            : date.set({ weekday: 3 }).plus({ weeks: 1 });
     }
 
     static filter(pulls, type = 'singles') {

@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
 const { DateTime } = require('luxon');
 const { pull: { user: { previous, next } }, formats, colors } = require('../../util/constants');
-const { getPulls, resolveUser } = require('../../util/locg');
+const { getPulls, resolveUser, resolveDate } = require('../../util/locg');
 
 module.exports = class extends Command {
     constructor() {
@@ -63,8 +63,7 @@ module.exports = class extends Command {
     }
 
     async exec(message, { username, date }) {
-        const day = DateTime.fromJSDate(date);
-        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
+        date = resolveDate(DateTime.fromJSDate(date).setZone('utc'));
 
         if (next.includes(message.util.parsed.alias)) date = date.plus({ days: 7 });
         else if (previous.includes(message.util.parsed.alias)) date = date.minus({ days: 7 });
@@ -75,10 +74,8 @@ module.exports = class extends Command {
     async interact(interaction) {
         let [username, date] = interaction.findOptions('username', 'date'); // eslint-disable-line prefer-const
         
-        const parsed = this.handler.resolver.type('parsedDate')(null, date);
-
-        const day = DateTime.fromJSDate(parsed ?? new Date());
-        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
+        const parsed = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
+        date = resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
         return interaction.respond(await this.main(username, date));
     }

@@ -1,7 +1,7 @@
 const { Command } = require('discord-akairo');
 const { DateTime } = require('luxon');
 const { pull: { default: { previous, next } }, publishers, formats } = require('../../util/constants');
-const { getComics } = require('../../util/locg');
+const { getComics, resolveDate } = require('../../util/locg');
 
 module.exports = class extends Command {
     constructor() {
@@ -62,11 +62,10 @@ module.exports = class extends Command {
     }
 
     async exec(message, { publisher, date }) {
-        const day = DateTime.fromJSDate(date);
-        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
+        date = resolveDate(DateTime.fromJSDate(date).setZone('utc'));
 
-        if (next.includes(message.util.parsed.alias)) date = date.plus({ days: 7 });
-        else if (previous.includes(message.util.parsed.alias)) date = date.minus({ days: 7 });
+        if (next.includes(message.util.parsed.alias)) date = date.plus({ weeks: 1 });
+        else if (previous.includes(message.util.parsed.alias)) date = date.minus({ weeks: 1 });
 
         return message.util.send(await this.main(publisher, date));
     }
@@ -74,10 +73,8 @@ module.exports = class extends Command {
     async interact(interaction) {
         let [publisher, date] = interaction.findOptions('publisher', 'date'); // eslint-disable-line prefer-const
 
-        const parsed = this.handler.resolver.type('parsedDate')(null, date);
-
-        const day = DateTime.fromJSDate(parsed ?? new Date());
-        date = (!date && day.weekday <= 3 ? day.set({ weekday: 3 }) : day.set({ weekday: 3 }).plus({ days: 7 }));
+        const parsed = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
+        date = resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
         return interaction.respond(await this.main(publisher, date));
     }
@@ -94,7 +91,7 @@ module.exports = class extends Command {
             .setTitle(`${publisher.name} Pull List for the Week of ${date}`)
             .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
             .setThumbnail(publisher.thumbnail);
-        
+
         return embed;
     }
 };
