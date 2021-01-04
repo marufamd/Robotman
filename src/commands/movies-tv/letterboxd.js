@@ -48,11 +48,16 @@ module.exports = class extends Command {
             const embed = this.client.util.embed()
                 .setColor(randomResponse(COLORS))
                 .setTitle(`${rating.film.title} (${rating.film.year})`)
-                .setURL(rating.url)
-                .setDescription(rating.review ?? null)
+                .setURL(rating.uri)
                 .setThumbnail(rating.film.image.tiny)
                 .setFooter(`Review by ${username}`)
                 .setTimestamp(rating.date?.published);
+
+            if (rating.review?.length) {
+                let desc = rating.review;
+                if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
+                embed.setDescription(desc);
+            }
 
             if (rating.rating?.text) embed.addField('Rating', rating.rating.text);
 
