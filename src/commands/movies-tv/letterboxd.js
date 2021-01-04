@@ -36,7 +36,7 @@ module.exports = class extends Command {
     }
 
     async exec(message, { username, film }) {
-        const { user, list } = await letterboxd.get(username, 'diary');
+        const { user, diaries: list } = await letterboxd.get(username);
 
         if (!list) return message.util.send('That user does not exist.');
         if (!list.length) return message.util.send('That user does not have any reviews.');

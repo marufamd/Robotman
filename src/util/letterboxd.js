@@ -4,7 +4,7 @@ const cheerio = require('cheerio');
 class Letterboxd {
     static BASE_URL = 'https://letterboxd.com';
 
-    static async get(username, type = 'diary') {
+    static async get(username) {
         if (!username?.trim?.().length) throw new Error('No username provided.');
 
         const res = await request.get(`${this.BASE_URL}/${username}/rss/`);
@@ -20,7 +20,8 @@ class Letterboxd {
 
         return {
             user: $('title').first().text().slice(13),
-            list: data.filter(e => e.type === type)
+            diaries: data.filter(e => e.type === 'diary'),
+            lists: data.filter(e => e.type === 'list')
         };
     }
 
