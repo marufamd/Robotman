@@ -7,8 +7,7 @@ module.exports = class extends Command {
             description: {
                 info: 'Changes the bot prefix for the server.',
                 usage: '<new prefix>',
-                examples: ['$'],
-                mod: true
+                examples: ['$']
             },
             args: [
                 {
@@ -18,6 +17,8 @@ module.exports = class extends Command {
             ],
         });
     }
+
+    mod = true;
 
     exec(message, { prefix }) {
         const current = this.handler.prefix(message);

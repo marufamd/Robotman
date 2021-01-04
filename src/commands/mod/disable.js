@@ -7,8 +7,7 @@ module.exports = class extends Command {
             description: {
                 info: 'Disables a command.',
                 usage: '<command>',
-                examples: ['ping'],
-                mod: true
+                examples: ['ping']
             },
             args: [
                 {
@@ -22,6 +21,8 @@ module.exports = class extends Command {
             ],
         });
     }
+
+    mod = true;
 
     exec(message, { command }) {
         let response;

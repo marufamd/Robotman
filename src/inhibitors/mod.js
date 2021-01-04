@@ -9,7 +9,7 @@ module.exports = class extends Inhibitor {
     }
 
     exec(message) {
-        if (!message.util?.parsed?.command?.description?.mod) return false;
+        if (!message.util?.parsed?.command?.mod) return false;
 
         const modRoles = this.client.settings.get(message.guild.id, 'modRoles', []);
         const adminRoles = this.client.settings.get(message.guild.id, 'adminRoles', []);
