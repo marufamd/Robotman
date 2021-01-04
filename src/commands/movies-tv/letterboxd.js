@@ -27,7 +27,8 @@ module.exports = class extends Command {
                 },
                 {
                     id: 'film',
-                    type: 'lowercase'
+                    type: 'lowercase',
+                    match: 'rest'
                 }
             ],
             cooldown: 7e3,

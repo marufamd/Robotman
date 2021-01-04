@@ -150,7 +150,7 @@ class Letterboxd {
         const $ = cheerio.load(item.find('description').text());
         const image = $('p img').attr('src');
 
-        return image ? image.replace(/-0-.*-crop/, '-0-230-0-345-crop') : null;
+        return image ? image.replace(/-0-.*-crop/, '-0-460-0-690-crop') : null;
     }
 }
 
