@@ -49,7 +49,7 @@ module.exports = class extends Command {
                 .setColor(randomResponse(COLORS))
                 .setTitle(`${rating.film.title} (${rating.film.year})`)
                 .setURL(rating.uri)
-                .setThumbnail(rating.film.image.tiny)
+                .setThumbnail(rating.film.image.large)
                 .setFooter(`Review by ${username}`)
                 .setTimestamp(rating.date?.published);
 
