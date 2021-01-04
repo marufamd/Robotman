@@ -50,7 +50,7 @@ module.exports = class extends Command {
 
             const embed = this.client.util.embed()
                 .setColor(randomResponse(COLORS))
-                .setAuthor('Letterboxd', 'https://i.imgur.com/P1yGdh4.png', 'https://letterboxd.com/')
+                .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/')
                 .setTitle(`${rating.film.title} (${rating.film.year})`)
                 .setURL(rating.uri)
                 .setThumbnail(rating.film.image.large)
