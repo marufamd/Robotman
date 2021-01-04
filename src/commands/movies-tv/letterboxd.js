@@ -1,6 +1,8 @@
 const { Command } = require('discord-akairo');
 const letterboxd = require('letterboxd');
+const { DateTime } = require('luxon');
 const { randomResponse, closest, trim } = require('../../util');
+const { formats } = require('../../util/constants');
 
 const COLORS = [
     16087596,
@@ -66,6 +68,8 @@ module.exports = class extends Command {
                     .setThumbnail(rating.film.image.large)
                     .setFooter(`Review by ${username}`)
                     .setTimestamp(rating.date?.published);
+
+                if (rating.date?.watched) embed.addField('Watched On', DateTime.fromJSDate(new Date(rating.date?.watched)).toFormat(formats.locg));
 
                 if (rating.review?.length) {
                     let desc = rating.review;
