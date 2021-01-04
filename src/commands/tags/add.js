@@ -8,8 +8,7 @@ module.exports = class extends Command {
             description: {
                 info: 'Adds a tag.',
                 usage: '<name> <content>',
-                examples: ['example 123'],
-                mod: true
+                examples: ['example 123']
             },
             args: [
                 {
@@ -29,6 +28,8 @@ module.exports = class extends Command {
             ]
         });
     }
+
+    mod = true;
 
     async exec(message, { name, content }) {
         name = name.replaceAll(/@|,/g, '').toLowerCase();

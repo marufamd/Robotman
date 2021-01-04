@@ -6,8 +6,7 @@ module.exports = class extends Command {
             aliases: ['delete-tag', 'tag-delete', 'tag-del', 'remove-tag', 'tag-remove', 'del-tag'],
             description: {
                 info: 'Deletes a tag.',
-                usage: '<tag>',
-                mod: true
+                usage: '<tag>'
             },
             args: [
                 {
@@ -21,6 +20,8 @@ module.exports = class extends Command {
             ],
         });
     }
+
+    mod = true;
 
     async exec(message, { tag }) {
         const deleted = await this.client.tags.delete(tag, message.guild.id);

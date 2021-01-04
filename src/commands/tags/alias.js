@@ -11,8 +11,7 @@ module.exports = class extends Command {
                 examples: [
                     '-add test test1',
                     '-delete test est1'
-                ],
-                mod: true
+                ]
             },
             args: [
                 {
@@ -43,6 +42,8 @@ module.exports = class extends Command {
             ]
         });
     }
+
+    mod = true;
 
     async exec(message, { add, remove, tag, aliases }) {
         if (!add && !remove) return message.util.send(`The correct usage is \`${getPrefix(message)}${message.util.parsed.alias} ${this.description.usage}\`.`);

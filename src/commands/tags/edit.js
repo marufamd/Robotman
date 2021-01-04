@@ -8,8 +8,7 @@ module.exports = class extends Command {
             description: {
                 info: 'Edits a tag.',
                 usage: '<name> <new content>',
-                examples: ['example 456'],
-                mod: true
+                examples: ['example 456']
             },
             args: [
                 {
@@ -30,6 +29,8 @@ module.exports = class extends Command {
             ]
         });
     }
+
+    mod = true;
 
     async exec(message, { tag, content }) {
         content = cleanContent(content, message);
