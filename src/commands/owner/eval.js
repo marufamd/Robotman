@@ -42,7 +42,7 @@ module.exports = class extends Command {
 
     async exec(message, { code, depth }) {
         const { lastInput, lastResult, client } = this;
-        const { interactionHandler } = client;
+        const { interactionHandler, commandHandler } = client;
 
         code = code
             .replace(/^\s*```(js|javascript)?/, '')
