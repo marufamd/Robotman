@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
 const letterboxd = require('letterboxd');
-const { randomResponse, closest } = require('../../util');
+const { randomResponse, closest, trim } = require('../../util');
 
 const COLORS = [
     16087596,
@@ -35,36 +35,46 @@ module.exports = class extends Command {
 
     async exec(message, { username, film }) {
         try {
-            const list = await letterboxd(username);
+            const list = (await letterboxd(username))?.filter?.(a => a.type === 'diary');
             if (!list?.length) return message.util.send('That user does not have any reviews.');
 
             let rating;
 
-            if (!film || ['latest', 'recent'].includes(film)) rating = list[0];
-            else {
-                const films = list.map(a => a.film?.title).filter(a => a);
-                film = closest(film, films);
-                rating = list.find(m => m.film?.title === film);
-            }
-
-            if (!rating) return message.util.send('Cannot find a recent review for that film.');
-
             const embed = this.client.util.embed()
                 .setColor(randomResponse(COLORS))
-                .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/')
-                .setTitle(`${rating.film.title} (${rating.film.year})`)
-                .setURL(rating.uri)
-                .setThumbnail(rating.film.image.large)
-                .setFooter(`Review by ${username}`)
-                .setTimestamp(rating.date?.published);
+                .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/');
 
-            if (rating.review?.length) {
-                let desc = rating.review;
-                if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
-                embed.setDescription(desc);
+            if (!film || film === 'all') {
+                const films = list.map(r => `[${r.film.title} (${r.film.year})](${r.uri}) ${r.rating?.text ?? ''}`);
+
+                embed
+                    .setTitle(`${username}'s Latest Reviews`)
+                    .setURL(`https://letterboxd.com/${username}/films/reviews/`)
+                    .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
+            } else {
+                if (['latest', 'recent'].includes(film)) rating = list[0];
+                else {
+                    film = closest(film, list.map(a => a.film?.title).filter(a => a));
+                    rating = list.find(m => m.film?.title === film);
+                }
+
+                if (!rating) return message.util.send('Cannot find a recent review for that film.');
+
+                embed
+                    .setTitle(`${rating.film.title} (${rating.film.year})`)
+                    .setURL(rating.uri)
+                    .setThumbnail(rating.film.image.large)
+                    .setFooter(`Review by ${username}`)
+                    .setTimestamp(rating.date?.published);
+
+                if (rating.review?.length) {
+                    let desc = rating.review;
+                    if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
+                    embed.setDescription(desc);
+                }
+
+                if (rating.rating?.text) embed.addField('Rating', rating.rating.text);
             }
-
-            if (rating.rating?.text) embed.addField('Rating', rating.rating.text);
 
             return message.util.send(embed);
         } catch {
