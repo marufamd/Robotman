@@ -35,7 +35,11 @@ module.exports = class extends Command {
             const list = await letterboxd(username);
             if (!list?.length) return message.util.send('That user does not have any reviews.');
 
-            const rating = list.find(m => m.film?.title?.toLowerCase?.() === film);
+            let rating;
+
+            if (['latest', 'recent'].includes(film)) rating = list[0];
+            else rating = list.find(m => m.film?.title?.toLowerCase?.() === film);
+
             if (!rating) return message.util.send('Cannot find a recent review for that film.');
 
             const embed = this.client.util.embed()
