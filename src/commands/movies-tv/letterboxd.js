@@ -25,10 +25,7 @@ module.exports = class extends Command {
                 },
                 {
                     id: 'film',
-                    type: 'lowercase',
-                    prompt: {
-                        start: 'What film would you like to see the review for? Respond with `latest` to view the most recent review.'
-                    }
+                    type: 'lowercase'
                 }
             ],
             cooldown: 7e3,
@@ -43,7 +40,7 @@ module.exports = class extends Command {
 
             let rating;
 
-            if (['latest', 'recent'].includes(film)) rating = list[0];
+            if (!film || ['latest', 'recent'].includes(film)) rating = list[0];
             else rating = list.find(m => m.film?.title?.toLowerCase?.() === film);
 
             if (!rating) return message.util.send('Cannot find a recent review for that film.');
