@@ -71,7 +71,7 @@ module.exports = class extends Command {
                 .setFooter(`Review by ${user}`)
                 .setTimestamp(rating.published);
 
-            if (rating.watched) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(formats.regular));
+            if (!isNaN(rating.watched.getTime())) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(formats.regular));
 
             if (rating.review?.length) {
                 let desc = rating.review;
