@@ -34,17 +34,19 @@ class Letterboxd {
             url: item.find('link').html()
         };
 
+        let data;
+
         if (entry.url.includes('/list/')) {
-            Object.assign(entry, {
+            data = {
                 type: 'list',
                 title: text('title'),
                 description: Letterboxd.getDescription(item),
                 ranked: Letterboxd.getRanked(item),
                 films: Letterboxd.getFilms(item),
                 total: Letterboxd.getTotal(item),
-            });
+            };
         } else {
-            Object.assign(entry, {
+            data = {
                 watched: new Date(text(`letterboxd\\:watchedDate`)),
                 film: {
                     title: text('letterboxd\\:filmTitle'),
@@ -55,8 +57,10 @@ class Letterboxd {
                 review: Letterboxd.getReview(item),
                 spoiler: text('title').includes('(contains spoilers)'),
                 rewatch: item.find('letterboxd\\:rewatch').text() === 'Yes'
-            });
+            };
         }
+
+        Object.assign(entry, data);
 
         return entry;
     }

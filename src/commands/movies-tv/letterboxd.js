@@ -55,8 +55,9 @@ module.exports = class extends Command {
                 .setURL(`https://letterboxd.com/${user}/films/reviews/`)
                 .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
         } else {
-            if (['latest', 'recent'].includes(film)) rating = list[0];
-            else {
+            if (['latest', 'recent'].includes(film)) {
+                rating = list[0];
+            } else {
                 film = closest(film, list.map(a => a.film?.title).filter(a => a));
                 rating = list.find(m => m.film?.title === film);
             }
