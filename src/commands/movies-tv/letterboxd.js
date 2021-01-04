@@ -1,6 +1,6 @@
 const { Command } = require('discord-akairo');
 const letterboxd = require('letterboxd');
-const { randomResponse } = require('../../util');
+const { randomResponse, closest } = require('../../util');
 
 const COLORS = [
     16087596,
@@ -41,7 +41,10 @@ module.exports = class extends Command {
             let rating;
 
             if (!film || ['latest', 'recent'].includes(film)) rating = list[0];
-            else rating = list.find(m => m.film?.title?.toLowerCase?.() === film);
+            else {
+                film = closest(film, list.map(a => a.film?.title));
+                rating = list.find(m => m.film?.title === film);
+            }
 
             if (!rating) return message.util.send('Cannot find a recent review for that film.');
 

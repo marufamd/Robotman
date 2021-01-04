@@ -6,13 +6,13 @@ const { DateTime } = require('luxon');
 const { formats } = require('./constants');
 
 class Util {
-    static async google(query, safe = 'off') {
+    static async google(query, safe = false) {
         const { body } = await request
             .get('https://www.googleapis.com/customsearch/v1')
             .query({
                 key: process.env.GOOGLE_SEARCH_KEY,
                 cx: process.env.GOOGLE_ENGINE_KEY,
-                safe,
+                safe: safe ? 'on' : 'off',
                 q: query
             });
 
@@ -245,8 +245,8 @@ class Util {
 
         const ids = this.randomID(amount);
 
-        for (let j = 0; j < amount; j++) {
-            let current = `${Buffer.from(ids[j]).toString('base64')}.C`;
+        for (const id of ids) {
+            let current = `${Buffer.from(id).toString('base64')}.C`;
 
             for (let i = 0; i < 5; i++) {
                 if (i === 0) current += Math.round(Math.random() * 9);
