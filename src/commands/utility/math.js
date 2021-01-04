@@ -30,7 +30,28 @@ module.exports = class extends Command {
         });
     }
 
+    interactionOptions = {
+        name: 'math',
+        description: 'Evaluates a mathematical expression',
+        options: [
+            {
+                type: 'string',
+                name: 'expression',
+                description: 'The expression to evaluate.',
+                required: true
+            }
+        ]
+    }
+
     async exec(message, { expression }) {
+        return message.util.send(await this.main(expression));
+    }
+
+    async interact(interaction) {
+        return interaction.respond(await this.main(interaction.option('expression')));
+    }
+
+    async main(expression) {
         expression = expression
             .replaceAll(/(x|times)/gi, '*')
             .replaceAll(/(÷|divided(\sby)?|:)/gi, '/')
@@ -47,9 +68,9 @@ module.exports = class extends Command {
                 .addField('Input', `\`\`\`${trim(expression, 1015)}\`\`\``)
                 .addField('Result', answer.length > 1015 ? await paste(answer, '') : `\`\`\`${answer}\`\`\``);
         } catch {
-            response = `\`${expression}\` is not a valid expression.`;
-        } finally {
-            message.util.send(response);
+            response = { content: `\`${expression}\` is not a valid expression.`, type: 'message', ephemeral: true };
         }
+
+        return response;
     }
 };
