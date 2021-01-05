@@ -132,7 +132,7 @@ module.exports = class Letterboxd {
 
         ps.each((_, element) => {
             const p = $(element).text();
-            if (p !== 'This review may contain spoilers.') review += `${p}\n`;
+            if (p !== 'This review may contain spoilers.') review += `${p}\n\n`;
         });
 
         return review.trim();

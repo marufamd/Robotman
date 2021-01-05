@@ -77,7 +77,7 @@ module.exports = class extends Command {
             if (rating.review?.length) {
                 let desc = rating.review;
                 if (rating.spoiler) desc = desc.split('\n').map(d => `||${d}||`).join('\n');
-                embed.setDescription(desc);
+                embed.setDescription(trim(desc, 2048));
             }
 
             if (rating.rating) embed.addField('Rating', rating.rating);
