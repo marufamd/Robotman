@@ -1,7 +1,7 @@
 const request = require('node-superfetch');
 const cheerio = require('cheerio');
 
-class Letterboxd {
+module.exports = class Letterboxd {
     static BASE_URL = 'https://letterboxd.com';
 
     static async get(username) {
@@ -40,10 +40,10 @@ class Letterboxd {
             data = {
                 type: 'list',
                 title: text('title'),
-                description: Letterboxd.getDescription(item),
-                ranked: Letterboxd.getRanked(item),
-                films: Letterboxd.getFilms(item),
-                total: Letterboxd.getTotal(item),
+                description: this.getDescription(item),
+                ranked: this.getRanked(item),
+                films: this.getFilms(item),
+                total: this.getTotal(item),
             };
         } else {
             data = {
@@ -51,10 +51,10 @@ class Letterboxd {
                 film: {
                     title: text('letterboxd\\:filmTitle'),
                     year: text('letterboxd\\:filmYear'),
-                    image: Letterboxd.getImage(item)
+                    image: this.getImage(item)
                 },
-                rating: Letterboxd.getRating(item),
-                review: Letterboxd.getReview(item),
+                rating: this.getRating(item),
+                review: this.getReview(item),
                 spoiler: text('title').includes('(contains spoilers)'),
                 rewatch: item.find('letterboxd\\:rewatch').text() === 'Yes'
             };
@@ -100,7 +100,7 @@ class Letterboxd {
     }
 
     static getTotal(item) {
-        const films = Letterboxd.getFilms(item);
+        const films = this.getFilms(item);
         let result = films.length;
 
         const $ = cheerio.load(item.find('description').text());
@@ -152,6 +152,4 @@ class Letterboxd {
 
         return image ? image.replace(/-0-.*-crop/, '-0-460-0-690-crop') : null;
     }
-}
-
-module.exports = Letterboxd;
+};
