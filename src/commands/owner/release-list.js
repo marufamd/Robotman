@@ -1,5 +1,5 @@
 const { Command } = require('discord-akairo');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 const { split, parseWebhook } = require('../../util');
 const { colors, formats } = require('../../util/constants');
 const { getComics } = require('../../util/locg');
@@ -17,12 +17,14 @@ module.exports = class extends Command {
         const { webhook_url } = await this.client.config.get();
         if (!webhook_url) return;
 
+        const day = DateTime.local();
+
         const { id, token } = parseWebhook(webhook_url);
         const webhook = await this.client.fetchWebhook(id, token);
-        const date = (moment().weekday() <= 2 ? moment().day(2) : moment().day(2).add(7, "days")).format(formats.locg);
+        const date = (day.weekday <= 2 ? day.set({ weekday: 2 }) : day.set({ weekday: 2 }).plus({ days: 7 }));
 
         try {
-            const pulls = await getComics(1, date);
+            const pulls = await getComics(1, date.toFormat(formats.locg));
             const embeds = [];
 
             for (const pull of pulls) {
