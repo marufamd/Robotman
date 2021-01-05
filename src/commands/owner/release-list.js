@@ -21,10 +21,10 @@ module.exports = class extends Command {
 
         const { id, token } = parseWebhook(webhook_url);
         const webhook = await this.client.fetchWebhook(id, token);
-        const date = (day.weekday <= 2 ? day.set({ weekday: 2 }) : day.set({ weekday: 2 }).plus({ days: 7 }));
+        const date = (day.weekday <= 2 ? day.set({ weekday: 2 }) : day.set({ weekday: 2 }).plus({ days: 7 })).toFormat(formats.locg);
 
         try {
-            const pulls = await getComics(1, date.toFormat(formats.locg));
+            const pulls = await getComics(1, date);
             const embeds = [];
 
             for (const pull of pulls) {
