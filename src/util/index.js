@@ -12,7 +12,7 @@ class Util {
             .query({
                 key: process.env.GOOGLE_SEARCH_KEY,
                 cx: process.env.GOOGLE_ENGINE_KEY,
-                safe: safe ? 'on' : 'off',
+                safe: safe ? 'active' : 'off',
                 q: query
             });
 
