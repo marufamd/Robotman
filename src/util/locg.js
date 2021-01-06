@@ -5,6 +5,8 @@ const { sort } = require('./');
 const BASE_URL = 'https://leagueofcomicgeeks.com';
 
 class Locg {
+    static BASE_URL = BASE_URL;
+
     static async get(params, options = {}) {
         params.view = 'list';
         params.order = 'alpha-asc';
@@ -13,29 +15,32 @@ class Locg {
             params.date_type = 'week';
             params.list_option = 'thumbs';
         }
+        
         const { body } = await request
             .get(`${BASE_URL}/comic/get_comics`)
             .query(params);
 
         const $ = cheerio.load(body.list);
 
-        function extract() {
-            const name = $(this).find('.title.color-primary').text().trim();
+        const extract = (_, element) => {
+            element = $(element);
+
+            const name = element.find('.title.color-primary').text().trim();
             let link, cover, publisher, description, price;
 
             if (options.search) {
-                cover = $(this).find('.cover img').attr('data-src').replace('medium', 'large');
-                link = `${BASE_URL}${$(this).find('.cover a').attr('href')}`;
-                publisher = $(this).find('.publisher.color-offset').text().trim();
+                cover = element.find('.cover img').attr('data-src').replace('medium', 'large');
+                link = `${BASE_URL}${element.find('.cover a').attr('href')}`;
+                publisher = element.find('.publisher.color-offset').text().trim();
             } else {
-                cover = $(this).find('.comic-cover-art img').attr('data-src').replace('medium', 'large');
+                cover = element.find('.comic-cover-art img').attr('data-src').replace('medium', 'large');
                 cover = cover === '/assets/images/no-cover-med.jpg' ? `${BASE_URL}${cover.replace('-med', '-lg')}` : cover;
 
-                const details = $(this).find('.comic-details').text().split('·');
+                const details = element.find('.comic-details').text().split('·');
                 publisher = (details[0] || '').trim();
-                price = $(this).find('.price').text().trim();
+                price = element.find('.price').text().trim();
 
-                description = $(this).find('.comic-description.col-feed-max');
+                description = element.find('.comic-description.col-feed-max');
                 link = `${BASE_URL}${description.find('a').attr('href')}`;
 
                 description.find('a').remove();
@@ -50,7 +55,7 @@ class Locg {
                 link,
                 price
             };
-        }
+        };
 
         let data = $('li').map(extract).get();
         if (options.filter) data = Locg.filter(data, options.filter);

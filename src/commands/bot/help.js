@@ -41,13 +41,8 @@ module.exports = class extends Command {
         let option = interaction.option('command');
 
         if (typeof option !== 'undefined') {
-            const command = this.handler.resolver.type('commandAlias')(null, option);
-            if (command) {
-                option = command;
-            } else {
-                const group = this.handler.resolver.type('commandCategory')(interaction, option);
-                if (group) option = group;
-            }
+            const commandOrGroup = Argument.union('commandAlias', 'commandCategory')(interaction, option);
+            if (commandOrGroup) option = commandOrGroup;
         }
 
         return interaction.respond(this.main(option, interaction));

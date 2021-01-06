@@ -1,13 +1,15 @@
 const request = require('node-superfetch');
 const cheerio = require('cheerio');
 
+const BASE_URL = 'https://letterboxd.com';
+
 module.exports = class Letterboxd {
-    static BASE_URL = 'https://letterboxd.com';
+    static BASE_URL = BASE_URL;
 
     static async get(username) {
         if (!username?.trim?.().length) throw new Error('No username provided.');
 
-        const res = await request.get(`${this.BASE_URL}/${username}/rss/`);
+        const res = await request.get(`${BASE_URL}/${username}/rss/`);
 
         if (res.status === 404) return null;
         if (res.status !== 200) throw new Error(res.statusText);
@@ -15,7 +17,7 @@ module.exports = class Letterboxd {
         const $ = cheerio.load(res.text, { xmlMode: true });
 
         const data = $('item')
-            .map(function () { return Letterboxd.parseItem($(this)); })
+            .map((_, element) => this.parseItem($(element)))
             .get();
 
         return {
@@ -66,14 +68,11 @@ module.exports = class Letterboxd {
     }
 
     static getDescription(item) {
-        const description = item.find('description').text();
-        const $ = cheerio.load(description);
+        const $ = cheerio.load(item.find('description').text());
 
-        let res;
+        let res = null;
 
-        if ($('p').length <= 0) {
-            res = null;
-        } else {
+        if ($('p').length > 0) {
             $('p').each((_, element) => {
                 const text = $(element).text();
                 if (!text.includes('View the full list on Letterboxd')) res = text;
@@ -92,8 +91,8 @@ module.exports = class Letterboxd {
         const $ = cheerio.load(item.find('description').text());
 
         return $('li a')
-            .map(function () {
-                const element = $(this);
+            .map((_, element) => {
+                element = $(element);
                 return { title: element.text(), url: element.attr('href') };
             })
             .get();
@@ -150,6 +149,6 @@ module.exports = class Letterboxd {
         const $ = cheerio.load(item.find('description').text());
         const image = $('p img').attr('src');
 
-        return image ? image.replace(/-0-.*-crop/, '-0-460-0-690-crop') : null;
+        return image?.replace?.(/-0-.*-crop/, '-0-460-0-690-crop') ?? null;
     }
 };
