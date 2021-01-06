@@ -19,9 +19,24 @@ module.exports = class extends Listener {
             }
         }
 
-        const str = [error.stack];
-        if (command) str.unshift(`Command: ${command.id}`);
+        const fields = [{
+            name: 'User',
+            value: message.author.toString(),
+            inline: true
+        }];
 
-        this.client.log(str, 'error', { ping: true });
+        if (command) fields.push({
+            name: 'Command',
+            value: command.id,
+            inline: true
+        });
+
+        fields.push({
+            name: 'Type',
+            value: message instanceof Interaction ? 'Interaction' : 'Message',
+            inline: true
+        });
+
+        this.client.log(error.stack, 'error', { ping: true }, { fields });
     }
 };
