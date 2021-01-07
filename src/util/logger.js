@@ -38,7 +38,7 @@ module.exports = class Logger {
         try {
             if (text.length < 2040) {
                 if (type === 'error') text = `\`\`\`xl\n${text}\`\`\``;
-                embed.description = text;
+                if (embed.description == null) embed.description = text;
                 logger.send(ping ? `<@${ownerID}>` : null, { embeds: [embed] });
             } else {
                 logger.send(ping ? `<@${ownerID}>` : null, { embeds: [embed] });

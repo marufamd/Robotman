@@ -5,7 +5,7 @@ const { plural, wait } = require('../../util');
 
 module.exports = class extends Listener {
     constructor() {
-        super('cooldown', {
+        super('command-cooldown', {
             event: 'cooldown',
             emitter: 'commandHandler'
         });
