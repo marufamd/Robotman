@@ -19,7 +19,7 @@ module.exports = class extends Command {
                     id: 'options',
                     match: 'content',
                     prompt: {
-                        start: 'What options would you like me to choose from? Separate options with `|`.'
+                        start: 'What options would you like me to choose from? Separate options with `|`, or provide a url with a list in raw text.'
                     }
                 }
             ],
