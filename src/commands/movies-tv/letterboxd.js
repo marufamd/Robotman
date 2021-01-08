@@ -53,7 +53,7 @@ module.exports = class extends Command {
 
             embed
                 .setTitle(`${user}'s Latest Reviews`)
-                .setURL(`https://letterboxd.com/${user}/films/reviews/`)
+                .setURL(`https://letterboxd.com/${username}/films/reviews/`)
                 .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
         } else {
             if (['latest', 'recent'].includes(film)) {
