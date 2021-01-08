@@ -26,7 +26,7 @@ module.exports = class extends Command {
     async exec(message) {
         if (this.client.aki.has(message.channel.id)) return message.util.send('There is already an Akinator game in progress in this channel.');
 
-        message.reply('Starting...');
+        message.channel.send('Starting...');
 
         try {
             this.client.config.stat('aki');
