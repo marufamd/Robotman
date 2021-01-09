@@ -10,10 +10,9 @@ module.exports = class extends Command {
             aliases: ['choose'],
             description: {
                 info: 'Chooses an option form multiple options.',
-                usage: '<option 1> | <option 2> | [...other options]',
+                usage: '<option 1 or url with options> | <option 2> | [...other options]',
                 examples: ['daredevil "the batman"'],
             },
-            ownerOnly: true,
             args: [
                 {
                     id: 'options',
