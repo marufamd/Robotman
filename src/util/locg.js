@@ -51,8 +51,8 @@ class Locg {
                 name,
                 cover,
                 publisher,
-                description,
                 link,
+                description,
                 price
             };
         };
@@ -68,8 +68,7 @@ class Locg {
         const params = {
             list: 1,
             user_id: id,
-            date: date ? date : Locg.getPullDate(),
-            date_type: 'week'
+            date: date ? date : Locg.getPullDate()
         };
 
         return Locg.get(params, { sort });
@@ -79,8 +78,7 @@ class Locg {
         const params = {
             list: 'releases',
             publisher: id,
-            date: date ? date : Locg.getPullDate(id === 1 ? true : false),
-            date_type: 'week'
+            date: date ? date : Locg.getPullDate(id === 1 ? true : false)
         };
 
         return Locg.get(params, { filter, sort });
