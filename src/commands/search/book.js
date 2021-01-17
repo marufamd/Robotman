@@ -34,7 +34,7 @@ module.exports = class extends Command {
             {
                 type: 'string',
                 name: 'query',
-                description: 'The movie to search for.',
+                description: 'The book to search for.',
                 required: true
             }
         ]
