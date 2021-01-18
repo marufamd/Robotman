@@ -6,7 +6,7 @@ import request from '../../util/request';
 
 export default class extends Command {
     public constructor() {
-        super('randomdog', {
+        super('random-dog', {
             aliases: ['random-dog', 'dog', 'r-dog'],
             description: 'Sends a random dog image/gif.',
             typing: true
