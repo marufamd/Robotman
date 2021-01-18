@@ -30,11 +30,11 @@ export default class Table {
 
     public render() {
         const table = [
-            this.seperator('┌', '┐', '┬'),
+            this.separator('┌', '┐', '┬'),
             this.formatEntry(this.columns),
-            this.seperator('├', '┤', '┼'),
+            this.separator('├', '┤', '┼'),
             ...this.rows.map(row => this.formatEntry(row)),
-            this.seperator('└', '┘', '┴')
+            this.separator('└', '┘', '┴')
         ];
 
         return table.join('\n');
@@ -44,7 +44,7 @@ export default class Table {
         return `│${row.map((el, i) => ` ${el}${' '.repeat(this.widths[i] - (el.length + 1))}`).join('│')}│`;
     }
 
-    private seperator(rightChar: string, leftChar: string, middleChar: string) {
+    private separator(rightChar: string, leftChar: string, middleChar: string) {
         return `${rightChar}${this.widths.map(w => '─'.repeat(w)).join(middleChar)}${leftChar}`;
     }
 }
