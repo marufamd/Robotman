@@ -1,3 +1,5 @@
+import { trim } from './';
+
 export default class Table {
     private readonly widths: number[] = [];
     private readonly rows: any[] = [];
@@ -14,7 +16,7 @@ export default class Table {
         for (const row of rows) {
             const formattedRow = row.map((r: any) => {
                 if (r instanceof Date) r = r.getTime();
-                return String(r);
+                return trim(String(r), 30);
             });
             this.rows.push(formattedRow);
             for (const [i, el] of formattedRow.entries()) {
