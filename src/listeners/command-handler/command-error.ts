@@ -32,14 +32,17 @@ export default class extends Listener {
                     name: 'Channel',
                     value: message.channel.toString(),
                     inline: true
-                },
-                {
-                    name: 'Command',
-                    value: command.id,
-                    inline: true
                 }
             ]
         };
+
+        if (command) {
+            extra.fields.push({
+                name: 'Command',
+                value: command.id,
+                inline: true
+            });
+        }
 
         this.client.log(error.stack, 'error', { ping: true }, extra);
     }
