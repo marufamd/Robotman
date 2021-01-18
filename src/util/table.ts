@@ -12,7 +12,10 @@ export default class Table {
 
     public addRows(rows: any[]) {
         for (const row of rows) {
-            const formattedRow = row.map((r: any) => String(r));
+            const formattedRow = row.map((r: any) => {
+                if (r instanceof Date) r = r.getTime();
+                return String(r);
+            });
             this.rows.push(formattedRow);
             for (const [i, el] of formattedRow.entries()) {
                 const width = el.length + 2;
