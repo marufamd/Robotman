@@ -1,5 +1,3 @@
-import type { KVObject } from '../';
-
 import colors from './colors.json';
 import pokemon from './pokemon.json';
 import timezones from './timezones.json';
@@ -154,7 +152,7 @@ export const emojis = {
     timer: 'https://i.imgur.com/569T4Tg.gif'
 };
 
-export const wikiParams = (query: string): KVObject => ({
+export const wikiParams = (query: string) => ({
     action: 'query',
     titles: query,
     prop: 'extracts|pageimages|links',

@@ -7,7 +7,6 @@ export interface Tag {
     guild: string;
     content: string;
     aliases: string[];
-    attachments: string[];
     author: string;
     editor: string;
     created_at: Date;
@@ -43,13 +42,12 @@ export default class TagsProvider {
             name,
             guild: message.guild.id,
             content,
-            attachments: message.attachments.map(a => a.proxyURL),
             author: message.author.id
         };
 
         const [tag] = await this.sql<Tag>`
         insert into ${this.sql(this.table)}
-        ${this.sql(obj, 'name', 'guild', 'content', 'attachments', 'author')}
+        ${this.sql(obj, 'name', 'guild', 'content', 'author')}
         returning *
         `;
 
@@ -59,14 +57,13 @@ export default class TagsProvider {
     public async edit(name: string, content: string, message: Message) {
         const obj = {
             content,
-            attachments: message.attachments.map(a => a.proxyURL),
             editor: message.author.id,
             updated_at: Date.now()
         };
 
         const [tag] = await this.sql<Tag>`
         update ${this.sql(this.table)} set
-        ${this.sql(obj, 'content', 'attachments', 'editor', 'updated_at')}
+        ${this.sql(obj, 'content', 'editor', 'updated_at')}
         where name = ${name}
         or ${name} = any(aliases)
         and guild = ${message.guild.id}

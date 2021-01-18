@@ -23,6 +23,6 @@ export default class extends Command {
     public exec(message: Message, { tag }: { tag: Tag }) {
         if (!tag) return;
         void this.client.tags.increment(tag.name, tag.guild);
-        return message.util.send(tag.content, { files: tag.attachments });
+        return message.util.send(tag.content);
     }
 }
