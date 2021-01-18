@@ -1,153 +1,150 @@
-const fetch = require("node-fetch");
-const moment = require("moment");
-const beautify = require("js-beautify");
-const { stringify } = require("querystring");
-const { Snowflake, MessageEmbed } = require("discord.js");
-const { dirname, basename } = require("path");
-const { botColors, formats } = require("./constants");
+const { SnowflakeUtil } = require('discord.js');
+const beautify = require('js-beautify');
+const request = require('node-superfetch');
+const { dirname, basename } = require('path');
+const { DateTime } = require('luxon');
+const { formats } = require('./constants');
 
 class Util {
-    static async fetch(url, params, type = "json") {
-        if (typeof params === "object" && params !== null) url = `${url}?${stringify(params)}`;
-        const res = await fetch(url);
-        if (!res.ok) return res;
-        return await res[type]();
+    static async google(query, safe = false) {
+        const { body } = await request
+            .get('https://www.googleapis.com/customsearch/v1')
+            .query({
+                key: process.env.GOOGLE_SEARCH_KEY,
+                cx: process.env.GOOGLE_ENGINE_KEY,
+                safe: safe ? 'active' : 'off',
+                q: query
+            });
+
+        if (body.queries.request[0].totalResults == 0 || !body.items) return null;
+
+        return body;
     }
 
-    static async google(query, safe = "off") {
-        const params = {
-            key: process.env.GOOGLE_SEARCH_KEY,
-            cx: process.env.GOOGLE_ENGINE_KEY,
-            safe,
-            q: query
-        };
-
-        const res = await Util.fetch("https://www.googleapis.com/customsearch/v1", params);
-        if (res.queries.request[0].totalResults == 0 || !res.items) return null;
-
-        return res;
-    }
-
-    static async youtube(params, mode = "search") {
+    static async youtube(params, mode = 'search') {
         params.key = process.env.GOOGLE_SEARCH_KEY;
-        const res = await Util.fetch(`https://www.googleapis.com/youtube/v3/${mode}`, params);
 
-        if (res.pageInfo.totalResults == 0 || !res.items) return null;
-        return res.items[0];
+        const { body } = await request
+            .get(`https://www.googleapis.com/youtube/v3/${mode}`)
+            .query(params);
+
+        if (body.pageInfo.totalResults == 0 || !body.items) return null;
+        return body.items[0];
     }
 
     static async dadJoke() {
-        const joke = await fetch("https://icanhazdadjoke.com/", { headers: { "Accept": "text/plain" } }).then(res => res.text());
-        return joke;
+        const { text } = await request
+            .get('https://icanhazdadjoke.com/')
+            .set('Accept', 'text/plain');
+
+        return text;
     }
 
-    static async paste(text, format = "js", url = "https://hasteb.in", raw = false) {
-        if (!text) throw new Error("No text provided");
+    static async define(word, synonym = false) {
+        if (!word?.length) throw new Error('No query provided');
+        const url = `https://www.dictionaryapi.com/api/v3/references/${synonym ? 'thesaurus' : 'collegiate'}/json/${encodeURIComponent(word)}`;
 
-        const res = await fetch(`${url}/documents`, { method: "POST", body: text, headers: { "Content-Type": "text/plain" } });
+        const { body } = await request
+            .get(url)
+            .query('key', process.env[`${synonym ? 'THESAURUS' : 'DICTIONARY'}_KEY`]);
+
+        if (!body.length) return null;
+        const result = body[0];
+        if (typeof result[0] === 'string') return body.slice(0, 3);
+
+        if (synonym) {
+            const found = body[0].meta;
+            return {
+                word: found.stems?.[0],
+                synonyms: found?.syns?.flat(3)
+            };
+        } else {
+            return {
+                word: result.meta.stems[0],
+                type: result.fl,
+                definitions: result.shortdef,
+                date: result.date?.replace(/\{(.*?)\}/gi, '')
+            };
+        }
+    }
+
+    static async paste(text, format = 'js', url = 'https://hastebin.com', raw = false) {
+        if (!text) throw new Error('No text provided');
+
+        const res = await request
+            .post(`${url}/documents`)
+            .set('Content-Type', 'text/plain')
+            .send(text);
 
         if (!res.ok) throw new Error(res.statusText);
-        const { key } = await res.json();
 
-        return `${url}/${raw ? "raw/" : ""}${key}.${format}`;
+        return `${url}/${raw ? 'raw/' : ''}${res.body.key}.${format}`;
     }
 
-    static async pastee(contents, title = "Paste", lang = "autodetect", raw = false) {
-        if (!contents || !title) throw new Error("No text or title provided.");
-        const body = { sections: [{ name: title, syntax: lang, contents }] };
+    static async pastee(contents, title = 'Paste', lang = 'autodetect', raw = false) {
+        if (!contents || !title) throw new Error('No text or title provided.');
 
-        const res = await fetch("https://api.paste.ee/v1/pastes", {
-            method: "POST",
-            body: JSON.stringify(body),
-            headers: { "Content-Type": "application/json", "X-Auth-Token": process.env.PASTE_KEY }
-        }).then(res => res.json());
+        const { body } = await request
+            .post('https://api.paste.ee/v1/pastes')
+            .set({ 'X-Auth-Token': process.env.PASTE_KEY })
+            .send({ sections: [{ name: title, syntax: lang, contents }] });
 
-        if (!res.success) throw new Error(res.errors[0].message);
+        if (!body.success) throw new Error(body.errors[0].message);
 
-        return raw ? res.link.replace("/p/", "/r/") : res.link;
+        return raw ? body.link.replace('/p/', '/r/') : body.link;
     }
 
-    static findUser(message, query, global = true) {
-        let res = message.author;
-        const reg = new RegExp(`^${Util.escapeRegex(query)}`, "i");
-        const reg2 = new RegExp(Util.escapeRegex(query), "i");
+    static compare(first, second) {
+        first = first.replace(/\s+/g, '');
+        second = second.replace(/\s+/g, '');
 
-        if (!query) return res;
+        if (first === second) return 1;
+        if ((!first.length || !second.length) || (first.length < 2 || second.length < 2)) return 0;
 
-        const member = message.guild.members.cache.find(
-            m => m.id === query ||
-                m.user.discriminator === query ||
-                (message.mentions.members.size && message.mentions.members.first().id === m.id) ||
-                reg.test(m.user.tag) ||
-                m.nickname && reg.test(m.nickname) ||
-                reg2.test(m.user.tag) ||
-                m.nickname && reg2.test(m.nickname));
+        const compared = new Map();
 
-        if (member) res = member.user;
-
-        if (global && !member) {
-            const user = message.client.users.cache.find(
-                u => u.id === query ||
-                    u.discriminator === query ||
-                    (message.mentions.users.size && message.mentions.users.first().id === u.id) ||
-                    reg.test(u.tag) ||
-                    reg2.test(u.tag));
-            if (user) res = user;
+        for (let i = 0; i < first.length - 1; i++) {
+            const compare = first.substring(i, i + 2);
+            compared.set(compare, (compared.get(compare) ?? 0) + 1);
         }
 
-        return res;
-    }
+        let size = 0;
 
-    static findChannel(message, query, type = "") {
-        let res = message.channel;
-        if (!query) return res;
+        for (let i = 0; i < second.length - 1; i++) {
+            const compare = second.substring(i, i + 2);
+            const count = compared.get(compare) ?? 0;
 
-        const reg = new RegExp(query, "i");
-        let found;
-
-        switch (type) {
-            case "text":
-                found = message.guild.channels.cache.find(c => c.type === "text" && (c.id === query || reg.test(c.name))) || res;
-                break;
-            case "voice":
-                found = message.guild.channels.cache.find(c => c.type === "voice" && (c.id === query || reg.test(c.name))) || res;
-                break;
-            default:
-                found = message.guild.channels.cache.find(c => c.id === query || reg.test(c.name)) || res;
-                break;
+            if (count > 0) {
+                compared.set(compare, count - 1);
+                size++;
+            }
         }
 
-        if (found) res = found;
-
-        return res;
-    }
-
-    static findGuild(message, query) {
-        let res = message.guild;
-        if (!query) return res;
-        const reg = new RegExp(query, "i");
-
-        res = message.client.guilds.cache.find(g => g.id === query || reg.test(g.name) || reg.test(g.nameAcronym)) || res;
-
-        return res;
-    }
-
-    static findRole(message, query) {
-        let res = null;
-        if (!query) return res;
-
-        res = message.guild.roles.cache.find(r => r.id === query || (message.mentions.roles.size && message.mentions.roles.first().id === r.id) || new RegExp(query, "i").test(r.name)) || res;
-
-        return res;
+        return (2.0 * size) / (first.length + second.length - 2);
     }
 
     static randomResponse(arr) {
-        if (!Array.isArray(arr)) throw new TypeError("Function requires an array");
+        if (!Array.isArray(arr)) throw new TypeError('Function requires an array');
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    static closest(target, arr) {
+        if (typeof target !== 'string' || !Array.isArray(arr)) throw new TypeError('Invalid parameters');
+
+        const compared = [];
+        let match = 0;
+
+        for (const str of arr) {
+            const rating = Util.compare(target, str);
+            compared.push({ str, rating });
+            if (rating > compared[match].rating) match = arr.indexOf(str);
+        }
+
+        return compared[match].str;
+    }
+
     static sort(arr) {
-        if (!Array.isArray(arr)) throw new TypeError("Function requires an array");
+        if (!Array.isArray(arr)) throw new TypeError('Function requires an array');
         return arr.sort((a, b) => {
             a = Util.removeArticles((a.name ? a.name : a).toLowerCase());
             b = Util.removeArticles((b.name ? b.name : b).toLowerCase());
@@ -180,65 +177,53 @@ class Util {
     }
 
     static plural(word, length) {
-        return `${word}${length === 1 ? "s" : ""}`;
+        return `${word}${length === 1 ? '' : 's'}`;
     }
 
     static escapeRegex(str) {
-        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
-    static formatDate(date) {
-        return moment.utc(date).format(formats.log);
+    static formatDate(date, format = formats.log) {
+        return DateTime.fromJSDate(date, { zone: 'utc' }).toFormat(format);
     }
 
-    static difference(date) {
-        return moment().diff(date, "years", true).toFixed(2);
+    static difference(date, format = 'd') {
+        return DateTime.local().diff(DateTime.fromJSDate(date), 'years').toFormat(format);
     }
 
     static formatQuery(str) {
-        return Util.title(str).split(" ").join("_");
-    }
-
-    static getValues(arr, ...objs) {
-        for (const obj of objs) {
-            for (const value of Object.values(obj)) {
-                if (typeof value === "object" && value !== null) {
-                    Util.getValues(value);
-                } else {
-                    arr.push(value);
-                }
-            }
-        }
+        return Util.title(str).split(' ').join('_');
     }
 
     static redact(str) {
-        if (typeof str !== "string") return str;
+        if (typeof str !== 'string') return str;
         const tokens = [
-            process.env.WEBHOOK_URL,
-            process.env.DISCORD_TOKEN,
-            process.env.DATABASE_URL,
-            process.env.GOOGLE_SEARCH_KEY,
-            process.env.GOOGLE_ENGINE_KEY,
-            process.env.SERVICE_ACCOUNT_EMAIL,
-            process.env.SERVICE_ACCOUNT_KEY,
-            process.env.SPREADSHEET,
-            process.env.COMICVINE_KEY,
-            process.env.PASTE_KEY,
-            process.env.DICTIONARY_KEY,
-            process.env.MOVIEDB_KEY
+            'WEBHOOK_URL',
+            'DISCORD_TOKEN',
+            'DATABASE_URL',
+            'GOOGLE_SEARCH_KEY',
+            'GOOGLE_ENGINE_KEY',
+            'SERVICE_ACCOUNT_EMAIL',
+            'SERVICE_ACCOUNT_KEY',
+            'SPREADSHEET',
+            'COMICVINE_KEY',
+            'PASTE_KEY',
+            'DICTIONARY_KEY',
+            'MOVIEDB_KEY'
         ];
-        return str.replaceAll(new RegExp(tokens.map(t => Util.escapeRegex(t)).join("|"), "gi"), "[REDACTED]");
+        return str.replaceAll(new RegExp(tokens.map(t => Util.escapeRegex(process.env[t])).join('|'), 'gi'), '[REDACTED]');
     }
 
-    static beautify(str, lang = "js") {
-        if (!["js", "html", "css"].includes(lang)) lang = "js";
-        const beautified = beautify[lang](str, { indent_size: 4, brace_style: "preserve-inline" });
+    static beautify(str, lang = 'js') {
+        if (!['js', 'html', 'css'].includes(lang)) lang = 'js';
+        const beautified = beautify[lang](str, { indent_size: 4, brace_style: 'preserve-inline' });
         return beautified;
     }
 
     static removeArticles(str) {
-        const words = str.split(" ");
-        if (["a", "the", "an"].includes(words[0]) && words[1]) return words.slice(1).join(" ");
+        const words = str.split(' ');
+        if (['a', 'the', 'an'].includes(words[0]) && words[1]) return words.slice(1).join(' ');
         return str;
     }
 
@@ -255,20 +240,20 @@ class Util {
     static randomToken(amount = 1) {
         const final = [];
 
-        const a = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-        const b = ["_", "-"];
+        const a = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+        const b = ['_', '-'];
 
         const ids = this.randomID(amount);
 
-        for (let j = 0; j < amount; j++) {
-            let current = `${Buffer.from(ids[j]).toString("base64")}.C`;
+        for (const id of ids) {
+            let current = `${Buffer.from(id).toString('base64')}.C`;
 
             for (let i = 0; i < 5; i++) {
                 if (i === 0) current += Math.round(Math.random() * 9);
                 else current += (Math.random() > 0.4) ? a[Math.round(Math.random() * 25)].toUpperCase() : (Math.random() > 0.9) ? b[Math.round(Math.random())] : a[Math.round(Math.random() * 25)];
             }
 
-            current += ".";
+            current += '.';
 
             for (let i = 0; i < 27; i++) {
                 if (Math.random() > 0.4) current += a[Math.round(Math.random() * 25)].toUpperCase();
@@ -286,7 +271,7 @@ class Util {
     static randomID(amount = 1) {
         const dates = this.randomDate(amount);
         const arr = [];
-        for (const date of dates) arr.push(Snowflake.generate(date));
+        for (const date of dates) arr.push(SnowflakeUtil.generate(date));
         return arr;
     }
 
@@ -302,12 +287,10 @@ class Util {
             setTimeout(resolve, ms);
         });
     }
-}
 
-Util.Embed = class extends MessageEmbed {
-    constructor(color) {
-        super({ color: color ? color : botColors.main });
+    static getPrefix(message) {
+        return new RegExp(`<@!?${message.client.user.id}>`).test(message.util.parsed.prefix) ? `@${message.client.user.tag} ` : message.util.parsed.prefix;
     }
-};
+}
 
 module.exports = Util;
