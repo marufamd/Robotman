@@ -62,7 +62,6 @@ export default class extends Command {
             .setDescription(str);
 
         if (tag.aliases?.length) embed.addField('Aliases', tag.aliases.join(', '));
-        if (tag.attachments?.length) embed.addField('Attachments', tag.attachments.map((a, i) => `[${i}](${a})`).join(', '));
 
         embed.addField('Source', content);
 
