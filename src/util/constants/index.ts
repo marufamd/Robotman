@@ -64,16 +64,6 @@ export const shows = [
     51042  // Batwheels
 ];
 
-export const baseConfig = {
-    aki: 0,
-    hangman: 0,
-    trivia: 0,
-    connect_four: 0,
-    commands_run: 0,
-    webhook_url: null as string | null,
-    schedule: [] as number[]
-};
-
 export const trivia = {
     categories: [
         'dccomics',
@@ -176,7 +166,19 @@ export const wikiParams = (query: string): KVObject => ({
     pithumbsize: 1000
 });
 
-export type Publisher = 'dc' | 'marvel' | 'image' | 'darkhorse' | 'idw' | 'boom' | 'valiant' | 'archie' | 'dynamite' | 'vault' | 'aftershock' | 'zenescope';
+export type Publisher =
+    | 'dc'
+    | 'marvel'
+    | 'image'
+    | 'darkhorse'
+    | 'idw'
+    | 'boom'
+    | 'valiant'
+    | 'archie'
+    | 'dynamite'
+    | 'vault'
+    | 'aftershock'
+    | 'zenescope';
 
 export const publishers = {
     dc: {
