@@ -25,8 +25,7 @@ export default class TagsProvider {
 
         const [tag] = await this.sql<Tag>`
         select * from tags
-        where name = ${name} 
-        or ${name} = any(aliases)
+        where (name = ${name} or ${name} = any(aliases))
         and guild = ${id}
         `;
 
@@ -64,8 +63,7 @@ export default class TagsProvider {
         const [tag] = await this.sql<Tag>`
         update ${this.sql(this.table)} set
         ${this.sql(obj, 'content', 'editor', 'updated_at')}
-        where name = ${name}
-        or ${name} = any(aliases)
+        where (name = ${name} or ${name} = any(aliases))
         and guild = ${message.guild.id}
         returning *
         `;
@@ -78,8 +76,7 @@ export default class TagsProvider {
 
         const [tag] = await this.sql<Tag>`
         delete from ${this.sql(this.table)}
-        where name = ${name}
-        or ${name} = any(aliases)
+        where (name = ${name} or ${name} = any(aliases))
         and guild = ${id}
         returning *
         `;
@@ -93,8 +90,7 @@ export default class TagsProvider {
         const [uses] = await this.sql<{ uses: number }>`
             update ${this.sql(this.table)} set
             uses = uses + 1
-            where name = ${name}
-            or ${name} = any(aliases)
+            where (name = ${name} or ${name} = any(aliases))
             and guild = ${id}
             returning uses
             `;
