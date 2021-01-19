@@ -43,7 +43,7 @@ export default class extends Command {
 
     public async exec(message: Message, { code, depth }: { code: string; depth: number }) {
         const { lastInput, lastResult, client } = this;
-        const { commandHandler, sql } = client;
+        const { commandHandler, interactionHandler, sql } = client;
 
         if (/while\s*\(\s*true\s*\)\s*/gi.test(code)) return message.util.send('No.');
 

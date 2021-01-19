@@ -10,7 +10,7 @@ export default class extends Listener {
         });
     }
 
-    public async exec(info: RateLimitData): Promise<void> {
+    public async exec(info: RateLimitData) {
         this.client.ratelimits++;
 
         const title = `Ratelimit Hit [${info.method.toUpperCase()}]`;

@@ -12,7 +12,7 @@ export default class extends Listener {
         });
     }
 
-    public async exec(): Promise<void> {
+    public async exec() {
         const rebootPath = join(__dirname, '..', '..', 'reboot.json');
 
         if (existsSync(rebootPath)) {
