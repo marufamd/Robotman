@@ -148,13 +148,13 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public attach(...args: any[]) {
+    public attach(...args: [any, any]) {
         if (!this.body || !(this.body instanceof FormData)) this.body = new FormData();
 
         if (typeof args[0] === 'object') {
             for (const [key, val] of Object.entries(args[0])) void this.attach(key, val);
         } else {
-            (this.body as FormData).append(args[0], args[1]);
+            (this.body as FormData).append(...args);
         }
 
         return this;

@@ -1,5 +1,5 @@
 import os from 'os';
-import { wait } from './';
+import { KVObject, wait } from './';
 
 interface CPUAverageInfo {
     idle: number;
@@ -16,7 +16,7 @@ export default class CPU {
         const cpus = os.cpus();
 
         for (const cpu of cpus) {
-            for (const type of Object.keys(cpu.times)) total += (cpu.times as any)[type];
+            for (const type of Object.keys(cpu.times)) total += (cpu.times as KVObject)[type];
             idle += cpu.times.idle;
         }
 
@@ -26,7 +26,7 @@ export default class CPU {
         };
     }
 
-    public static async usage(): Promise<number> {
+    public static async usage() {
         const start = this.average();
         await wait(this.interval);
         const end = this.average();

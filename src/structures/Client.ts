@@ -41,6 +41,7 @@ declare module 'discord-akairo' {
         inhibitorHandler: InhibitorHandler;
         ratelimits: number;
         development: boolean;
+        loadSchedule(): Promise<void>;
     }
 
     export type ArgumentTypeCasterWithInteraction = (message: Message | Interaction, phrase: string) => any;
@@ -152,8 +153,6 @@ export default class RobotmanClient extends AkairoClient {
 
         if (this.schedule instanceof Job) this.schedule.cancel();
         this.schedule = scheduleJob(rule, func);
-
-        return true;
     }
 
     private async initDB() {

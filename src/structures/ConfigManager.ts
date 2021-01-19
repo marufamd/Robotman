@@ -15,7 +15,7 @@ export interface BotConfig extends BotStats {
 }
 
 export default class ConfigManager {
-    public constructor(public sql: Sql<any>, private readonly table: string) {
+    public constructor(public sql: Sql<any>, public readonly table: string) {
         this.sql = sql;
         this.table = table;
     }
