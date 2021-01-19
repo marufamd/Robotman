@@ -3,14 +3,13 @@ import {
     APIMessageContentResolvable,
     Base,
     Channel,
-    DMChannel,
     Guild,
     GuildMember,
     Message,
     MessageAdditions,
     MessageEmbed,
     MessageOptions,
-    NewsChannel,
+    MessageTarget,
     SnowflakeUtil,
     StringResolvable,
     TextChannel,
@@ -35,10 +34,8 @@ import { ResponseTypes } from '../util/constants';
 import type { KVObject } from '../util';
 import RobotmanEmbed from '../util/embed';
 
-type MessageTarget = TextChannel | NewsChannel | DMChannel | User | GuildMember | Webhook | WebhookClient | Interaction;
-
 Object.defineProperty(APIMessage, 'create', {
-    value: function create(target: MessageTarget, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}): APIMessage {
+    value: function create(target: MessageTarget | Interaction, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}): APIMessage {
         const isWebhook = target instanceof Webhook || target instanceof WebhookClient || target instanceof Interaction;
         const transformed = this.transformOptions(content, options, extra, isWebhook);
         return new this(target, transformed);
@@ -115,8 +112,9 @@ export default class Interaction extends Base {
         if (this.response) return;
         const data = Interaction.resolveData(content, options);
 
-        // @ts-ignore
-        await this.client.api.interactions(this.id, this.token).callback.post({ data });
+        await Reflect.get(this.client, 'api')
+            .interactions(this.id, this.token).callback
+            .post({ data });
 
         this.response = true;
         return this.response;
@@ -125,15 +123,23 @@ export default class Interaction extends Base {
     public async edit(content: string, options?: InteractionMessageOptions): Promise<boolean> {
         if (!this.response) return false;
         const { data } = Interaction.resolveData(content, options);
-        // @ts-ignore
-        await this.client.api.webhooks(this.client.user.id, this.token).messages('@original').patch({ data });
+
+        await Reflect.get(this.client, 'api')
+            .webhooks(this.client.user.id, this.token)
+            .messages('@original')
+            .patch({ data });
+
         return true;
     }
 
     public async delete(): Promise<boolean> {
         if (!this.response) return false;
-        // @ts-ignore
-        await this.client.api.webhooks(this.client.user.id, this.token).messages('@original').delete();
+
+        await Reflect.get(this.client, 'api')
+            .webhooks(this.client.user.id, this.token)
+            .messages('@original')
+            .delete();
+
         return true;
     }
 
@@ -144,14 +150,13 @@ export default class Interaction extends Base {
         if (content instanceof APIMessage) {
             apiMessage = content.resolveData();
         } else {
-            // @ts-ignore
-            apiMessage = APIMessage.create(this, content, options).resolveData();
+            apiMessage = Reflect.get(APIMessage, 'create')(this, content, options).resolveData();
             if (Array.isArray((apiMessage.data as KVObject).content)) (apiMessage.data as KVObject).content = (apiMessage.data as KVObject).content[0];
         }
 
         const { data, files } = await apiMessage.resolveFiles();
-        // @ts-ignore
-        return this.client.api.webhooks(this.client.user.id, this.token)
+        return Reflect.get(this.client, 'api')
+            .webhooks(this.client.user.id, this.token)
             .post({
                 data,
                 files,

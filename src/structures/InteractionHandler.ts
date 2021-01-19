@@ -16,8 +16,7 @@ export default class InteractionHandler {
     }
 
     public fetchCommands(guild?: string | Guild): Promise<APIApplicationCommand[]> {
-        // @ts-ignore
-        let path = this.client.api.applications(this.client.user.id);
+        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands.get();
@@ -27,8 +26,7 @@ export default class InteractionHandler {
         if (typeof data === 'string') data = this.client.commandHandler.findCommand(data)?.interactionOptions;
         if (!data) return;
 
-        // @ts-ignore
-        let path = this.client.api.applications(this.client.user.id);
+        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands.post({ data });
@@ -40,8 +38,7 @@ export default class InteractionHandler {
 
         if (command && typeof command === 'object') command = command.id;
 
-        // @ts-ignore
-        let path = this.client.api.applications(this.client.user.id);
+        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands(command).patch({ data });
@@ -50,8 +47,7 @@ export default class InteractionHandler {
     public delete(command: string | APIApplicationCommand, guild?: string | Guild): Promise<unknown> {
         if (command && typeof command === 'object') command = command.id;
 
-        // @ts-ignore
-        let path = this.client.api.applications(this.client.user.id);
+        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands(command).delete();
