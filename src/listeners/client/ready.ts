@@ -26,6 +26,13 @@ export default class extends Listener {
         }
 
         this.client.log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);
-        if (!this.client.development) void this.client.user.setPresence({ activity: { name: `${process.env.BOT_PREFIX}help` } });
+        if (!this.client.development) {
+            void this.client.user.setPresence({
+                activity: {
+                    name: `${process.env.BOT_PREFIX}help`,
+                    type: 'LISTENING'
+                }
+            });
+        }
     }
 }
