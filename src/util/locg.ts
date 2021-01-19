@@ -41,6 +41,11 @@ export interface ComicData {
 export default class LeagueOfComicGeeks {
     public static readonly url = 'https://leagueofcomicgeeks.com';
 
+    private static readonly SINGLE_REGEXP_CASE_SENSITIVE = /((\d:\d+)|((R|K)E|XXX|HC|TP)|(Covere?|Shop) [A-Z])/;
+    private static readonly SINGLE_REGEXP_CASE_INSENSITIVE = /\s(var(iant)?|omnibus|printing|incentive|facsimile|exclusive|limited|cover|graded|box\s*set|lotay|giang|khoi pham|mckelvie|uncanny knack virgin|vinyl|newsstand|edition)/i;
+    private static readonly TRADE_REGEXP = /(hc|tp|omnibus|box\s*set)/i;
+    private static readonly TRADE_FILTER_REGEXP = /(var(iant)?|printing|incentive)/i;
+
     protected static async get(params: LocgParameters, options: LocgOptions): Promise<ComicData[]> {
         params.view = 'list';
         params.order = 'alpha-asc';
@@ -149,7 +154,7 @@ export default class LeagueOfComicGeeks {
     }
 
     public static resolveDate(date: DateTime) {
-        return (date.day !== new Date().getDay() && date.weekday <= 3)
+        return date.weekday <= 3
             ? date
                 .set({ weekday: 3 })
             : date
@@ -158,18 +163,10 @@ export default class LeagueOfComicGeeks {
     }
 
     private static filter(pulls: ComicData[], filterType: FilterType = 'singles') {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        let match = (c: ComicData): boolean => true;
-
-        switch (filterType) {
-            case 'singles':
-                match = c => !(/((\d:\d+)|((R|K)E|XXX|HC|TP)|(Covere?|Shop) [A-Z])/.test(c.name)) &&
-                    !(/\s(var(iant)?|omnibus|printing|incentive|facsimile|exclusive|limited|cover|graded|box\s*set|lotay|giang|khoi pham|mckelvie|uncanny knack virgin|vinyl|newsstand|edition)/i).test(c.name);
-                break;
-            case 'trades':
-                match = t => (/(hc|tp|omnibus|box\s*set)/i).test(t.name) && !(/(var(iant)?|printing|incentive)/i).test(t.name);
-                break;
-        }
+        const match: (c: ComicData) => boolean =
+            filterType === 'singles'
+                ? c => !this.SINGLE_REGEXP_CASE_SENSITIVE.test(c.name) && !this.SINGLE_REGEXP_CASE_INSENSITIVE.test(c.name)
+                : c => this.TRADE_REGEXP.test(c.name) && !this.TRADE_FILTER_REGEXP.test(c.name);
 
         return pulls.filter(match);
     }
