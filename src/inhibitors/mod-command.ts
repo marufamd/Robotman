@@ -3,7 +3,7 @@ import { Message, Permissions } from 'discord.js';
 
 export default class extends Inhibitor {
     public constructor() {
-        super('mod', {
+        super('mod-command', {
             reason: 'Moderator Command'
         });
     }
