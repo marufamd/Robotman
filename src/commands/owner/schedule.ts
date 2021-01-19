@@ -11,7 +11,8 @@ export default class extends Command {
     public constructor() {
         super('schedule', {
             aliases: ['schedule'],
-            description: 'Checks schedule configuration'
+            description: 'Checks schedule configuration',
+            ownerOnly: true
         });
     }
 
