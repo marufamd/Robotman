@@ -88,11 +88,11 @@ export default class Interaction extends Base {
         this.response = false;
     }
 
-    public get createdTimestamp(): number {
+    public get createdTimestamp() {
         return SnowflakeUtil.deconstruct(this.id).timestamp;
     }
 
-    public get createdAt(): Date {
+    public get createdAt() {
         return new Date(this.createdTimestamp);
     }
 
@@ -121,7 +121,7 @@ export default class Interaction extends Base {
         return this.response;
     }
 
-    public async edit(content: string, options?: InteractionMessageOptions): Promise<boolean> {
+    public async edit(content: string, options?: InteractionMessageOptions) {
         if (!this.response) return false;
         const { data } = Interaction.resolveData(content, options);
 
@@ -133,7 +133,7 @@ export default class Interaction extends Base {
         return true;
     }
 
-    public async delete(): Promise<boolean> {
+    public async delete() {
         if (!this.response) return false;
 
         await Reflect.get(this.client, 'api')
@@ -151,7 +151,8 @@ export default class Interaction extends Base {
         if (content instanceof APIMessage) {
             apiMessage = content.resolveData();
         } else {
-            apiMessage = Reflect.get(APIMessage, 'create')(this, content, options).resolveData();
+            // @ts-ignore
+            apiMessage = APIMessage.create(this, content, options).resolveData();
             if (Array.isArray((apiMessage.data as KVObject).content)) (apiMessage.data as KVObject).content = (apiMessage.data as KVObject).content[0];
         }
 
@@ -173,9 +174,13 @@ export default class Interaction extends Base {
 
     private static resolveData(content: string | RobotmanEmbed | MessageEmbed | InteractionMessageOptions, options: InteractionMessageOptions = {}): APIInteractionResponse {
         if (content) {
-            if (content instanceof MessageEmbed || content instanceof RobotmanEmbed) options = { embeds: [content] };
-            else if (typeof content === 'object') options = content;
-            else options.content = content;
+            if (content instanceof MessageEmbed || content instanceof RobotmanEmbed) {
+                options = { embeds: [content] };
+            } else if (typeof content === 'object') {
+                options = content;
+            } else {
+                options.content = content;
+            }
         }
 
         if (options.content?.length > 2000) throw new Error('Message content exceeds maximum length (2000).');
@@ -189,7 +194,10 @@ export default class Interaction extends Base {
         }
 
         let type = 4;
-        if (options.type) type = ResponseTypes[options.type as keyof typeof ResponseTypes];
+        if (options.type) {
+            type = ResponseTypes[options.type as keyof typeof ResponseTypes];
+            delete options.type;
+        }
 
         if (options.ephemeral) {
             options.flags = 64;
