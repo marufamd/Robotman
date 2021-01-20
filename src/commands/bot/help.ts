@@ -45,7 +45,7 @@ export default class extends Command {
         let mod: Command | Category<string, Command>;
 
         if (typeof option !== 'undefined') {
-            const commandOrGroup = (Argument.union('commandAlias', 'commandCategory') as ArgumentTypeCasterWithInteraction)(interaction, option);
+            const commandOrGroup = (Argument.union('commandAlias', 'commandCategory') as ArgumentTypeCasterWithInteraction).bind(this)(interaction, option);
             if (commandOrGroup) mod = commandOrGroup;
         }
 

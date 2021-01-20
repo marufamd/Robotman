@@ -1,5 +1,3 @@
-import { CommandHandler } from 'discord-akairo';
-
 import {
     APIApplicationCommandInteractionDataOption,
     APIEmbed,
@@ -66,7 +64,6 @@ export default class Interaction extends Base {
     public member: GuildMember;
     public author: User;
     public command: InteractionCommand;
-    public handler: CommandHandler;
     public options: APIApplicationCommandInteractionDataOption[];
     public response: boolean;
 
@@ -86,8 +83,6 @@ export default class Interaction extends Base {
             id: data.data.id,
             name: data.data.name
         };
-
-        this.handler = this.client.commandHandler;
 
         this.options = data.data.options;
         this.response = false;
