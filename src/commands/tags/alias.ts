@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import type { Tag } from '../../structures/TagsProvider';
 
 const plural = (length: number) => `alias${length === 1 ? '' : 'es'}`;

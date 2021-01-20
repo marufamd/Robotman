@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import { extname } from 'path';
 import Interaction from '../../structures/Interaction';
 import request from '../../util/request';

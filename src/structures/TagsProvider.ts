@@ -1,5 +1,5 @@
-import { Guild, Message } from 'discord.js';
-import { Sql } from 'postgres';
+import type { Guild, Message } from 'discord.js';
+import type { Sql } from 'postgres';
 import { resolveGuild } from '../util';
 
 export interface Tag {

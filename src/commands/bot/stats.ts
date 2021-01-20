@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import { Duration } from 'luxon';
 import Interaction from '../../structures/Interaction';
 import cpu from '../../util/cpu';

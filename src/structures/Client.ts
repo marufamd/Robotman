@@ -1,6 +1,6 @@
 import { AkairoClient, CommandHandler, ListenerHandler, InhibitorHandler } from 'discord-akairo';
-import { APIMessage } from 'discord-api-types';
-import { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import type { APIMessage } from 'discord-api-types';
+import type { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
 import { config } from 'dotenv';
 import { Job, RecurrenceRule, scheduleJob } from 'node-schedule';
 import { join } from 'path';

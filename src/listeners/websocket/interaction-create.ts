@@ -1,5 +1,5 @@
 import { Listener } from 'discord-akairo';
-import { APIInteraction } from 'discord-api-types';
+import type { APIInteraction } from 'discord-api-types';
 
 export default class extends Listener {
     public constructor() {

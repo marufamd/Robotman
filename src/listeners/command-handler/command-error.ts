@@ -1,5 +1,5 @@
 import { Listener, Command } from 'discord-akairo';
-import { Message, TextChannel } from 'discord.js';
+import type { Message, TextChannel } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 
 export default class extends Listener {

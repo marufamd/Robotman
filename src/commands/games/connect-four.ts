@@ -1,6 +1,6 @@
 import { oneLine } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { CollectorFilter, Message } from 'discord.js';
+import type { CollectorFilter, Message } from 'discord.js';
 import ConnectFour from '../../structures/ConnectFour';
 import { plural } from '../../util';
 import { connectFour, colors } from '../../util/constants';

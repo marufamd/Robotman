@@ -1,6 +1,6 @@
 import { oneLine } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import Table from '../../util/table';
 import { paste, plural } from '../../util';
 

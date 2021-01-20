@@ -1,6 +1,6 @@
 import { exec as execAsync } from 'child_process';
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import { promisify } from 'util';
 import { paste } from '../../util';
 

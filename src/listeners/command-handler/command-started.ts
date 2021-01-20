@@ -1,5 +1,5 @@
 import { Listener, Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import type { BotStats } from '../../structures/ConfigManager';
 
 export default class extends Listener {

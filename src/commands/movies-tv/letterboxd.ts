@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { closest, randomResponse, trim } from '../../util';
 import { formats } from '../../util/constants';

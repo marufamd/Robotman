@@ -1,7 +1,7 @@
 import { oneLine } from 'common-tags';
 import { Argument, Command } from 'discord-akairo';
 import { ApplicationCommandOptionType } from 'discord-api-types';
-import { Message, TextChannel } from 'discord.js';
+import type { Message, TextChannel } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { google, randomResponse } from '../../util';
 

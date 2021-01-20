@@ -1,5 +1,5 @@
 import { Aki, Guess } from 'aki-api';
-import { Message, CollectorFilter } from 'discord.js';
+import type { Message, CollectorFilter } from 'discord.js';
 import { title, randomResponse } from '../util';
 import { aki as akiConfig, colors, emojis } from '../util/constants';
 

@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { CollectorFilter, Message } from 'discord.js';
+import type { CollectorFilter, Message } from 'discord.js';
 import Hangman from '../../structures/Hangman';
 import { randomResponse, plural } from '../../util';
 import { words, emojis, colors } from '../../util/constants';

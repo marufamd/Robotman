@@ -53,6 +53,12 @@ export function formatQuery(str: string): string {
     return title(str).split(' ').join('_');
 }
 
+export function codeblock(str: any, lang = '') {
+    if (typeof str !== 'string') str = String(str);
+    if (!str.length) str = String.fromCharCode(8203);
+    return `\`\`\`${lang}\n${str}\`\`\``;
+}
+
 export function redact(str: string): string {
     if (typeof str !== 'string') return str;
     const tokens = [

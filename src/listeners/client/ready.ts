@@ -1,5 +1,5 @@
 import { Listener } from 'discord-akairo';
-import { TextChannel } from 'discord.js';
+import type { TextChannel } from 'discord.js';
 import { existsSync, promises as fs } from 'fs';
 import { join } from 'path';
 

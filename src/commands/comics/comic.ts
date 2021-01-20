@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import { Command } from 'discord-akairo';
 import { ApplicationCommandOptionType } from 'discord-api-types';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { google, trim, title, KVObject } from '../../util';
 import request from '../../util/request';

@@ -1,5 +1,5 @@
 import { Argument, Command, PrefixSupplier } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 
 const MAX_CHARS = 5;
 

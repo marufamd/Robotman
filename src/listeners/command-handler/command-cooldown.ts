@@ -1,6 +1,6 @@
 import { oneLine } from 'common-tags';
 import { Listener, Command } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { plural, wait } from '../../util';
 

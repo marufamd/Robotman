@@ -1,6 +1,6 @@
 import { Provider } from 'discord-akairo';
-import { Guild } from 'discord.js';
-import { Sql } from 'postgres';
+import type { Guild } from 'discord.js';
+import type { Sql } from 'postgres';
 import { resolveGuild } from '../util';
 
 export interface GuildSettings {

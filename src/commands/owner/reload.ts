@@ -1,5 +1,5 @@
 import { Argument, Command, Category, Inhibitor, Listener } from 'discord-akairo';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 
 export default class extends Command {
     public constructor() {
