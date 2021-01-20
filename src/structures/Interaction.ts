@@ -1,3 +1,15 @@
+import { CommandHandler } from 'discord-akairo';
+
+import {
+    APIApplicationCommandInteractionDataOption,
+    APIEmbed,
+    APIInteraction,
+    APIInteractionApplicationCommandCallbackData,
+    APIMessage as DiscordAPIMessage,
+    APIInteractionResponse,
+    Snowflake
+} from 'discord-api-types';
+
 import {
     APIMessage,
     APIMessageContentResolvable,
@@ -18,16 +30,6 @@ import {
     WebhookClient,
     WebhookMessageOptions
 } from 'discord.js';
-
-import {
-    APIApplicationCommandInteractionDataOption,
-    APIEmbed,
-    APIInteraction,
-    APIInteractionApplicationCommandCallbackData,
-    APIMessage as DiscordAPIMessage,
-    APIInteractionResponse,
-    Snowflake
-} from 'discord-api-types';
 
 import RobotmanClient from './Client';
 import { ResponseTypes } from '../util/constants';
@@ -63,10 +65,11 @@ export default class Interaction extends Base {
     public member: GuildMember;
     public author: User;
     public command: InteractionCommand;
+    public handler: CommandHandler;
     public options: APIApplicationCommandInteractionDataOption[];
     public response: boolean;
 
-    public constructor(client: RobotmanClient, data: APIInteraction) {
+    public constructor(public client: RobotmanClient, data: APIInteraction) {
         super(client);
 
         this.id = data.id;
@@ -82,6 +85,8 @@ export default class Interaction extends Base {
             id: data.data.id,
             name: data.data.name
         };
+
+        this.handler = this.client.commandHandler;
 
         this.options = data.data.options;
         this.response = false;
