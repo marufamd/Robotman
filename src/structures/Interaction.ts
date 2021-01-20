@@ -58,6 +58,7 @@ export interface InteractionCommand {
 }
 
 export default class Interaction extends Base {
+    public client: RobotmanClient;
     public id: Snowflake;
     public token: string;
     public channel: Channel | null;
@@ -69,7 +70,7 @@ export default class Interaction extends Base {
     public options: APIApplicationCommandInteractionDataOption[];
     public response: boolean;
 
-    public constructor(public client: RobotmanClient, data: APIInteraction) {
+    public constructor(client: RobotmanClient, data: APIInteraction) {
         super(client);
 
         this.id = data.id;
