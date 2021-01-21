@@ -38,12 +38,8 @@ export default class extends Command {
 
         let game;
 
-        if (user.presence.activities.length && user.presence.activities[0].type !== 'CUSTOM_STATUS') {
-            const act = user.presence.activities[0];
-            game = `${title(act.type)} **${act.type === 'STREAMING' ? `[${act.name}](${act.url})` : act.name}**`;
-        }
-
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setTitle(`${user.tag}${user.bot ? ' <:bot:764365628169388053>' : ''}`)
             .setURL(avatar)
             .setThumbnail(avatar)
