@@ -6,12 +6,6 @@ interface ArgumentTypes {
 }
 
 export default {
-    clientChannel: (message, phrase) => {
-        if (!phrase) return null;
-        if (message.client.channels.cache.has(phrase)) return message.client.channels.cache.get(phrase);
-        return null;
-    },
-
     codeblock: (_, phrase) => {
         if (!phrase) return null;
         return phrase

@@ -44,7 +44,8 @@ export default class extends Command {
                 .map(b => `\`${b}\``)
                 .join(', ');
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(role.color === 0 ? 'b9bbbe' : role.color)
             .setTitle(Util.escapeMarkdown(role.name))
             .setThumbnail(image)

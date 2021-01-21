@@ -44,9 +44,7 @@ export default class extends Command {
 
     private info(guild: Guild, embed: RobotmanEmbed) {
         const icon = guild.iconURL({ format: 'png', size: 2048, dynamic: true });
-
         const splash = guild.splashURL({ format: 'png', size: 2048 });
-        const [bots, users] = guild.members.cache.partition(m => m.user.bot);
 
         const channels = guild.channels.cache;
         const voice = channels.filter(c => c.type === 'voice');
@@ -63,11 +61,11 @@ export default class extends Command {
             • **Created On:** ${formatDate(guild.createdAt)} (${difference(guild.createdAt, 'd')} days ago)
             • **Owner:** ${Util.escapeMarkdown(guild.owner.user.tag)}
             • **Region:** ${this.formatRegion(guild.region)}
-            • **Members:** ${guild.memberCount} (${users.size} Users, ${bots.size} Bots)
+            • **Members:** ${guild.memberCount}
             • **Channels:** ${channels.size} (${categories.size} Categories, ${text.size} Text, ${voice.size} Voice)
             • **Roles** ${guild.roles.cache.size}
             • **Emojis:** ${guild.emojis.cache.size}
-            • **Boosts:** ${guild.premiumSubscriptionCount ? guild.premiumSubscriptionCount : 'None'}${guild.premiumTier ? ` (Level ${guild.premiumTier})` : ''}
+            • **Boosts:** ${guild.premiumSubscriptionCount ?? 'None'}${guild.premiumTier ? ` (Level ${guild.premiumTier})` : ''}
             • **Verification Level:** ${title(guild.verificationLevel.replaceAll('_', ' '))}
             • **Explicit Content Filter:** ${filterLevel[guild.explicitContentFilter]}`;
 

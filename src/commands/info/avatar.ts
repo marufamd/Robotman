@@ -28,7 +28,8 @@ export default class extends Command {
             dynamic: true
         });
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setTitle(`${user.tag}'s Avatar`)
             .setURL(avatar)
             .setImage(avatar)

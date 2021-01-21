@@ -23,7 +23,8 @@ export default class extends Command {
                     type: 'member',
                     default: (message: Message) => message.member
                 }
-            ]
+            ],
+            before: message => message.guild.members.fetch()
         });
     }
 

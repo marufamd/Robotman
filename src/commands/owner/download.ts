@@ -26,11 +26,6 @@ export default class extends Command {
                     type: 'string'
                 },
                 {
-                    id: 'array',
-                    match: 'flag',
-                    flag: ['-array', '--array']
-                },
-                {
                     id: 'json',
                     match: 'flag',
                     flag: ['-json', '--json']
@@ -39,17 +34,15 @@ export default class extends Command {
         });
     }
 
-    public async exec(message: Message, { url, path, array, json }: { url: string; path: string; array: boolean; json: boolean }) {
-        const toJSON = json || array;
-
+    public async exec(message: Message, { url, path, json }: { url: string; path: string; json: boolean }) {
         try {
             const res = await request.get(url);
 
             let body = json ? res.body : res.text;
 
-            if (array && typeof res === 'string') body = body.split('\n');
+            if (json && typeof res === 'string') body = body.split('\n');
 
-            body = toJSON ? JSON.stringify(body, null, 4) : res;
+            body = json ? JSON.stringify(body, null, 4) : res;
 
             if (path) {
                 await writeFile(path.startsWith('./') ? path : `./${path}`, body);
@@ -58,7 +51,7 @@ export default class extends Command {
 
             return message.util.send({
                 files: [{
-                    name: `download.${toJSON ? 'json' : 'txt'}`,
+                    name: `download.${json ? 'json' : 'txt'}`,
                     attachment: Buffer.from(body)
                 }]
             });
