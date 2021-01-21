@@ -1,8 +1,10 @@
+import { Type } from '@sapphire/type';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
-import { Type } from '@sapphire/type';
+import { DateTime as dateTime, Duration as duration } from 'luxon';
 import { inspect } from 'util';
 import * as util from '../../util';
+import Request from '../../util/request';
 
 const parse = (obj: util.KVObject): util.KVObject => JSON.parse(JSON.stringify(obj));
 
@@ -38,7 +40,8 @@ export default class extends Command {
                     },
                     match: 'rest',
                     prompt: {
-                        start: 'What code would you like to evaluate?'
+                        start: 'What code would you like to evaluate?',
+                        retry: 'Please try again.'
                     }
                 }
             ]
@@ -47,6 +50,9 @@ export default class extends Command {
 
     public async exec(message: Message, { code, depth }: { code: string; depth: number }) {
         /* eslint-disable @typescript-eslint/no-unused-vars */
+        const DateTime = dateTime;
+        const Duration = duration;
+        const request = Request;
         const { lastInput, lastResult, client } = this;
         const { commandHandler: commands, interactionHandler: interactions, sql } = client;
         /* eslint-enable @typescript-eslint/no-unused-vars */

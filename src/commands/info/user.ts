@@ -35,13 +35,6 @@ export default class extends Command {
         const roleList = roles.sort((a, b) => b.position - a.position).map(r => r.name).join(', ');
 
         const badges = user.flags.toArray();
-        const statuses = {
-            online: '<:online:765076016132653066>Online',
-            dnd: '<:dnd:765075435544510515>Do Not Disurb',
-            idle: '<:idle:765076054988685332>Idle',
-            offline: '<:invis:765075977495117838>Offline/Invisible',
-            invisible: '<:invis:765075977495117838>Offline/Invisible'
-        };
 
         let game;
 
@@ -57,7 +50,6 @@ export default class extends Command {
             .setDescription(stripIndents`
                         • **Created On:** ${formatDate(user.createdAt)} (${difference(user.createdAt)} days ago)
                         • **Joined On:** ${formatDate(member.joinedAt)} (${difference(member.joinedAt)} days ago)
-                        • **Status:** ${statuses[user.presence.status]}
                         • **Nickname:** ${member.nickname ? Util.escapeMarkdown(member.nickname) : 'None'}`)
             .setFooter(`ID: ${user.id}`);
 

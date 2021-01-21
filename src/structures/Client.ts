@@ -122,9 +122,9 @@ export default class RobotmanClient extends AkairoClient {
     public constructor() {
         super({ ownerID: process.env.BOT_OWNER }, {
             fetchAllMembers: true,
-            messageCacheMaxSize: 150,
+            messageCacheMaxSize: 50,
             messageCacheLifetime: 600,
-            messageSweepInterval: 600,
+            messageSweepInterval: 300,
             messageEditHistoryMaxSize: 0,
             allowedMentions: { parse: ['users'] },
             ws: {

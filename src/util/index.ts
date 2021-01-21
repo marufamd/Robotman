@@ -1,5 +1,4 @@
 import { SnowflakeUtil, Guild } from 'discord.js';
-import * as jsBeautify from 'js-beautify';
 import { DateTime } from 'luxon';
 import { basename, dirname } from 'path';
 import request from './request';
@@ -78,33 +77,26 @@ export function redact(str: string): string {
     return str.replaceAll(new RegExp(tokens.map(t => escapeRegex(process.env[t])).join('|'), 'gi'), '[REDACTED]');
 }
 
-type BeautifyLanguage = 'js' | 'html' | 'css';
-
-export function beautify(str: string, lang = 'js'): string {
-    if (!['js', 'html', 'css'].includes(lang)) lang = 'js';
-    return jsBeautify[lang as BeautifyLanguage](str, { indent_size: 4, brace_style: 'preserve-inline' });
-}
-
 export function wait(ms: number): Promise<void> {
     return new Promise(resolve => {
         setTimeout(resolve, ms);
     });
 }
 
-export function randomDate(amount = 1): number[] {
+export function randomDate(amount = 1) {
     const arr = [];
     for (let i = 0; i < amount; i++) arr.push(EPOCH + (Math.random() * (Date.now() - EPOCH)));
     return arr;
 }
 
-export function randomID(amount = 1): string[] {
+export function randomID(amount = 1) {
     const dates = randomDate(amount);
     const arr = [];
     for (const date of dates) arr.push(SnowflakeUtil.generate(date));
     return arr;
 }
 
-export function randomToken(amount = 1): string | string[] {
+export function randomToken(amount = 1) {
     const final = [];
 
     const a = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -147,10 +139,10 @@ export function removeArticles(str: string): string {
     return str;
 }
 
-export function sort(arr: any[]): any[] {
+export function sort(arr: any[]) {
     return arr.sort((a, b) => {
-        a = removeArticles((a.name ? a.name : a).toLowerCase());
-        b = removeArticles((b.name ? b.name : b).toLowerCase());
+        a = removeArticles((a.name ?? a).toLowerCase());
+        b = removeArticles((b.name ?? b).toLowerCase());
 
         if (a > b) return 1;
         if (a < b) return -1;
@@ -159,7 +151,7 @@ export function sort(arr: any[]): any[] {
     });
 }
 
-export function compare(first: string, second: string): number {
+export function compare(first: string, second: string) {
     first = first.replace(/\s+/g, '');
     second = second.replace(/\s+/g, '');
 
@@ -190,7 +182,7 @@ export function compare(first: string, second: string): number {
     return (2.0 * size) / (first.length + second.length - 2);
 }
 
-export function closest(target: string, arr: string[]): string {
+export function closest(target: string, arr: string[]) {
     const compared = [];
     let match = 0;
 
@@ -203,7 +195,7 @@ export function closest(target: string, arr: string[]): string {
     return compared[match].str;
 }
 
-export async function paste(text: string, format = 'js', url = 'https://hastebin.com', raw = false): Promise<string> {
+export async function paste(text: string, format = 'js', url = 'https://starb.in', raw = false) {
     if (!text) throw new Error('No text provided');
 
     const { body } = await request
@@ -214,7 +206,7 @@ export async function paste(text: string, format = 'js', url = 'https://hastebin
     return `${url}/${raw ? 'raw/' : ''}${body.key as string}.${format}`;
 }
 
-export async function pastee(contents: string, title = 'Paste', lang = 'autodetect', raw = false): Promise<string> {
+export async function pastee(contents: string, title = 'Paste', lang = 'autodetect', raw = false) {
     if (!contents || !title) throw new Error('No text or title provided.');
 
     const { body } = await request
@@ -230,11 +222,11 @@ export async function pastee(contents: string, title = 'Paste', lang = 'autodete
     return raw ? body.link.replace('/p/', '/r/') : body.link;
 }
 
-export function randomResponse(arr: any[]): any {
+export function randomResponse(arr: any[]) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export async function dadJoke(): Promise<string> {
+export async function dadJoke() {
     const { text } = await request
             .get('https://icanhazdadjoke.com/')
             .set('Accept', 'text/plain');
