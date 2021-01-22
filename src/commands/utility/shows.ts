@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { KVObject, paste } from '../../util';
+import { paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
 
@@ -41,7 +41,7 @@ export default class extends Command {
                 .get('http://api.tvmaze.com/schedule')
                 .query({ country: 'US', date });
 
-            const found = body.filter((s: KVObject) => shows.includes(s.show.id));
+            const found = body.filter((s: Record<string, any>) => shows.includes(s.show.id));
             if (!found.length) continue;
 
             for (const episode of found) {

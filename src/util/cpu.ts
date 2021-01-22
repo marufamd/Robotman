@@ -1,5 +1,5 @@
 import os from 'os';
-import { KVObject, wait } from './';
+import { wait } from '.';
 
 interface CPUAverageInfo {
     idle: number;
@@ -16,7 +16,7 @@ export default class CPU {
         const cpus = os.cpus();
 
         for (const cpu of cpus) {
-            for (const type of Object.keys(cpu.times)) total += (cpu.times as KVObject)[type];
+            for (const type of Object.keys(cpu.times)) total += (cpu.times as Record<string, number>)[type];
             idle += cpu.times.idle;
         }
 

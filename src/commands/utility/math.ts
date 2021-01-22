@@ -65,15 +65,11 @@ export default class extends Command {
     }
 
     public async main(expression: string) {
-        let response;
-
         try {
             const answer = Parser.evaluate(expression).toString();
-            response = answer.length > 1015 ? `Output was uploaded to hastebin. ${await paste(answer, '')}` : `\`\`\`${answer}\`\`\``;
+            return answer.length > 1015 ? `Output was uploaded to hastebin. ${await paste(answer, '')}` : `\`\`\`${answer}\`\`\``;
         } catch {
-            response = { content: `\`${expression}\` is not a valid expression.`, type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+            return { content: `\`${expression}\` is not a valid expression.`, type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
         }
-
-        return response;
     }
 }

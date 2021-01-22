@@ -234,11 +234,7 @@ export async function dadJoke() {
     return text;
 }
 
-export interface KVObject {
-    [key: string]: any;
-}
-
-export async function google(query: string, safe = false): Promise<KVObject | null> {
+export async function google(query: string, safe = false): Promise<Record<string, any> | null> {
     const { body } = await request
             .get('https://www.googleapis.com/customsearch/v1')
             .query({
@@ -253,7 +249,7 @@ export async function google(query: string, safe = false): Promise<KVObject | nu
     return body;
 }
 
-export async function youtube(params: KVObject, mode = 'search'): Promise<KVObject | null> {
+export async function youtube(params: Record<string, any>, mode = 'search'): Promise<Record<string, any> | null> {
     params.key = process.env.GOOGLE_SEARCH_KEY;
 
     const { body } = await request

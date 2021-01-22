@@ -1,5 +1,4 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
-import type { KVObject } from '../util';
 
 const sort = (a: any[], b: any[]) => b[1] - a[1];
 
@@ -9,7 +8,7 @@ interface TriviaData {
 }
 
 export default class Trivia {
-    public scores: KVObject = {};
+    public scores: Record<string, any> = {};
 
     public constructor(public readonly host: string) {
         this.host = host;

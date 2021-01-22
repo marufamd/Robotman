@@ -32,7 +32,6 @@ import {
 } from 'discord.js';
 
 import type RobotmanClient from './Client';
-import type { KVObject } from '../util';
 import RobotmanEmbed from '../util/embed';
 
 export interface InteractionMessageOptions {
@@ -142,13 +141,13 @@ export default class Interaction extends Base {
 
     public async send(content: APIMessage | APIMessageContentResolvable | StringResolvable, options?: MessageOptions | WebhookMessageOptions | MessageAdditions): Promise<Message | DiscordAPIMessage> {
         if (!this.response) return;
-        let apiMessage: APIMessage;
+        let apiMessage: InteractionAPIMessage;
 
-        if (content instanceof APIMessage) {
+        if (content instanceof InteractionAPIMessage) {
             apiMessage = content.resolveData();
         } else {
             apiMessage = InteractionAPIMessage.create(this, content, options).resolveData();
-            if (Array.isArray((apiMessage.data as KVObject).content)) (apiMessage.data as KVObject).content = (apiMessage.data as KVObject).content[0];
+            if (Array.isArray(apiMessage.data.content)) apiMessage.data.content = apiMessage.data.content[0];
         }
 
         const { data, files } = await apiMessage.resolveFiles();
@@ -206,7 +205,9 @@ class InteractionAPIMessage extends APIMessage {
         super(target as MessageTarget, options);
     }
 
-    public static create(target: MessageTarget | Interaction, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}): APIMessage {
+    public data: Record<string, unknown>;
+
+    public static create(target: MessageTarget | Interaction, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}) {
         const isWebhook = target instanceof Webhook || target instanceof WebhookClient || target instanceof Interaction;
         const transformed = this.transformOptions(content, options, extra, isWebhook);
         return new this(target, transformed);

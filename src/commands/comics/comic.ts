@@ -3,7 +3,7 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
-import { google, trim, title, KVObject } from '../../util';
+import { google, trim, title } from '../../util';
 import request from '../../util/request';
 import { colors } from '../../util/constants';
 
@@ -107,7 +107,7 @@ export default class extends Command {
         const res = await google(`site:https://comixology.com/ ${query}`);
         if (!res) return null;
 
-        const found = res.items.find((i: KVObject): boolean => i.link.includes('digital-comic'));
+        const found = res.items.find((i: Record<string, string>): boolean => i.link.includes('digital-comic'));
         if (!found) return null;
 
         const link = found.link.replace('https://m.', 'https://www.');

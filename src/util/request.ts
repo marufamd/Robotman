@@ -4,7 +4,6 @@ import FormData from 'form-data';
 import { Agent, METHODS } from 'http';
 import fetch, { BodyInit, Headers, HeadersInit } from 'node-fetch';
 import { URL } from 'url';
-import type { KVObject } from './';
 
 interface RequestOptions {
     url?: string;
@@ -124,9 +123,9 @@ class Request implements Promise<RequestResponse> {
         return res;
     }
 
-    public query(params: KVObject | string, value?: string) {
+    public query(params: Record<string, any> | string, value?: string) {
         if (typeof params === 'object') {
-            for (const [param, val] of Object.entries(params)) this.url.searchParams.append(param, val);
+            for (const [param, val] of Object.entries(params)) this.url.searchParams.append(param, val as string);
         } else if (typeof params === 'string' && value) {
             this.url.searchParams.append(params, value);
         } else {
@@ -136,11 +135,11 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public set(headers: KVObject | string, value?: string) {
+    public set(headers: Record<string, unknown> | string, value?: string) {
         if (typeof headers === 'object') {
-            for (const [header, val] of Object.entries(headers)) (this.headers as KVObject)[header.toLowerCase()] = val;
+            for (const [header, val] of Object.entries(headers)) (this.headers as Record<string, unknown>)[header.toLowerCase()] = val;
         } else if (typeof headers === 'string' && value) {
-            (this.headers as KVObject)[headers.toLowerCase()] = value;
+            (this.headers as Record<string, unknown>)[headers.toLowerCase()] = value;
         } else {
             throw new TypeError('The "headers" parameter must be either an object or a header field.');
         }
@@ -160,9 +159,9 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public send(body: BodyInit | KVObject) {
+    public send(body: BodyInit | Record<string, unknown>) {
         if (!(body instanceof FormData) && typeof body === 'object') {
-            const header = (this.headers as KVObject)['content-type'];
+            const header = (this.headers as Record<string, unknown>)['content-type'] as string;
             if (header && !/application\/json/gi.test(header)) void this.set('content-type', 'application/json');
             body = JSON.stringify(body);
         }

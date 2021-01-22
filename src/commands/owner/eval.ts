@@ -6,7 +6,7 @@ import { inspect } from 'util';
 import * as util from '../../util';
 import Request from '../../util/request';
 
-const parse = (obj: util.KVObject): util.KVObject => JSON.parse(JSON.stringify(obj));
+const parse = (obj: Record<string, any>): Record<string, any> => JSON.parse(JSON.stringify(obj));
 
 export default class extends Command {
     public lastInput: any = null;

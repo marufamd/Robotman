@@ -2,7 +2,6 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import type Interaction from '../../structures/Interaction';
-import type { KVObject } from '../../util';
 import { colors } from '../../util/constants';
 
 export default class extends Command {
@@ -129,7 +128,7 @@ export default class extends Command {
             if (color === 'RANDOM') return Math.floor(Math.random() * (0xffffff + 1));
             if (color === 'DEFAULT') return 0;
             if (color in colors) {
-                color = (colors as KVObject)[color];
+                color = (colors as Record<string, number>)[color];
             } else {
                 color = color.replace('#', '');
                 if (color.length > 6) return null;

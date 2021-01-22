@@ -37,8 +37,6 @@ export default class extends Command {
 
         const badges = user.flags.toArray();
 
-        let game;
-
         const embed = this.client.util
             .embed()
             .setTitle(`${user.tag}${user.bot ? ' <:bot:764365628169388053>' : ''}`)
@@ -55,8 +53,6 @@ export default class extends Command {
         if (badges.length) embed.addField('Badges', badges.map(f => title(f.replaceAll('_', ' ').replace('HOUSE', 'HYPESQUAD'))).join(', '));
 
         embed.addField(`${roles.size ? roles.size : 'No'} Role${roles.size === 1 ? '' : 's'}`, roleList.length < 1024 ? (roleList.length ? roleList : 'No Roles to Display') : 'Too Many Roles to Display');
-
-        if (game) embed.setDescription(game);
 
         return message.util.send(embed);
     }
