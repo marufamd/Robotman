@@ -1,10 +1,10 @@
 import { Argument, ArgumentTypeCasterWithInteraction, Command, Category } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import { Message } from 'discord.js';
 import Interaction, { InteractionMessageOptions } from '../../structures/Interaction';
 import { plural, title } from '../../util';
 
-const INVALID: InteractionMessageOptions = { content: 'Invalid command or group.', type: 'message', ephemeral: true };
+const INVALID: InteractionMessageOptions = { content: 'Invalid command or group.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
 export default class extends Command {
     public constructor() {

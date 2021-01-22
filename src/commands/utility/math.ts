@@ -1,8 +1,8 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { Parser } from 'expr-eval';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { paste } from '../../util';
 
 export default class extends Command {
@@ -71,7 +71,7 @@ export default class extends Command {
             const answer = Parser.evaluate(expression).toString();
             response = answer.length > 1015 ? `Output was uploaded to hastebin. ${await paste(answer, '')}` : `\`\`\`${answer}\`\`\``;
         } catch {
-            response = { content: `\`${expression}\` is not a valid expression.`, type: 'message', ephemeral: true };
+            response = { content: `\`${expression}\` is not a valid expression.`, type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
         }
 
         return response;

@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { define, Synonyms } from '../../util';
@@ -55,9 +55,10 @@ export default class extends Command {
 
     private async main(word: string) {
         const defined = await define(word, true) as Synonyms;
-        if (!defined?.synonyms?.length) return { content: 'No synonyms found', type: 'message', ephemeral: true };
+        if (!defined?.synonyms?.length) return { content: 'No synonyms found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setAuthor('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png', BASE_URL)
             .setColor(colors.DICTIONARY);
 

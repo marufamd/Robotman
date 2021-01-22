@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { formatQuery, trim } from '../../util';
 import { wikiParams } from '../../util/constants';
 import request from '../../util/request';
@@ -57,12 +57,13 @@ export default class extends Command {
 
     private async main(query: string) {
         const wordlist = await this.getBadWords();
-        if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', type: 'message', ephemeral: true };
+        if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const page = await this.search(formatQuery(query));
-        if (!page) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!page) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor('#F8F8F8')
             .setTitle(page.title)
             .setDescription(page.description)

@@ -252,11 +252,3 @@ export const publishers = {
         thumbnail: 'https://i.imgur.com/QLnCQan.png'
     }
 };
-
-export enum ResponseTypes {
-    'pong' = 1,
-    'acknowledge',
-    'message',
-    'messageWithSource',
-    'acknowledgeWithSource'
-}

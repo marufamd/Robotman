@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import Interaction from '../../structures/Interaction';
@@ -89,12 +89,13 @@ export default class extends Command {
         const week = date.toFormat(formats.locg);
 
         const user = await locg.resolveUser(username);
-        if (!user) return { content: 'That account is private or does not exist.', type: 'message', ephemeral: true };
+        if (!user) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const pulls = await locg.getPulls(user.id, week);
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll('$', ''))).reduce((a, b) => a + b).toFixed(2) : null;
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.LOCG)
             .setAuthor('League of Comic Geeks', 'https://leagueofcomicgeeks.com/assets/images/user-menu-logo-icon.png', locg.url)
             .setTitle(`${user.name}'s Pull List for the Week of ${week}`)

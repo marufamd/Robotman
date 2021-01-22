@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import locg from '../../util/locg';
 import Interaction from '../../structures/Interaction';
@@ -55,7 +55,7 @@ export default class extends Command {
 
     private async main(query: string) {
         const results = await locg.search(query);
-        if (!results.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!results.length) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         let num = this.MAX_SEARCH_RESULTS;
         const half = num / 2;
@@ -74,7 +74,8 @@ export default class extends Command {
 
         const [page1, page2] = formatted;
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.LOCG)
             .setAuthor('League of Comic Geeks', 'https://leagueofcomicgeeks.com/assets/images/user-menu-logo-icon.png', locg.url)
             .setTitle(`Top results for '${query}'`)

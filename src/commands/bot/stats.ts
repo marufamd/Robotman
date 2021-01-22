@@ -1,11 +1,14 @@
 import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
+import { readFileSync } from 'fs';
 import { Duration } from 'luxon';
-import Interaction from '../../structures/Interaction';
+import { join } from 'path';
+import type Interaction from '../../structures/Interaction';
 import cpu from '../../util/cpu';
 import { formats } from '../../util/constants';
-import { dependencies, version } from '../../../package.json';
+
+const { dependencies, version } = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'package.json')).toString());
 
 export default class extends Command {
     public constructor() {
@@ -32,7 +35,8 @@ export default class extends Command {
     private async main() {
         const stats = await this.client.config.getStats();
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setThumbnail(this.client.user.displayAvatarURL())
             .addFields({
                 name: 'Statistics',

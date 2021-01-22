@@ -1,8 +1,8 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import TurndownService from 'turndown';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
 
@@ -56,12 +56,13 @@ export default class extends Command {
             .get('https://api.tvmaze.com/search/shows')
             .query('q', query);
 
-        if (!body?.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!body?.length) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const { show } = body[0];
         const network = show.network || show.webChannel;
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.TVMAZE)
             .setAuthor('TVmaze', 'https://i.imgur.com/ExggnTB.png', 'https://www.tvmaze.com/')
             .setTitle(show.name)

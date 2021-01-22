@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { randomResponse, title } from '../../util';
 import { colors, pokemon } from '../../util/constants';
 
@@ -86,7 +86,7 @@ export default class extends Command {
             if (pokemon[one] === null) one = this.getProper(one);
             if (pokemon[two] === null) two = this.getProper(two);
 
-            if (!pokemon[one] || !pokemon[two]) return { content: 'Invalid Pokemon.', type: 'message', ephemeral: true };
+            if (!pokemon[one] || !pokemon[two]) return { content: 'Invalid Pokemon.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
             [first, second] = [pokemon[one - 1], pokemon[two - 1]];
         }

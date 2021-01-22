@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { formatQuery, trim } from '../../util';
 import { colors, wikiParams } from '../../util/constants';
 import request from '../../util/request';
@@ -64,7 +64,7 @@ export default class extends Command {
         }
 
         const poke = await this.search(query);
-        if (!poke) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!poke) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor(colors.BULBAPEDIA)

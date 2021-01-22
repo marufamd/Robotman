@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { plural, trim } from '../../util';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
@@ -63,11 +63,12 @@ export default class extends Command {
                 printType: 'books'
             });
 
-        if (body.totalItems === 0 || !body.items?.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (body.totalItems === 0 || !body.items?.length) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const { volumeInfo: book } = body.items[0];
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.GOOGLE_BOOKS)
             .setAuthor('Google Books', 'https://i.imgur.com/Xe6BhJA.png', 'https://books.google.com/')
             .setTitle(book.title)

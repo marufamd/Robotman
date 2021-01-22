@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
 
@@ -59,9 +59,10 @@ export default class extends Command {
                 t: query.replaceAll(/spider man/gi, 'spider-man')
             });
 
-        if (body.Response === 'False') return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (body.Response === 'False') return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.MOVIE_DB)
             .setTitle(`${body.Title} (${body.Year})`)
             .setThumbnail(body.Poster === 'N/A' ? null : body.Poster)

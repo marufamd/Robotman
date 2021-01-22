@@ -1,6 +1,6 @@
 import cheerio from 'cheerio';
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { google, trim, title, KVObject } from '../../util';
@@ -79,9 +79,10 @@ export default class extends Command {
 
     private async main(query: string) {
         const comic = await this.search(query);
-        if (!comic) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!comic) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.COMIXOLOGY)
             .setAuthor(comic.publisher.name, comic.publisher.image)
             .setTitle(comic.name)

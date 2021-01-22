@@ -1,10 +1,9 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction, { InteractionMessageOptions } from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { formatQuery } from '../../util';
 import { colors } from '../../util/constants';
-import RobotmanEmbed from '../../util/embed';
 import request from '../../util/request';
 
 export default class extends Command {
@@ -65,7 +64,7 @@ export default class extends Command {
         return interaction.respond(await this.main(wikia, content));
     }
 
-    private async main(wikia: string, content: string): Promise<RobotmanEmbed | InteractionMessageOptions> {
+    private async main(wikia: string, content: string) {
         const baseURL = `https://${wikia}.fandom.com`;
 
         const { body: { query } } = await request
@@ -78,13 +77,14 @@ export default class extends Command {
                 redirects: true
             });
 
-        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
         const { pageid } = query.pages[0];
 
         const result = await this.getData(baseURL, pageid);
-        if (!result) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!result) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.FANDOM)
             .setAuthor('FANDOM', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Fandom_heart-logo.svg/128px-Fandom_heart-logo.svg.png', 'https://www.fandom.com/')
             .setTitle(result.title)

@@ -1,7 +1,8 @@
 import { Command } from 'discord-akairo';
+import { APIInteractionResponseType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { extname } from 'path';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import request from '../../util/request';
 
 export default class extends Command {
@@ -23,7 +24,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: Interaction) {
-        await interaction.respond({ type: 'acknowledgeWithSource' });
+        await interaction.respond({ type: APIInteractionResponseType.AcknowledgeWithSource });
         return interaction.send(await this.main());
     }
 

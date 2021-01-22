@@ -1,6 +1,7 @@
 import { Command } from 'discord-akairo';
+import { APIInteractionResponseType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 
 export default class extends Command {
     public constructor() {
@@ -18,7 +19,8 @@ export default class extends Command {
     public async exec(message: Message) {
         const msg = await message.util.send('Getting Ping...');
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setTitle('🏓 Pong!')
             .addFields({
                 name: 'Roundtrip',
@@ -34,6 +36,6 @@ export default class extends Command {
     }
 
     public interact(interaction: Interaction) {
-        return interaction.respond(`🏓 **Pong!** Took ${Date.now() - interaction.createdTimestamp}ms`, { type: 'message', ephemeral: true });
+        return interaction.respond(`🏓 **Pong!** Took ${Date.now() - interaction.createdTimestamp}ms`, { type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
     }
 }

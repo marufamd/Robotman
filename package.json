@@ -2,11 +2,11 @@
   "name": "robotman",
   "version": "4.0.0",
   "description": "A Discord bot",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rimraf ./dist && npx tsc",
     "test": "npm run build && node .",
-    "start": "pm2 start dist/src/index.js --name \"robotman\"",
+    "start": "pm2 start dist/index.js --name \"robotman\"",
     "restart": "pm2 restart robotman",
     "build:run": "npm run build && npm run start"
   },

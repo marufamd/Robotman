@@ -1,8 +1,8 @@
 import { oneLine } from 'common-tags';
 import { Argument, Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message, TextChannel } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { google, randomResponse } from '../../util';
 
 const COLORS = ['#008744', '#0057e7', '#d62d20', '#ffa700'];
@@ -79,11 +79,12 @@ export default class extends Command {
         const results = await this.search(query, amount, !(message.channel as TextChannel)?.nsfw ?? true);
 
         if (!results) {
-            response = { content: 'No results found.', type: 'message', ephemeral: true };
+            response = { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
         } else if (amount === 1) {
             response = `Top result for **${results.query}**\n${results.results[0].link}`;
         } else {
-            response = this.client.util.embed()
+            response = this.client.util
+                .embed()
                 .setColor(randomResponse(COLORS))
                 .setAuthor(
                     `Top results for '${results.query}'`,

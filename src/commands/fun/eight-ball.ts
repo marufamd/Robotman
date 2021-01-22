@@ -1,9 +1,9 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { readdir, readFile } from 'fs/promises';
 import { join, extname } from 'path';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { randomResponse } from '../../util';
 
 export default class extends Command {
@@ -45,12 +45,12 @@ export default class extends Command {
     }
 
     public async interact(interaction: Interaction) {
-        await interaction.respond({ type: 'acknowledgeWithSource' });
+        await interaction.respond({ type: APIInteractionResponseType.AcknowledgeWithSource });
         return interaction.send(await this.main());
     }
 
     private async main() {
-        const imageDir = join(__dirname, '..', '..', '..', '..', 'images', 'eight-balls');
+        const imageDir = join(__dirname, '..', '..', '..', 'images', 'eight-balls');
         const answers = (await readdir(imageDir)).filter(f => extname(f) === '.png');
 
         const random = randomResponse(answers);

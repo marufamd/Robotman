@@ -2,7 +2,7 @@ import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import { Guild, Message, Util } from 'discord.js';
 import { difference, formatDate, title } from '../../util';
-import RobotmanEmbed from '../../util/embed';
+import type RobotmanEmbed from '../../util/embed';
 
 export default class extends Command {
     public constructor() {

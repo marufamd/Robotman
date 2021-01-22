@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { youtube } from '../../util';
 
 export default class extends Command {
@@ -52,7 +52,7 @@ export default class extends Command {
 
     private async main(query: string) {
         const result = await this.search(query);
-        return result ? `Showing top result for **${query}**\n${result.link}` : ({ content: 'No results found.', type: 'message', ephemeral: true });
+        return result ? `Showing top result for **${query}**\n${result.link}` : ({ content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
     }
 
     private async search(query: string, safe = false) {

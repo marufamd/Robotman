@@ -55,7 +55,7 @@ export default class extends Command {
                 type: ApplicationCommandOptionType.STRING,
                 name: 'publisher',
                 description: 'The publisher to view the pull list for.',
-                choices: Object.entries(publishers).map(([k, v]) => ({ name: v.name, value: k })).slice(0, 10),
+                choices: Object.entries(publishers).map(([value, { name }]) => ({ name, value })).slice(0, 10),
                 required: true
             },
             {
@@ -91,7 +91,8 @@ export default class extends Command {
 
         const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(formats.locg);
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(publisher.color)
             .setTitle(`${publisher.name} Pull List for the Week of ${week}`)
             .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')

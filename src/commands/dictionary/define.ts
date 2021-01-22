@@ -1,6 +1,6 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { ApplicationCommandOptionType } from 'discord-api-types/v8';
 import Interaction from '../../structures/Interaction';
 import { capitalize, define, trim, Definition } from '../../util';
 import { colors } from '../../util/constants';
@@ -57,7 +57,8 @@ export default class extends Command {
         const defined = await define(word) as Definition;
         if (!defined) return 'No results found';
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setAuthor('Merriam-Webster', 'https://pbs.twimg.com/profile_images/677210982616195072/DWj4oUuT.png', BASE_URL)
             .setColor(colors.DICTIONARY);
 

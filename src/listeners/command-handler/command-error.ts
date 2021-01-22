@@ -1,4 +1,5 @@
 import { Listener, Command } from 'discord-akairo';
+import { APIInteractionResponseType } from 'discord-api-types';
 import type { Message, TextChannel } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 
@@ -13,7 +14,7 @@ export default class extends Listener {
     public exec(error: any, message: Message | Interaction, command: Command) {
         if (error.message !== 'Unknown interaction') {
             if (message instanceof Interaction && !message.response) {
-                void message.respond('An error occurred', { type: 'message', ephemeral: true });
+                void message.respond('An error occurred', { type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
             } else {
                 const channel = message instanceof Interaction ? message.channel as TextChannel : message?.util;
                 if (channel) void channel.send('An error occurred.');

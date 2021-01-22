@@ -124,7 +124,8 @@ export default class extends Command {
     private embed(game: Hangman, text: string[]) {
         text.push(game.board);
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setTitle('Hangman')
             .setDescription(text)
             .addField('Word', game.formattedWord, true)

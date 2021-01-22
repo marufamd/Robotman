@@ -34,7 +34,8 @@ export default class extends Command {
             const embeds = [];
 
             for (const pull of pulls) {
-                const embed = this.client.util.embed()
+                const embed = this.client.util
+                    .embed()
                     .setColor(colors.DC)
                     .setTitle(pull.name)
                     .setURL(pull.link)

@@ -1,6 +1,6 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { dadJoke } from '../../util';
 
 export default class extends Command {

@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { colors } from '../../util/constants';
@@ -67,7 +67,7 @@ export default class extends Command {
             .get(`${BASE_URL}/api/characters/`)
             .query(params);
 
-        if (!body.number_of_total_results || !body.results?.length) return { content: 'No results found.', type: 'message', ephemeral: true };
+        if (!body.number_of_total_results || !body.results?.length) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const char = body.results[0];
 
@@ -78,7 +78,8 @@ export default class extends Command {
         if (char.origin?.name) str += `• **Origin:** ${char.origin.name}\n`;
         if (char.publisher?.name) str += `• **Published by:** ${char.publisher.name}`;
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.COMICVINE)
             .setAuthor('Comic Vine', 'https://i.imgur.com/AgMseb9.png', BASE_URL)
             .setTitle(char.name)

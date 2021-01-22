@@ -63,7 +63,8 @@ export default class extends Command {
             const piece = turn ? 'red' : 'yellow';
             const { player, emoji } = turns[piece];
 
-            const embed = this.client.util.embed()
+            const embed = this.client.util
+                .embed()
                 .setColor(colors.CONNECT_FOUR)
                 .setTitle(`\\${emoji} ${player.username}, it's your turn!`)
                 .setDescription(`Type a number from 1-7 to place a piece, or \`${prefix}connectstop\` to forfeit.\n\n${game.currentBoard}`)
@@ -102,7 +103,8 @@ export default class extends Command {
             await msg.delete();
         }
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.CONNECT_FOUR)
             .setDescription(game.currentBoard)
             .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);

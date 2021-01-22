@@ -1,12 +1,14 @@
-import type {
+import {
     APIApplicationCommandInteractionDataOption,
     APIEmbed,
     APIInteraction,
     APIInteractionApplicationCommandCallbackData,
     APIMessage as DiscordAPIMessage,
     APIInteractionResponse,
-    Snowflake
-} from 'discord-api-types';
+    Snowflake,
+    APIInteractionResponseType,
+    MessageFlags
+} from 'discord-api-types/v8';
 
 import {
     APIMessage,
@@ -29,25 +31,16 @@ import {
     WebhookMessageOptions
 } from 'discord.js';
 
-import RobotmanClient from './Client';
-import { ResponseTypes } from '../util/constants';
+import type RobotmanClient from './Client';
 import type { KVObject } from '../util';
 import RobotmanEmbed from '../util/embed';
-
-Object.defineProperty(APIMessage, 'create', {
-    value: function create(target: MessageTarget | Interaction, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}): APIMessage {
-        const isWebhook = target instanceof Webhook || target instanceof WebhookClient || target instanceof Interaction;
-        const transformed = this.transformOptions(content, options, extra, isWebhook);
-        return new this(target, transformed);
-    }
-});
 
 export interface InteractionMessageOptions {
     content?: string;
     embeds?: (MessageEmbed | APIEmbed)[];
     ephemeral?: boolean;
     flags?: number;
-    type?: string;
+    type?: number;
 }
 
 export interface InteractionCommand {
@@ -113,7 +106,8 @@ export default class Interaction extends Base {
         if (this.response) return;
         const data = Interaction.resolveData(content, options);
 
-        await Reflect.get(this.client, 'api')
+        await Reflect
+            .get(this.client, 'api')
             .interactions(this.id, this.token).callback
             .post({ data });
 
@@ -125,7 +119,8 @@ export default class Interaction extends Base {
         if (!this.response) return false;
         const { data } = Interaction.resolveData(content, options);
 
-        await Reflect.get(this.client, 'api')
+        await Reflect
+            .get(this.client, 'api')
             .webhooks(this.client.user.id, this.token)
             .messages('@original')
             .patch({ data });
@@ -136,7 +131,8 @@ export default class Interaction extends Base {
     public async delete() {
         if (!this.response) return false;
 
-        await Reflect.get(this.client, 'api')
+        await Reflect
+            .get(this.client, 'api')
             .webhooks(this.client.user.id, this.token)
             .messages('@original')
             .delete();
@@ -151,13 +147,13 @@ export default class Interaction extends Base {
         if (content instanceof APIMessage) {
             apiMessage = content.resolveData();
         } else {
-            // @ts-ignore
-            apiMessage = APIMessage.create(this, content, options).resolveData();
+            apiMessage = InteractionAPIMessage.create(this, content, options).resolveData();
             if (Array.isArray((apiMessage.data as KVObject).content)) (apiMessage.data as KVObject).content = (apiMessage.data as KVObject).content[0];
         }
 
         const { data, files } = await apiMessage.resolveFiles();
-        return Reflect.get(this.client, 'api')
+        return Reflect
+            .get(this.client, 'api')
             .webhooks(this.client.user.id, this.token)
             .post({
                 data,
@@ -193,17 +189,26 @@ export default class Interaction extends Base {
             });
         }
 
-        let type = 4;
-        if (options.type) {
-            type = ResponseTypes[options.type as keyof typeof ResponseTypes];
-            delete options.type;
-        }
+        const type = options.type ?? APIInteractionResponseType.ChannelMessageWithSource;
+        if (options.type) delete options.type;
 
         if (options.ephemeral) {
-            options.flags = 64;
+            options.flags = MessageFlags.EPHEMERAL;
             delete options.ephemeral;
         }
 
         return { type, data: options as APIInteractionApplicationCommandCallbackData };
+    }
+}
+
+class InteractionAPIMessage extends APIMessage {
+    public constructor(target: MessageTarget | Interaction, options: MessageOptions | WebhookMessageOptions) {
+        super(target as MessageTarget, options);
+    }
+
+    public static create(target: MessageTarget | Interaction, content: APIMessageContentResolvable, options: MessageOptions | WebhookMessageOptions | MessageAdditions, extra = {}): APIMessage {
+        const isWebhook = target instanceof Webhook || target instanceof WebhookClient || target instanceof Interaction;
+        const transformed = this.transformOptions(content, options, extra, isWebhook);
+        return new this(target, transformed);
     }
 }

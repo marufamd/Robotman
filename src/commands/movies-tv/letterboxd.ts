@@ -45,7 +45,8 @@ export default class extends Command {
 
         let rating;
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(randomResponse(COLORS))
             .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/');
 

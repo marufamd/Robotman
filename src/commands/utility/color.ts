@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
+import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import type { KVObject } from '../../util';
 import { colors } from '../../util/constants';
 
@@ -60,7 +60,7 @@ export default class extends Command {
         const color = interaction.option('color') as string;
         const resolved = this.resolveString(color);
 
-        if (resolved === null) return interaction.respond({ content: 'Invalid color.', type: 'message', ephemeral: true });
+        if (resolved === null) return interaction.respond({ content: 'Invalid Color.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
         return interaction.respond(this.main(resolved));
     }
 
