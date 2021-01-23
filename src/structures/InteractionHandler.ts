@@ -66,7 +66,7 @@ export default class InteractionHandler {
         } catch (e) {
             this.client.commandHandler.emit('error', e, interaction, command);
         } finally {
-            if (command.typing) void (interaction.channel as TextChannel)?.stopTyping();
+            if (command.typing) void (interaction.channel as TextChannel)?.stopTyping(true);
         }
     }
 }
