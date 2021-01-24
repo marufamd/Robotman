@@ -1,39 +1,37 @@
 import os from 'os';
 import { wait } from '.';
 
-interface CPUAverageInfo {
+const INTERVAL = 1000;
+
+interface CPUAverage {
     idle: number;
     total: number;
 }
 
-export default class CPU {
-    private static readonly interval = 1000;
+function average(): CPUAverage {
+    let idle = 0;
+    let total = 0;
 
-    private static average(): CPUAverageInfo {
-        let idle = 0;
-        let total = 0;
+    const cpus = os.cpus();
 
-        const cpus = os.cpus();
-
-        for (const cpu of cpus) {
-            for (const type of Object.keys(cpu.times)) total += (cpu.times as Record<string, number>)[type];
-            idle += cpu.times.idle;
-        }
-
-        return {
-            idle: (idle / cpus.length),
-            total: (total / cpus.length)
-        };
+    for (const cpu of cpus) {
+        for (const type of Object.keys(cpu.times)) total += (cpu.times as Record<string, number>)[type];
+        idle += cpu.times.idle;
     }
 
-    public static async usage() {
-        const start = this.average();
-        await wait(this.interval);
-        const end = this.average();
+    return {
+        idle: (idle / cpus.length),
+        total: (total / cpus.length)
+    };
+}
 
-        const idleDiff = (end.idle - start.idle);
-        const totalDiff = (end.total - start.total);
+export default async function usage() {
+    const start = average();
+    await wait(INTERVAL);
+    const end = average();
 
-        return (10000 - Math.round(10000 * (idleDiff / totalDiff))) / 100;
-    }
+    const idleDiff = (end.idle - start.idle);
+    const totalDiff = (end.total - start.total);
+
+    return (10000 - Math.round(10000 * (idleDiff / totalDiff))) / 100;
 }

@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { Duration } from 'luxon';
 import { join } from 'path';
 import type Interaction from '../../structures/Interaction';
-import cpu from '../../util/cpu';
+import usage from '../../util/cpu';
 import { formats } from '../../util/constants';
 
 const { dependencies, version } = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'package.json')).toString());
@@ -44,7 +44,7 @@ export default class extends Command {
                 • **Version:** ${version}
                 • **Dependencies:** ${Object.keys(dependencies).length}
                 • **Memory Usage:** ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
-                • **CPU Usage:** ${await cpu.usage()}%
+                • **CPU Usage:** ${await usage()}%
                 • **Uptime:** ${Duration.fromMillis(this.client.uptime).toFormat(formats.uptime)}
                 `,
                 inline: true
