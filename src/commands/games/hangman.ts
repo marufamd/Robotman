@@ -129,7 +129,8 @@ export default class extends Command {
             .setTitle('Hangman')
             .setDescription(text)
             .addField('Word', game.formattedWord, true)
-            .setFooter(`You have ${MAX_TIME / 60000} ${plural('minute', MAX_TIME / 60000)} to make a guess`, emojis.timer);
+            .addField('Time', emojis.timer, true)
+            .setFooter(`You have ${MAX_TIME / 60000} ${plural('minute', MAX_TIME / 60000)} to make a guess`);
 
         if (game.incorrectGuesses) embed.addField(`Guesses (${game.incorrectGuesses.split(' ').length}/7)`, game.incorrectGuesses);
 

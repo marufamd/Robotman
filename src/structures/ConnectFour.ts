@@ -13,8 +13,9 @@ export default class ConnectFour {
         return this;
     }
 
-    public get currentBoard() {
-        return this.board.map(r => r.join('')).join('\n');
+    public addPlayer(player: User) {
+        this.players.push(player);
+        return this;
     }
 
     public addPiece(num: number, piece: 'yellow' | 'red') {
@@ -35,10 +36,16 @@ export default class ConnectFour {
         return success;
     }
 
+    public get currentBoard() {
+        return this.board.map(r => r.join('')).join('\n');
+    }
+
     public get boardFull() {
         const board = this.board;
         for (let x = 0; x < 7; x++) {
-            for (let y = 0; y < 6; y++) if (board[x][y] !== pieces.default) return false;
+            for (let y = 0; y < 6; y++) {
+                if (board[x][y] !== pieces.default) return false;
+            }
         }
         return true;
     }

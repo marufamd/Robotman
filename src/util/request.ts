@@ -123,9 +123,9 @@ class Request implements Promise<RequestResponse> {
         return res;
     }
 
-    public query(params: Record<string, any> | string, value?: string) {
+    public query(params: Record<string, any> | string, value?: any) {
         if (typeof params === 'object') {
-            for (const [param, val] of Object.entries(params)) this.url.searchParams.append(param, val as string);
+            for (const [param, val] of Object.entries(params)) this.url.searchParams.append(param, val);
         } else if (typeof params === 'string' && value) {
             this.url.searchParams.append(params, value);
         } else {
@@ -135,7 +135,7 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public set(headers: Record<string, unknown> | string, value?: string) {
+    public set(headers: Record<string, unknown> | string, value?: unknown) {
         if (typeof headers === 'object') {
             for (const [header, val] of Object.entries(headers)) (this.headers as Record<string, unknown>)[header.toLowerCase()] = val;
         } else if (typeof headers === 'string' && value) {
@@ -147,13 +147,13 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public attach(...args: [any, any]) {
+    public attach(...args: [Record<string, any> | string, any]) {
         if (!this.body || !(this.body instanceof FormData)) this.body = new FormData();
 
         if (typeof args[0] === 'object') {
             for (const [key, val] of Object.entries(args[0])) void this.attach(key, val);
         } else {
-            (this.body as FormData).append(...args);
+            (this.body as FormData).append(...args as [string, any]);
         }
 
         return this;

@@ -147,6 +147,7 @@ export default class Akinator {
             .setTitle(`Question #${this.aki.currentStep}`)
             .setDescription(`${this.aki.question}\n\n${answers.map(a => `\`${title(a)}\``).join(' | ')}`)
             .setThumbnail(randomResponse(akiConfig.images))
+            .addField('Time', emojis.timer, true)
             .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`, emojis.timer);
 
         void message.channel.send(embed);
@@ -167,8 +168,9 @@ export default class Akinator {
             .setTitle('Guess')
             .setDescription(`Is your character **${guess.name}${guess.description ? ` (${guess.description})` : ''}**?\n\n\`Yes\` | \`No\``)
             .setThumbnail(randomResponse(akiConfig.images))
-            .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) || null)
-            .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`, emojis.timer);
+            .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
+            .addField('Time', emojis.timer, true)
+            .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
 
         void message.channel.send(embed);
     }

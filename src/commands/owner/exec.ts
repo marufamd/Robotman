@@ -2,7 +2,7 @@ import { exec as execAsync } from 'child_process';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { promisify } from 'util';
-import { paste } from '../../util';
+import { codeblock, paste } from '../../util';
 
 const exec = promisify(execAsync);
 
@@ -29,7 +29,7 @@ export default class extends Command {
         });
     }
 
-    public async exec(message: Message, { command, match }: { command: string; match: any }) {
+    public async exec(message: Message, { command, match }: { command: string; match: string[] }) {
         if (!command && match) command = match[1];
         const msg = await message.util.send('Executing...');
 
@@ -52,7 +52,7 @@ export default class extends Command {
                 str += `-------------------StdErr-------------------\n${stderr}`;
             }
 
-            if (!stdout && !stderr) str += 'No output recieved';
+            if (!str.length) str = 'No output recieved';
         } catch (e) {
             executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
 
@@ -62,13 +62,6 @@ export default class extends Command {
             this.client.log(`Exec Error:\n${e.stack}`, 'error');
         }
 
-        const arr = [
-            '```prolog',
-            str,
-            '```',
-            `Executed in ${executionTime}ms`
-        ];
-
-        return msg.edit(arr);
+        return msg.edit(`${codeblock(str, 'prolog')}\nExecuted in ${executionTime}ms`);
     }
 }

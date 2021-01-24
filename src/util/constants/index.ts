@@ -40,7 +40,7 @@ export const logTypes = {
 
 export const EPOCH = 1420070400000;
 
-export const shows = [
+export const shows = new Set([
     13,    // The Flash
     689,   // Young Justice
     706,   // Teen Titans Go!
@@ -60,7 +60,7 @@ export const shows = [
     44777, // Strange Adventures
     47261, // Justice League Dark
     51042  // Batwheels
-];
+]);
 
 export const trivia = {
     categories: [
@@ -149,7 +149,7 @@ export const emojis = {
         pants: '🩳',
         shoe: '👞'
     },
-    timer: 'https://i.imgur.com/569T4Tg.gif'
+    timer: '<a:Timer:654794151841366058>'
 };
 
 export const wikiParams = (query: string) => ({
@@ -216,17 +216,23 @@ export const publishers = new Map<Publisher, PublisherData>([
         color: 15395562,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Image_Comics_logo.svg/452px-Image_Comics_logo.svg.png'
     }],
+    ['dynamite', {
+        id: 12,
+        name: 'Dynamite',
+        color: 16767316,
+        thumbnail: 'https://i.imgur.com/UNcHnf4.jpg'
+    }],
     ['boom', {
         id: 13,
         name: 'BOOM! Studios',
         color: 16777201,
         thumbnail: 'https://i.imgur.com/686ZNQd.png'
     }],
-    ['valiant', {
-        id: 34,
-        name: 'Valiant',
-        color: 15678244,
-        thumbnail: 'http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg'
+    ['zenescope', {
+        id: 17,
+        name: 'Zenescope',
+        color: 0,
+        thumbnail: 'https://i.imgur.com/QLnCQan.png'
     }],
     ['archie', {
         id: 21,
@@ -234,11 +240,11 @@ export const publishers = new Map<Publisher, PublisherData>([
         color: 16116003,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Archiecomicslogo.png'
     }],
-    ['dynamite', {
-        id: 12,
-        name: 'Dynamite',
-        color: 16767316,
-        thumbnail: 'https://i.imgur.com/UNcHnf4.jpg'
+    ['valiant', {
+        id: 34,
+        name: 'Valiant',
+        color: 15678244,
+        thumbnail: 'http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg'
     }],
     ['vault', {
         id: 261,
@@ -251,11 +257,5 @@ export const publishers = new Map<Publisher, PublisherData>([
         name: 'Aftershock Comics',
         color: 12391451,
         thumbnail: 'https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png'
-    }],
-    ['zenescope', {
-        id: 17,
-        name: 'Zenescope',
-        color: 0,
-        thumbnail: 'https://i.imgur.com/QLnCQan.png'
     }]
 ]);

@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { paste } from '../../util';
+import { codeblock, paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
 
@@ -41,7 +41,7 @@ export default class extends Command {
                 .get('http://api.tvmaze.com/schedule')
                 .query({ country: 'US', date });
 
-            const found = body.filter((s: Record<string, any>) => shows.includes(s.show.id));
+            const found = body.filter((e: Record<string, any>) => shows.has(e.show.id));
             if (!found.length) continue;
 
             for (const episode of found) {
@@ -64,12 +64,8 @@ export default class extends Command {
         let joined = final.join('\n');
 
         joined = joined.length > 1900
-        ? await paste(joined, str, 'markdown', true)
-        : [
-            '```md',
-            joined,
-            '```'
-        ].join('\n');
+            ? await paste(joined, str, 'markdown', true)
+            : codeblock(joined, 'md');
 
         return message.util.send([
             str,

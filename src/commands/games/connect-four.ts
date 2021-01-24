@@ -1,9 +1,9 @@
 import { oneLine } from 'common-tags';
-import { Command } from 'discord-akairo';
+import { Command, PrefixSupplier } from 'discord-akairo';
 import type { CollectorFilter, Message } from 'discord.js';
 import ConnectFour from '../../structures/ConnectFour';
 import { plural } from '../../util';
-import { connectFour, colors } from '../../util/constants';
+import { connectFour, colors, emojis } from '../../util/constants';
 
 const { CANCEL_TIME, WAIT_TIME, indicators } = connectFour;
 
@@ -18,17 +18,14 @@ export default class extends Command {
     }
 
     public async exec(message: Message) {
-        const prefix = this.client.util.getPrefix(message);
-
-        const game = new ConnectFour();
-        game.players.push(message.author);
+        const prefix = (this.handler.prefix as PrefixSupplier)(message);
 
         await message.channel.send(oneLine`
         **${message.author.username}** has started a game! Type \`${prefix}connectjoin\` to face them. 
         To cancel the game, type \`${prefix}connectend\`. The game will be automatically cancelled if no one joins in the next ${CANCEL_TIME} minutes.
         `);
 
-        const command = (resp: Message, cmd: string) => resp.content.toLowerCase() === `${message.util.parsed.prefix}connect${cmd}`;
+        const command = (resp: Message, cmd: string) => resp.content.toLowerCase() === `${prefix}connect${cmd}`;
 
         const filter = (resp: Message) =>
             (resp.author.id !== message.author.id && command(resp, 'join')) ||
@@ -40,7 +37,10 @@ export default class extends Command {
 
         if (join.author.id === message.author.id && command(join, 'end')) return message.channel.send('Cancelled the game.');
 
-        game.players.push(join.author);
+        const game = new ConnectFour()
+            .addPlayer(message.author)
+            .addPlayer(join.author);
+
         await message.channel.send(`**${join.author.username}** has joined the game!`);
 
         const turns = {
@@ -63,21 +63,23 @@ export default class extends Command {
             const piece = turn ? 'red' : 'yellow';
             const { player, emoji } = turns[piece];
 
+            turn = !turn;
+
             const embed = this.client.util
                 .embed()
                 .setColor(colors.CONNECT_FOUR)
                 .setTitle(`\\${emoji} ${player.username}, it's your turn!`)
                 .setDescription(`Type a number from 1-7 to place a piece, or \`${prefix}connectstop\` to forfeit.\n\n${game.currentBoard}`)
-                .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move.`, 'https://i.imgur.com/569T4Tg.gif');
+                .addField('Time', emojis.timer, true)
+                .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move.`);
 
             const msg = await message.channel.send(embed);
 
-            const turnFilter = (resp: Message) =>
-                resp.author.id === player.id &&
-                (
-                    (this.inRange(parseInt(resp.content)) && game.addPiece(parseInt(resp.content), piece)) ||
-                    command(resp, 'stop')
-                );
+            const turnFilter = (resp: Message) => {
+                const num = parseInt(resp.content);
+                return resp.author.id === player.id &&
+                    ((this.inRange(num) && game.addPiece(num, piece)) || command(resp, 'stop'));
+            };
 
             const move = await this.getResponse(message, turnFilter, WAIT_TIME * 60000);
 
@@ -87,7 +89,6 @@ export default class extends Command {
                 await msg.delete();
                 await message.channel.send(`${player}, you have failed to make a move. Your turn has been skipped.`);
 
-                turn = !turn;
                 lastSkipped = true;
                 continue;
             }
@@ -97,8 +98,7 @@ export default class extends Command {
                 return message.channel.send(`${player} has forfeited the match, ${winner} wins!`);
             }
 
-            turn = !turn;
-            lastSkipped = false;
+            if (lastSkipped) lastSkipped = false;
 
             await msg.delete();
         }
@@ -119,7 +119,7 @@ export default class extends Command {
         return message.channel.send(embed);
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter, time: number) {
+    private async getResponse(message: Message, filter: CollectorFilter, time: number): Promise<Message | null> {
         const collected = await message.channel
             .awaitMessages(filter, { max: 1, time, errors: ['time'] })
             .catch(() => null);
