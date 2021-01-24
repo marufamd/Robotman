@@ -68,17 +68,19 @@ export default class extends Command {
                         game,
                         [`Type out what you think the word is. If you guess incorrectly, you will lose the game.`]
                     );
-                    await message.channel.send(embed);
+                    const m = await message.channel.send(embed);
 
                     const guess = await this.getResponse(message, g => g.author.id === message.author.id);
 
                     if (!guess) {
                         loss = 'timeout';
                         await msg.delete();
+                        await m.delete();
                         break;
                     }
 
                     final = guess.split(/ +/)[0];
+                    await m.delete();
                 } else {
                     final = split[1];
                 }
