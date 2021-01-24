@@ -33,9 +33,14 @@ export default class extends Command {
         const dtf = DateTime.fromJSDate(date, { zone: 'utc' });
 
         const final = [];
+        let firstDay;
 
         for (let i = 1; i < 8; i++) {
-            const date = dtf.set({ weekday: i }).toFormat(formats.locg);
+            const date = dtf
+                .set({ weekday: i })
+                .toFormat(formats.locg);
+
+            if (i === 1) firstDay = date;
 
             const { body } = await request
                 .get('http://api.tvmaze.com/schedule')
@@ -55,11 +60,9 @@ export default class extends Command {
             }
         }
 
-        const firstDay = dtf.set({ weekday: 1 }).toFormat(formats.locg);
-
         if (!final.length) return message.channel.send(`There are no episodes scheduled for the week of ${firstDay}`);
 
-        const str = `Episodes releasing for the week of ${firstDay}`;
+        const str = `Episodes scheduled for the week of ${firstDay}`;
 
         let joined = final.join('\n');
 
@@ -67,9 +70,6 @@ export default class extends Command {
             ? await paste(joined, str, 'markdown', true)
             : codeblock(joined, 'md');
 
-        return message.util.send([
-            str,
-            joined
-        ]);
+        return message.util.send(`${str}\n${joined}`);
     }
 }
