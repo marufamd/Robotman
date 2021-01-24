@@ -21,7 +21,7 @@ export default class extends Command {
                     'To get last week\'s pull list, do `{p}pulllast`',
                     'To get the pull list for a different week, you can put the date you want after the publisher\n',
                     'Publisher codes are in codeblocks:\n',
-                    [...publishers.keys()].map(k => `${publishers.get(k).name} \`${k}\``)
+                    [...publishers].map(([k, { name }]) => `${name} \`${k}\``)
                 ],
                 examples: [
                     'dc',
