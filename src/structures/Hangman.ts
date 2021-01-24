@@ -48,8 +48,6 @@ export default class Hangman {
     }
 
     public get incorrectGuesses() {
-        return this.guesses
-            .filter(w => !this.splitWord.includes(w))
-            .join(' ');
+        return this.guesses.filter(w => !this.splitWord.includes(w));
     }
 }

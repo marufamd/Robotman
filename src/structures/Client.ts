@@ -123,15 +123,16 @@ export default class RobotmanClient extends AkairoClient {
         super({ ownerID: process.env.BOT_OWNER }, {
             messageCacheMaxSize: 50,
             messageCacheLifetime: 600,
-            messageSweepInterval: 300,
+            messageSweepInterval: 600,
             messageEditHistoryMaxSize: 0,
-            allowedMentions: { parse: ['users'] },
+            allowedMentions: {
+                parse: ['users']
+            },
             ws: {
                 intents: [
                     'GUILDS',
                     'GUILD_MEMBERS',
-                    'GUILD_MESSAGES',
-                    'GUILD_MESSAGE_REACTIONS'
+                    'GUILD_MESSAGES'
                 ]
             }
         });

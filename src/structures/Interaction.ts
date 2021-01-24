@@ -42,7 +42,7 @@ export interface InteractionMessageOptions {
     type?: number;
 }
 
-export interface InteractionCommand {
+interface InteractionCommand {
     id: Snowflake;
     name: string;
 }

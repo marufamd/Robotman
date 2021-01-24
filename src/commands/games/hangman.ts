@@ -1,8 +1,9 @@
-import { Command } from 'discord-akairo';
+import { Command, PrefixSupplier } from 'discord-akairo';
 import type { CollectorFilter, Message } from 'discord.js';
 import Hangman from '../../structures/Hangman';
 import { randomResponse, plural } from '../../util';
 import { words, emojis, colors } from '../../util/constants';
+import type RobotmanEmbed from '../../util/embed';
 
 const MAX_TIME = 60000;
 
@@ -20,7 +21,7 @@ export default class extends Command {
     }
 
     public async exec(message: Message) {
-        const prefix = this.client.util.getPrefix(message);
+        const prefix = (this.handler.prefix as PrefixSupplier)(message);
 
         const game = new Hangman(randomResponse(words));
         let loss: boolean | 'timeout' = false;
@@ -44,8 +45,8 @@ export default class extends Command {
                     /[A-Z]/gi.test(resp.content) &&
                     (
                         (resp.content.length === 1 && !game.guesses.includes(resp.content)) ||
-                        `${message.util.parsed.prefix}hangmanstop` === resp.content ||
-                        resp.content.startsWith(`${message.util.parsed.prefix}guess`)
+                        `${prefix}hangmanstop` === resp.content ||
+                        resp.content.startsWith(`${prefix}guess`)
                     );
             };
 
@@ -57,9 +58,9 @@ export default class extends Command {
                 break;
             }
 
-            if (response === `${message.util.parsed.prefix}hangmanstop`) {
-                return message.channel.send('The game has been stopped.');
-            } else if (response.startsWith(`${message.util.parsed.prefix}guess`)) {
+            if (response === `${prefix}hangmanstop`) return message.channel.send('The game has been stopped.');
+
+            if (response.startsWith(`${prefix}guess`)) {
                 const split = response.split(/ +/);
                 let final: string;
 
@@ -122,7 +123,7 @@ export default class extends Command {
             .setDescription(game.board)
             .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);
 
-        if (game.incorrectGuesses) embed.addField(`Guesses (${game.incorrectGuesses.split(' ').length}/7)`, game.incorrectGuesses);
+        if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
         return message.channel.send(embed);
     }
@@ -133,14 +134,18 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setTitle('Hangman')
-            .setDescription(text)
+            .setDescription(text.join('\n'))
             .addField('Word', game.formattedWord, true)
             .addField('Time', emojis.timer, true)
             .setFooter(`You have ${MAX_TIME / 60000} ${plural('minute', MAX_TIME / 60000)} to make a guess`);
 
-        if (game.incorrectGuesses) embed.addField(`Guesses (${game.incorrectGuesses.split(' ').length}/7)`, game.incorrectGuesses);
+        if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
         return embed;
+    }
+
+    private addGuesses(game: Hangman, embed: RobotmanEmbed) {
+        embed.addField(`Guesses (${game.incorrectGuesses.length}/7)`, game.incorrectGuesses.join(' '));
     }
 
     private async getResponse(message: Message, filter: CollectorFilter) {
