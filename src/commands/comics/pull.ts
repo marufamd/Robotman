@@ -3,8 +3,9 @@ import { ApplicationCommandOptionType } from 'discord-api-types';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import Interaction from '../../structures/Interaction';
+import { closest } from '../../util';
+import { publishers, pull, formats, Publisher, PublisherData } from '../../util/constants';
 import locg from '../../util/locg';
-import { publishers, pull, formats, Publisher } from '../../util/constants';
 
 const { previous, next } = pull.default;
 
@@ -19,7 +20,8 @@ export default class extends Command {
                     'To get next week\'s pull list, do `{p}pullnext`',
                     'To get last week\'s pull list, do `{p}pulllast`',
                     'To get the pull list for a different week, you can put the date you want after the publisher\n',
-                    `Publisher codes are in codeblocks:\n\n${Object.entries(publishers).map(c => `${c[1].name} \`${c[0]}\``).join('\n')}`
+                    'Publisher codes are in codeblocks:\n',
+                    [...publishers.keys()].map(k => `${publishers.get(k).name} \`${k}\``)
                 ],
                 examples: [
                     'dc',
@@ -33,8 +35,7 @@ export default class extends Command {
             args: [
                 {
                     id: 'publisher',
-                    type: Object.keys(publishers),
-                    default: 'dc'
+                    type: (_, phrase) => this.resolvePublisher(phrase)
                 },
                 {
                     id: 'date',
@@ -66,27 +67,29 @@ export default class extends Command {
         ]
     };
 
-    public async exec(message: Message, { publisher, date }: { publisher: Publisher; date: Date }) {
+    public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }) {
         let week = locg.resolveDate(DateTime.fromJSDate(date).setZone('utc'));
 
-        if (next.includes(message.util.parsed.alias)) week = week.plus({ weeks: 1 });
-        else if (previous.includes(message.util.parsed.alias)) week = week.minus({ weeks: 1 });
+        if (next.includes(message.util.parsed.alias)) {
+            week = week.plus({ weeks: 1 });
+        } else if (previous.includes(message.util.parsed.alias)) {
+            week = week.minus({ weeks: 1 });
+        }
 
         return message.util.send(await this.main(publisher, week));
     }
 
     public async interact(interaction: Interaction) {
-        const [publisher, date] = interaction.findOptions('publisher', 'date');
+        const [name, date] = interaction.findOptions('publisher', 'date');
 
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const day = locg.resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
+        const publisher = this.resolvePublisher(name);
 
         return interaction.respond(await this.main(publisher, day));
     }
 
-    private async main(pub: Publisher, date: DateTime) {
-        const publisher = publishers[pub];
-
+    private async main(publisher: PublisherData, date: DateTime) {
         const pull = await locg.getComics(publisher.id, date.toFormat(formats.locg));
 
         const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(formats.locg);
@@ -99,5 +102,10 @@ export default class extends Command {
             .setThumbnail(publisher.thumbnail);
 
         return embed;
+    }
+
+    private resolvePublisher(str = 'dc') {
+        const name = closest(str.toLowerCase(), [...publishers.keys()]) as Publisher;
+        return publishers.get(name);
     }
 }

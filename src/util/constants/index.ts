@@ -178,77 +178,84 @@ export type Publisher =
     | 'aftershock'
     | 'zenescope';
 
-export const publishers = {
-    dc: {
+export interface PublisherData {
+    id: number;
+    name: string;
+    color: number;
+    thumbnail: string;
+}
+
+export const publishers = new Map<Publisher, PublisherData>([
+    ['dc', {
         id: 1,
         name: 'DC Comics',
-        color: '#007af0',
+        color: 31472,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/DC_Comics_logo.svg/1024px-DC_Comics_logo.svg.png'
-    },
-    marvel: {
+    }],
+    ['marvel', {
         id: 2,
         name: 'Marvel Comics',
-        color: '#ed1a23',
+        color: 15538723,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/MarvelLogo.svg/1280px-MarvelLogo.svg.png'
-    },
-    image: {
-        id: 7,
-        name: 'Image Comics',
-        color: '#eaeaea',
-        thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Image_Comics_logo.svg/452px-Image_Comics_logo.svg.png'
-    },
-    darkhorse: {
+    }],
+    ['darkhorse', {
         id: 5,
         name: 'Dark Horse Comics',
-        color: '#000000',
+        color: 0,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Dark_Horse_Comics_logo.svg/1200px-Dark_Horse_Comics_logo.svg.png'
-    },
-    idw: {
+    }],
+    ['idw', {
         id: 6,
         name: 'IDW Publishing',
-        color: '#03203d',
+        color: 204861,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/IDW_Publishing_logo.svg/1200px-IDW_Publishing_logo.svg.png'
-    },
-    boom: {
+    }],
+    ['image', {
+        id: 7,
+        name: 'Image Comics',
+        color: 15395562,
+        thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Image_Comics_logo.svg/452px-Image_Comics_logo.svg.png'
+    }],
+    ['boom', {
         id: 13,
         name: 'BOOM! Studios',
-        color: '#fffff1',
+        color: 16777201,
         thumbnail: 'https://i.imgur.com/686ZNQd.png'
-    },
-    valiant: {
+    }],
+    ['valiant', {
         id: 34,
         name: 'Valiant',
-        color: '#ef3b24',
+        color: 15678244,
         thumbnail: 'http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg'
-    },
-    archie: {
+    }],
+    ['archie', {
         id: 21,
         name: 'Archie Comics',
-        color: '#f5e923',
+        color: 16116003,
         thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Archiecomicslogo.png'
-    },
-    dynamite: {
+    }],
+    ['dynamite', {
         id: 12,
         name: 'Dynamite',
-        color: '#ffd954',
+        color: 16767316,
         thumbnail: 'https://i.imgur.com/UNcHnf4.jpg'
-    },
-    vault: {
+    }],
+    ['vault', {
         id: 261,
         name: 'Vault Comics',
-        color: '#000000',
+        color: 0,
         thumbnail: 'https://i.imgur.com/kaFHKQp.png'
-    },
-    aftershock: {
+    }],
+    ['aftershock', {
         id: 159,
         name: 'Aftershock Comics',
-        color: '#bd141b',
+        color: 12391451,
         thumbnail: 'https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png'
-    },
-    zenescope: {
+    }],
+    ['zenescope', {
         id: 17,
         name: 'Zenescope',
-        color: '#000000',
+        color: 0,
         thumbnail: 'https://i.imgur.com/QLnCQan.png'
-    }
-};
+    }]
+]);
