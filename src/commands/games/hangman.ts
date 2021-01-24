@@ -87,10 +87,14 @@ export default class extends Command {
 
                 if (final !== game.word) {
                     loss = true;
+                    await msg.delete();
+
                     break;
                 }
 
                 guessWin = true;
+                await msg.delete();
+
                 break;
             }
 
