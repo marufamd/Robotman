@@ -70,8 +70,11 @@ export default class extends Command {
     public async exec(message: Message, { username, date }: { username: string; date: Date }) {
         let week = locg.resolveDate(DateTime.fromJSDate(date).setZone('utc'));
 
-        if (next.includes(message.util.parsed.alias)) week = week.plus({ days: 7 });
-        else if (previous.includes(message.util.parsed.alias)) week = week.minus({ days: 7 });
+        if (next.includes(message.util.parsed.alias)) {
+            week = week.plus({ days: 7 });
+        } else if (previous.includes(message.util.parsed.alias)) {
+            week = week.minus({ days: 7 });
+        }
 
         return message.util.send(await this.main(username, week));
     }
@@ -97,7 +100,7 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setColor(colors.LOCG)
-            .setAuthor('League of Comic Geeks', 'https://leagueofcomicgeeks.com/assets/images/user-menu-logo-icon.png', locg.url)
+            .setAuthor('League of Comic Geeks', `${locg.url}/assets/images/user-menu-logo-icon.png`, locg.url)
             .setTitle(`${user.name}'s Pull List for the Week of ${week}`)
             .setURL(user.url)
             .setDescription(pulls.length ? pulls.map(p => p.name).join('\n') : 'No pulls for this week');

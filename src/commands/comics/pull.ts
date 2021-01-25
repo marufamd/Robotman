@@ -36,11 +36,10 @@ export default class extends Command {
                 {
                     id: 'publisher',
                     type: (_, phrase) => {
-                        if (!phrase) return null;
+                        if (!phrase) phrase = 'dc';
                         const name = closest(phrase.toLowerCase(), [...publishers.keys()]) as Publisher;
                         return publishers.get(name);
-                    },
-                    default: 'dc'
+                    }
                 },
                 {
                     id: 'date',

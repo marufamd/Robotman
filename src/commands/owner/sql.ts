@@ -2,7 +2,7 @@ import { oneLine } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import Table from '../../util/table';
-import { paste, plural } from '../../util';
+import { codeblock, paste, plural } from '../../util';
 
 export default class extends Command {
     public constructor() {
@@ -29,7 +29,8 @@ export default class extends Command {
             const start = process.hrtime();
             const rows = await this.client.sql.unsafe(query);
             const executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
-            if (!rows[0]) {
+
+            if (!rows.length) {
                 return message.util.send(oneLine`
             No rows were returned on \`${rows.command}\` query. 
             ${rows.count ? `${rows.command === 'INSERT' ? 'Created' : 'Updated'} ${rows.count} ${plural('row', rows.count)}.` : ''}`);
@@ -42,7 +43,7 @@ export default class extends Command {
 
             const time = `Returned ${rows.length} ${plural('row', rows.count)} in ${executionTime}ms`;
 
-            let result = `\`\`\`\n${table}\`\`\`\n${time}`;
+            let result = `${codeblock(table)}\n${time}`;
             if (result.length > 2000) result = `Too long to display. Output was uploaded to hastebin ${await paste(table, '')}.\n\n${time}`;
 
             return message.util.send(result);
