@@ -35,7 +35,12 @@ export default class extends Command {
             args: [
                 {
                     id: 'publisher',
-                    type: (_, phrase) => this.resolvePublisher(phrase)
+                    type: (_, phrase) => {
+                        if (!phrase) return null;
+                        const name = closest(phrase.toLowerCase(), [...publishers.keys()]) as Publisher;
+                        return publishers.get(name);
+                    },
+                    default: 'dc'
                 },
                 {
                     id: 'date',
@@ -56,7 +61,7 @@ export default class extends Command {
                 type: ApplicationCommandOptionType.STRING,
                 name: 'publisher',
                 description: 'The publisher to view the pull list for.',
-                choices: Object.entries(publishers).map(([value, { name }]) => ({ name, value })).slice(0, 10),
+                choices: [...publishers].map(([value, { name }]) => ({ name, value })).slice(0, 10),
                 required: true
             },
             {
@@ -84,9 +89,8 @@ export default class extends Command {
 
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const day = locg.resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
-        const publisher = this.resolvePublisher(name);
 
-        return interaction.respond(await this.main(publisher, day));
+        return interaction.respond(await this.main(publishers.get(name), day));
     }
 
     private async main(publisher: PublisherData, date: DateTime) {
@@ -102,10 +106,5 @@ export default class extends Command {
             .setThumbnail(publisher.thumbnail);
 
         return embed;
-    }
-
-    private resolvePublisher(str = 'dc') {
-        const name = closest(str.toLowerCase(), [...publishers.keys()]) as Publisher;
-        return publishers.get(name);
     }
 }

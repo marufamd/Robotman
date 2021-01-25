@@ -55,8 +55,7 @@ export default class extends Command {
                 const season = pad(episode.season);
                 const number = pad(episode.number);
 
-                const str = `* **${day.toFormat(formats.day)}:** [***${episode.show.name}*** **s${season}e${number}** - *${episode.name}*](${episode.show.image.original})`;
-                final.push(str);
+                final.push(`* **${day.toFormat(formats.day)}:** [***${episode.show.name}*** **s${season}e${number}** - *${episode.name}*](${episode.show.image.original})`);
             }
         }
 
