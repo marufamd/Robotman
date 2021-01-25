@@ -1,14 +1,13 @@
 import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
-import { readFileSync } from 'fs';
 import { Duration } from 'luxon';
-import { join } from 'path';
 import type Interaction from '../../structures/Interaction';
 import usage from '../../util/cpu';
 import { formats } from '../../util/constants';
 
-const { dependencies, version } = JSON.parse(readFileSync(join(__dirname, '..', '..', '..', 'package.json')).toString());
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const { dependencies, version } = require('../../../package.json');
 
 export default class extends Command {
     public constructor() {
