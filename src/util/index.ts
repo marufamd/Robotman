@@ -127,13 +127,16 @@ export function randomToken(amount = 1) {
     return amount === 1 ? final[0] : final;
 }
 
-export function split(arr: any[], max: number): any[] {
+export function split(arr: any[], max: number) {
     const newArray = [];
-    for (let i = 0; i < arr.length; i += max) newArray.push(arr.slice(i, i += max));
+    for (let i = 0; i < arr.length; i += max) {
+        newArray.push(arr.slice(i, i + max));
+    }
+
     return newArray;
 }
 
-export function removeArticles(str: string): string {
+export function removeArticles(str: string) {
     const words = str.split(' ');
     if (['a', 'the', 'an'].includes(words[0]) && words[1]) return words.slice(1).join(' ');
     return str;
