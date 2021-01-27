@@ -5,22 +5,22 @@ import { sort } from './';
 
 interface LocgParameters {
     list: number | string;
-    title?: string;
-    view?: 'list';
-    order?: 'alpha-asc';
-    publisher?: number;
-    user_id?: number;
-    date_type?: 'week';
-    date?: string;
-    list_option?: string;
+    title: string;
+    view: 'list';
+    order: 'alpha-asc';
+    publisher: number;
+    user_id: number;
+    date_type: 'week';
+    date: string;
+    list_option: string;
 }
 
 type FilterType = 'singles' | 'trades';
 
 interface LocgOptions {
-    search?: boolean;
-    sort?: boolean;
-    filter?: FilterType;
+    search: boolean;
+    sort: boolean;
+    filter: FilterType;
 }
 
 interface LocgUser {
@@ -46,7 +46,7 @@ export default class LeagueOfComicGeeks {
     private static readonly TRADE_REGEXP = /(hc|tp|omnibus|box\s*set)/i;
     private static readonly TRADE_FILTER_REGEXP = /(var(iant)?|printing|incentive)/i;
 
-    protected static async get(params: LocgParameters, options: LocgOptions): Promise<ComicData[]> {
+    protected static async get(params: Partial<LocgParameters>, options: Partial<LocgOptions>): Promise<ComicData[]> {
         params.view = 'list';
         params.order = 'alpha-asc';
 

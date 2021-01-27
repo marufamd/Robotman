@@ -45,7 +45,7 @@ export default class extends Command {
                 response = `Reloaded category \`${mod.id}\`.`;
             } else {
                 mod.reload();
-                response = `Reload module \`${mod.id}\`.`;
+                response = `Reloaded module \`${mod.id}\`.`;
             }
         }
 

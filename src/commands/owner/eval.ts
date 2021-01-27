@@ -19,17 +19,10 @@ export default class extends Command {
             aliases: ['eval', 'async'],
             description: {
                 info: 'Evaluates code.',
-                usage: '<code>'
+                usage: '<code> [--depth=<integer>]'
             },
             ownerOnly: true,
             args: [
-                {
-                    id: 'depth',
-                    type: 'integer',
-                    match: 'option',
-                    flag: ['--inspect=', '-inspect=', '--depth=', 'inspect:'],
-                    default: 0
-                },
                 {
                     id: 'code',
                     type: (message, phrase) => {
@@ -43,6 +36,13 @@ export default class extends Command {
                         start: 'What code would you like to evaluate?',
                         retry: 'Please try again.'
                     }
+                },
+                {
+                    id: 'depth',
+                    type: 'integer',
+                    match: 'option',
+                    flag: ['--inspect=', '-inspect=', '--depth=', 'inspect:'],
+                    default: 0
                 }
             ]
         });
