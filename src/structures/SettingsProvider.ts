@@ -29,7 +29,7 @@ export default class SettingsProvider extends Provider {
         return defaultValue;
     }
 
-    public async set<K extends keyof GuildSettings>(guild: string | Guild, key: K, value: any): Promise<any> {
+    public async set<K extends keyof GuildSettings>(guild: string | Guild, key: K, value: any) {
         const id = resolveGuild(guild);
         const has = this.items.has(id);
 
@@ -43,7 +43,7 @@ export default class SettingsProvider extends Provider {
         };
 
         if (has) {
-            const [row] = await this.sql`
+            const [row] = await this.sql<GuildSettings>`
             update ${this.sql(this.table)} set
             ${this.sql(obj, key)}
             where ${this.sql(this.idColumn)} = ${id}
@@ -55,7 +55,7 @@ export default class SettingsProvider extends Provider {
 
         obj[this.idColumn] = id;
 
-        const [row] = await this.sql`
+        const [row] = await this.sql<GuildSettings>`
             insert into ${this.sql(this.table)}
             ${this.sql(obj, key, this.idColumn)}
             returning *
