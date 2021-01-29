@@ -2,12 +2,12 @@
     "compilerOptions": {
         "outDir": "dist",
         "lib": [
-            "es2020",
-            "esnext",
-            "dom"
+            "ES2020",
+            "ESNext",
+            "DOM"
         ],
-        "module": "commonjs",
-        "target": "esnext",
+        "module": "CommonJS",
+        "target": "ESNext",
         "strict": true,
         "alwaysStrict": true,
         "strictNullChecks": false,

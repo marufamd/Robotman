@@ -14,12 +14,12 @@ export default class extends Listener {
     }
 
     public async exec(message: Message | Interaction, command: Command, remaining: number) {
-        const seconds: number = (remaining / 1000);
+        const seconds = remaining / 1000;
         const interaction = message instanceof Interaction;
 
-        const fn = (interaction ? (message as Interaction).respond : (message as Message).util.send).bind((message as Message).util ?? message);
+        const send = (interaction ? (message as Interaction).respond : (message as Message).util.send).bind((message as Message).util ?? message);
 
-        const msg = await fn({
+        const msg = await send({
             content: oneLine`
             ${message.author}, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
             before using \`${command.id}\` again. ${interaction ? '' : 'This message will delete when the cooldown ends.'}`,
@@ -28,6 +28,6 @@ export default class extends Listener {
         });
 
         await wait(remaining);
-        void (msg as Message)?.delete?.();
+        if (!interaction) void (msg as Message).delete();
     }
 }
