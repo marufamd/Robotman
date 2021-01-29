@@ -148,7 +148,7 @@ export default class Akinator {
             .setDescription(`${this.aki.question}\n\n${answers.map(a => `\`${title(a)}\``).join(' | ')}`)
             .setThumbnail(randomResponse(akiConfig.images))
             .addField('Time', emojis.timer, true)
-            .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`, emojis.timer);
+            .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
 
         void message.channel.send(embed);
 

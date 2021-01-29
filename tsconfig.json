@@ -12,7 +12,7 @@
         "alwaysStrict": true,
         "strictNullChecks": false,
         "esModuleInterop": true,
-        "moduleResolution": "node",
+        "moduleResolution": "Node",
         "removeComments": false,
         "pretty": true,
         "resolveJsonModule": true

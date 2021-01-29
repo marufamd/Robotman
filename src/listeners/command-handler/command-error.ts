@@ -22,7 +22,7 @@ export default class extends Listener {
         }
 
         const extra = {
-            title: `Command Error (${message instanceof Interaction ? 'Interaction' : 'Message'})`,
+            title: `Command Error (${message.constructor.name})`,
             fields: [
                 {
                     name: 'User',
