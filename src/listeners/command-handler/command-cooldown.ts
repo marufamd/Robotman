@@ -1,5 +1,6 @@
 import { oneLine } from 'common-tags';
 import { Listener, Command } from 'discord-akairo';
+import { APIInteractionResponseType } from 'discord-api-types';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';
 import { plural, wait } from '../../util';
@@ -22,7 +23,7 @@ export default class extends Listener {
             content: oneLine`
             ${message.author}, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
             before using \`${command.id}\` again. ${interaction ? '' : 'This message will delete when the cooldown ends.'}`,
-            type: 'message',
+            type: APIInteractionResponseType.ChannelMessage,
             ephemeral: true
         });
 
