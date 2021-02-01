@@ -41,18 +41,26 @@ export function escapeRegex(str: string): string {
 }
 
 export function formatDate(date: Date, format: string = formats.log): string {
-    return DateTime.fromJSDate(date, { zone: 'utc' }).toFormat(format);
+    return DateTime
+        .fromJSDate(date)
+        .setZone('utc')
+        .toFormat(format);
 }
 
-export function difference(date: Date, format: string = formats.days) {
-    return DateTime.local().diff(DateTime.fromJSDate(date), 'days').toFormat(format);
+export function difference(date: Date, format: string = formats.days): string {
+    return DateTime
+        .local()
+        .diff(DateTime.fromJSDate(date), 'days')
+        .toFormat(format);
 }
 
 export function formatQuery(str: string): string {
-    return title(str).split(' ').join('_');
+    return title(str)
+        .split(' ')
+        .join('_');
 }
 
-export function codeblock(str: any, lang = '') {
+export function codeblock(str: any, lang = ''): string {
     if (typeof str !== 'string') str = String(str);
     if (!str.length) str = String.fromCharCode(8203);
     return `\`\`\`${lang}\n${str}\`\`\``;
@@ -74,7 +82,15 @@ export function redact(str: string): string {
         'DICTIONARY_KEY',
         'MOVIEDB_KEY'
     ];
-    return str.replaceAll(new RegExp(tokens.map(t => escapeRegex(process.env[t])).join('|'), 'gi'), '[REDACTED]');
+
+    return str.replaceAll(
+        new RegExp(
+            tokens
+                .map(t => escapeRegex(process.env[t]))
+                .join('|'), 'gi'
+        ),
+        '[REDACTED]'
+    );
 }
 
 export function wait(ms: number): Promise<void> {
@@ -83,20 +99,20 @@ export function wait(ms: number): Promise<void> {
     });
 }
 
-export function randomDate(amount = 1) {
+export function randomDate(amount = 1): number[] {
     const arr = [];
     for (let i = 0; i < amount; i++) arr.push(EPOCH + (Math.random() * (Date.now() - EPOCH)));
     return arr;
 }
 
-export function randomID(amount = 1) {
+export function randomID(amount = 1): string[] {
     const dates = randomDate(amount);
     const arr = [];
     for (const date of dates) arr.push(SnowflakeUtil.generate(date));
     return arr;
 }
 
-export function randomToken(amount = 1) {
+export function randomToken(amount = 1): string | string[] {
     const final = [];
 
     const a = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -127,22 +143,20 @@ export function randomToken(amount = 1) {
     return amount === 1 ? final[0] : final;
 }
 
-export function split(arr: any[], max: number) {
+export function split(arr: any[], max: number): any[][] {
     const newArray = [];
-    for (let i = 0; i < arr.length; i += max) {
-        newArray.push(arr.slice(i, i + max));
-    }
+    for (let i = 0; i < arr.length; i += max) newArray.push(arr.slice(i, i + max));
 
     return newArray;
 }
 
-export function removeArticles(str: string) {
+export function removeArticles(str: string): string {
     const words = str.split(' ');
     if (['a', 'the', 'an'].includes(words[0]) && words[1]) return words.slice(1).join(' ');
     return str;
 }
 
-export function sort(arr: any[]) {
+export function sort(arr: any[]): any[] {
     return arr.sort((a, b) => {
         a = removeArticles((a.name ?? a).toLowerCase());
         b = removeArticles((b.name ?? b).toLowerCase());
@@ -154,7 +168,7 @@ export function sort(arr: any[]) {
     });
 }
 
-export function compare(first: string, second: string) {
+export function compare(first: string, second: string): number {
     first = first.replace(/\s+/g, '');
     second = second.replace(/\s+/g, '');
 
@@ -185,7 +199,7 @@ export function compare(first: string, second: string) {
     return (2.0 * size) / (first.length + second.length - 2);
 }
 
-export function closest(target: string, arr: string[]) {
+export function closest(target: string, arr: string[]): string {
     const compared = [];
     let match = 0;
 
@@ -198,54 +212,54 @@ export function closest(target: string, arr: string[]) {
     return compared[match].str;
 }
 
-export async function paste(text: string, format = 'js', url = 'https://starb.in', raw = false) {
+export async function paste(text: string, format = 'js', url = 'https://starb.in', raw = false): Promise<string> {
     if (!text) throw new Error('No text provided');
 
     const { body } = await request
-            .post(`${url}/documents`)
-            .set('Content-Type', 'text/plain')
-            .send(text);
+        .post(`${url}/documents`)
+        .set('Content-Type', 'text/plain')
+        .send(text);
 
     return `${url}/${raw ? 'raw/' : ''}${body.key as string}.${format}`;
 }
 
-export async function pastee(contents: string, title = 'Paste', lang = 'autodetect', raw = false) {
+export async function pastee(contents: string, title = 'Paste', lang = 'autodetect', raw = false): Promise<string> {
     if (!contents || !title) throw new Error('No text or title provided.');
 
     const { body } = await request
-            .post('https://api.paste.ee/v1/pastes')
-            .set({
-                'X-Auth-Token': process.env.PASTE_KEY,
-                'Content-Type': 'application/json'
-            })
-            .send({ sections: [{ name: title, syntax: lang, contents }] });
+        .post('https://api.paste.ee/v1/pastes')
+        .set({
+            'X-Auth-Token': process.env.PASTE_KEY,
+            'Content-Type': 'application/json'
+        })
+        .send({ sections: [{ name: title, syntax: lang, contents }] });
 
     if (!body.success) throw new Error(body.errors[0].message);
 
     return raw ? body.link.replace('/p/', '/r/') : body.link;
 }
 
-export function randomResponse(arr: any[]) {
+export function randomResponse<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export async function dadJoke() {
+export async function dadJoke(): Promise<string> {
     const { text } = await request
-            .get('https://icanhazdadjoke.com/')
-            .set('Accept', 'text/plain');
+        .get('https://icanhazdadjoke.com/')
+        .set('Accept', 'text/plain');
 
     return text;
 }
 
 export async function google(query: string, safe = false): Promise<Record<string, any> | null> {
     const { body } = await request
-            .get('https://www.googleapis.com/customsearch/v1')
-            .query({
-                key: process.env.GOOGLE_SEARCH_KEY,
-                cx: process.env.GOOGLE_ENGINE_KEY,
-                safe: safe ? 'active' : 'off',
-                q: query
-            });
+        .get('https://www.googleapis.com/customsearch/v1')
+        .query({
+            key: process.env.GOOGLE_SEARCH_KEY,
+            cx: process.env.GOOGLE_ENGINE_KEY,
+            safe: safe ? 'active' : 'off',
+            q: query
+        });
 
     if (body.queries.request[0].totalResults === 0 || !body.items) return null;
 
@@ -256,8 +270,8 @@ export async function youtube(params: Record<string, any>, mode = 'search'): Pro
     params.key = process.env.GOOGLE_SEARCH_KEY;
 
     const { body } = await request
-            .get(`https://www.googleapis.com/youtube/v3/${mode}`)
-            .query(params);
+        .get(`https://www.googleapis.com/youtube/v3/${mode}`)
+        .query(params);
 
     if (body.pageInfo.totalResults === 0 || !body.items?.length) return null;
 

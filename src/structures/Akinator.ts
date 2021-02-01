@@ -14,7 +14,7 @@ export default class Akinator {
         this.player = null;
     }
 
-    public async run(message: Message) {
+    public async run(message: Message): Promise<void> {
         this.player = message.author.id;
         const { aki } = this;
         await aki.start();
@@ -137,7 +137,7 @@ export default class Akinator {
         void message.channel.send(end, { files: [{ attachment: 'https://i.imgur.com/m3nIXvs.png', name: 'aki.png' }] });
     }
 
-    private question(message: Message) {
+    private question(message: Message): string[] {
         const answers = (this.aki.answers as string[]).map(a => a.toLowerCase());
         if (this.aki.currentStep > 1) answers.push('back');
         answers.push('stop');
@@ -155,7 +155,7 @@ export default class Akinator {
         return answers;
     }
 
-    private async guess(message: Message) {
+    private async guess(message: Message): Promise<string | void> {
         await this.aki.win();
 
         const guesses = (this.aki.answers as Guess[]).filter(g => !this.failed.has(g.id));
@@ -175,7 +175,7 @@ export default class Akinator {
         void message.channel.send(embed);
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter) {
+    private async getResponse(message: Message, filter: CollectorFilter): Promise<string> {
         const responses = await message.channel.awaitMessages(filter, { max: 1, time: 60000, errors: ['time'] }).catch(() => null);
         if (!responses) return 'timeout';
         const response = responses.first().content.toLowerCase().replace('’', '\'').trim();
@@ -183,14 +183,14 @@ export default class Akinator {
         return response;
     }
 
-    private finalResponse(loss: boolean | string) {
+    private finalResponse(loss: boolean | string): string {
         const { win, lost, silent } = akiConfig.responses.final;
         const endMessage = loss ? (loss === 'timeout' ? silent : lost) : win;
 
         return randomResponse(endMessage);
     }
 
-    private replaceImage(link: string) {
+    private replaceImage(link: string): string {
         const base = 'https://photos.clarinea.fr/BL_25_en/600/partenaire';
         const imgur = 'https://i.imgur.com';
 
@@ -198,7 +198,7 @@ export default class Akinator {
         return link;
     }
 
-    private isPlayer(message: Message) {
+    private isPlayer(message: Message): boolean {
         return message.author.id === this.player;
     }
 }

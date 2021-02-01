@@ -7,18 +7,18 @@ export default class ConnectFour {
     public readonly players: User[] = [];
     public readonly board: string[][] = [];
 
-    public makeBoard() {
+    public makeBoard(): this {
         for (let i = 0; i < 6; i++) this.board.push(Array(7).fill(pieces.default));
         this.board.push(nums);
         return this;
     }
 
-    public addPlayer(player: User) {
+    public addPlayer(player: User): this {
         this.players.push(player);
         return this;
     }
 
-    public addPiece(num: number, piece: 'yellow' | 'red') {
+    public addPiece(num: number, piece: 'yellow' | 'red'): boolean {
         let success = false;
 
         for (let i = this.board.length - 2; i >= 0; i--) {
@@ -36,11 +36,13 @@ export default class ConnectFour {
         return success;
     }
 
-    public get currentBoard() {
-        return this.board.map(r => r.join('')).join('\n');
+    public get currentBoard(): string {
+        return this.board
+            .map(r => r.join(''))
+            .join('\n');
     }
 
-    public get boardFull() {
+    public get boardFull(): boolean {
         const board = this.board;
         for (let x = 0; x < 7; x++) {
             for (let y = 0; y < 6; y++) {
@@ -50,12 +52,12 @@ export default class ConnectFour {
         return true;
     }
 
-    public get win() {
+    public get win(): boolean {
         if (this.verticals || this.horizontals || this.diagonals) return true;
         return false;
     }
 
-    private get verticals() {
+    private get verticals(): boolean {
         const { board } = this;
 
         for (let x = 0; x < 3; x++) {
@@ -67,7 +69,7 @@ export default class ConnectFour {
         return false;
     }
 
-    private get horizontals() {
+    private get horizontals(): boolean {
         const { board } = this;
 
         for (let x = 0; x < 6; x++) {
@@ -79,7 +81,7 @@ export default class ConnectFour {
         return false;
     }
 
-    private get diagonals() {
+    private get diagonals(): boolean {
         const { board } = this;
 
         for (let x = 0; x < 3; x++) {

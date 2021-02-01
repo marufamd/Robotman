@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v8';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import { capitalize, define, trim, Definition } from '../../util';
 import { colors } from '../../util/constants';
 

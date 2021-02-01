@@ -33,7 +33,7 @@ export default class TagsProvider {
         return tag;
     }
 
-    public async create(name: string, content: string, message: Message) {
+    public async create(name: string, content: string, message: Message): Promise<Tag> {
         const exists = await this.get(name, message.guild.id);
         if (exists) return null;
 
@@ -53,7 +53,7 @@ export default class TagsProvider {
         return tag;
     }
 
-    public async edit(name: string, content: string, message: Message) {
+    public async edit(name: string, content: string, message: Message): Promise<Tag> {
         const obj = {
             content,
             editor: message.author.id,
@@ -71,7 +71,7 @@ export default class TagsProvider {
         return tag;
     }
 
-    public async delete(name: string, guild: string | Guild) {
+    public async delete(name: string, guild: string | Guild): Promise<Tag> {
         const id = resolveGuild(guild);
 
         const [tag] = await this.sql<Tag>`
@@ -84,10 +84,10 @@ export default class TagsProvider {
         return tag;
     }
 
-    public async increment(name: string, guild: string | Guild) {
+    public async increment(name: string, guild: string | Guild): Promise<number | void> {
         const id = resolveGuild(guild);
 
-        const [uses] = await this.sql<{ uses: number }>`
+        const [tag] = await this.sql<{ uses: number }>`
             update ${this.sql(this.table)} set
             uses = uses + 1
             where (name = ${name} or ${name} = any(aliases))
@@ -95,6 +95,6 @@ export default class TagsProvider {
             returning uses
             `;
 
-        return uses;
+        return tag?.uses;
     }
 }

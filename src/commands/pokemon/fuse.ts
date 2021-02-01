@@ -72,8 +72,8 @@ export default class extends Command {
             one = pokemon.indexOf(first) + 1;
             two = pokemon.indexOf(second) + 1;
         } else {
-            if (first === 'random') first = pokemon[pokemon.indexOf(this.getRandom()) + 1];
-            if (second === 'random' || !second) second = pokemon[pokemon.indexOf(this.getRandom()) + 1];
+            if (first === 'random') first = pokemon[pokemon.indexOf(this.getRandom() as string) + 1];
+            if (second === 'random' || !second) second = pokemon[pokemon.indexOf(this.getRandom() as string) + 1];
 
             [first, second] = [first, second].map(a => a
                 .replaceAll('.', '')

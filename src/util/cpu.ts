@@ -25,7 +25,7 @@ function average(): CPUAverage {
     };
 }
 
-export default async function usage() {
+export default async function usage(): Promise<number> {
     const start = average();
     await wait(INTERVAL);
     const end = average();

@@ -45,7 +45,7 @@ declare module 'aki-api' {
     export const regions: Regions[];
 
     export class Aki {
-        public constructor(region: Regions, safeMode: boolean);
+        public constructor(region: Regions, safeMode?: boolean);
 
         public answers: string[] | Guess[];
         public currentStep: number;

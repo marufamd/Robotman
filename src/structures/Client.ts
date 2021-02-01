@@ -10,10 +10,10 @@ config();
 
 import ClientUtil from './ClientUtil';
 import ConfigManager from './ConfigManager';
-import RobotmanEmbed from '../util/embed';
+import type RobotmanEmbed from '../util/embed';
 import SettingsProvider from './SettingsProvider';
 import TagsProvider from './TagsProvider';
-import Interaction from './Interaction';
+import type Interaction from './Interaction';
 import InteractionHandler, { APICommandData } from './InteractionHandler';
 import { plural } from '../util';
 import argumentTypes from '../util/argument-types';
@@ -140,7 +140,7 @@ export default class RobotmanClient extends AkairoClient {
         for (const [name, fn] of Object.entries(argumentTypes)) this.commandHandler.resolver.addType(name, fn);
     }
 
-    public async loadSchedule() {
+    public async loadSchedule(): Promise<void> {
         const schedule = await this.config.get('schedule');
         if (!schedule?.length) return;
 
@@ -155,7 +155,7 @@ export default class RobotmanClient extends AkairoClient {
         this.schedule = scheduleJob(rule, func);
     }
 
-    private async initDB() {
+    private async initDB(): Promise<void> {
         await this.sql.begin(async sql => {
             await sql`create table if not exists bot_info(
                 id           serial primary key,
@@ -191,7 +191,7 @@ export default class RobotmanClient extends AkairoClient {
         });
     }
 
-    public async init() {
+    public async init(): Promise<void> {
         process.on('unhandledRejection', (e: any) => {
             if (/The server did not return the correct signature/g.test(e.message)) return;
             this.log(`Unhandled Promise Rejection: ${e.stack}`, 'error', { ping: true });

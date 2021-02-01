@@ -1,5 +1,5 @@
 import cheerio from 'cheerio';
-import { DateTime } from 'luxon';
+import type { DateTime } from 'luxon';
 import request from './request';
 import { sort } from './';
 
@@ -61,7 +61,7 @@ export default class LeagueOfComicGeeks {
 
         const $ = cheerio.load(body.list);
 
-        const extract = (_: number, el: cheerio.Element) => {
+        const extract = (_: number, el: cheerio.Element): ComicData => {
             const element = $(el);
 
             const name = element.find('.title.color-primary').text().trim();
@@ -153,7 +153,7 @@ export default class LeagueOfComicGeeks {
         }
     }
 
-    public static resolveDate(date: DateTime) {
+    public static resolveDate(date: DateTime): DateTime {
         return date.weekday <= 3
             ? date
                 .set({ weekday: 3 })
@@ -162,7 +162,7 @@ export default class LeagueOfComicGeeks {
                 .plus({ weeks: 1 });
     }
 
-    private static filter(pulls: ComicData[], filterType: FilterType = 'singles') {
+    private static filter(pulls: ComicData[], filterType: FilterType = 'singles'): ComicData[] {
         const match: (c: ComicData) => boolean =
             filterType === 'singles'
                 ? c => !this.SINGLE_REGEXP_CASE_SENSITIVE.test(c.name) && !this.SINGLE_REGEXP_CASE_INSENSITIVE.test(c.name)

@@ -2,7 +2,7 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import Interaction from '../../structures/Interaction';
+import type Interaction from '../../structures/Interaction';
 import locg from '../../util/locg';
 import { pull, formats, colors } from '../../util/constants';
 

@@ -16,7 +16,10 @@ export default class InteractionHandler {
     }
 
     public fetchCommands(guild?: string | Guild): Promise<APIApplicationCommand[]> {
-        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
+        let path = Reflect
+            .get(this.client, 'api')
+            .applications(this.client.user.id);
+
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands.get();
@@ -26,7 +29,10 @@ export default class InteractionHandler {
         if (typeof data === 'string') data = this.client.commandHandler.findCommand(data)?.interactionOptions;
         if (!data) return;
 
-        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
+        let path = Reflect
+            .get(this.client, 'api')
+            .applications(this.client.user.id);
+
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands.post({ data });
@@ -38,7 +44,10 @@ export default class InteractionHandler {
 
         if (command && typeof command === 'object') command = command.id;
 
-        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
+        let path = Reflect
+            .get(this.client, 'api')
+            .applications(this.client.user.id);
+
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands(command).patch({ data });
@@ -47,13 +56,16 @@ export default class InteractionHandler {
     public delete(command: string | APIApplicationCommand, guild?: string | Guild): Promise<unknown> {
         if (command && typeof command === 'object') command = command.id;
 
-        let path = Reflect.get(this.client, 'api').applications(this.client.user.id);
+        let path = Reflect
+            .get(this.client, 'api')
+            .applications(this.client.user.id);
+
         if (guild) path = path.guilds(resolveGuild(guild));
 
         return path.commands(command).delete();
     }
 
-    public async handle(data: APIInteraction) {
+    public async handle(data: APIInteraction): Promise<void> {
         const interaction = new Interaction(this.client, data);
         const command = this.client.commandHandler.findCommand(interaction.command.name);
 

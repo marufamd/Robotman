@@ -1,4 +1,4 @@
-import { Sql } from 'postgres';
+import type { Sql } from 'postgres';
 
 export interface BotStats {
     aki: number;
@@ -20,7 +20,7 @@ export default class ConfigManager {
         this.table = table;
     }
 
-    public async init() {
+    public async init(): Promise<void> {
         const [data] = await this.sql`
         select * from ${this.sql(this.table)}
         where id = 1
@@ -38,7 +38,7 @@ export default class ConfigManager {
         return data[key];
     }
 
-    public async getStats() {
+    public async getStats(): Promise<BotStats> {
         const [data] = await this.sql<BotStats>`
         select ${this.sql([
             'aki',

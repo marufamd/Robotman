@@ -1,4 +1,5 @@
 import { GoogleSpreadsheet } from 'google-spreadsheet';
+import { codeblock } from '../util';
 
 const sort = (a: any[], b: any[]) => b[1] - a[1];
 
@@ -14,13 +15,13 @@ export default class Trivia {
         this.host = host;
     }
 
-    public get scorelist() {
+    public get scorelist(): [string, any][] {
         const scores = Object.entries(this.scores).sort(sort);
         if (!scores.length) return null;
         return scores;
     }
 
-    public get formattedScores() {
+    public get formattedScores(): string {
         const scores = this.scorelist;
         const longest = scores.sort((a: any[], b: any[]) => b[0].length - a[0].length)[0][0];
         const padLength = (str: string) => (longest.length - str.length) + 1;
@@ -31,16 +32,10 @@ export default class Trivia {
     }
 
     public get renderedScoreboard() {
-        const arr = [
-            '```glsl',
-            '# Scoreboard:',
-            this.formattedScores,
-            '```'
-        ];
-        return arr.join('\n');
+        return codeblock(`# Scoreboard\n${this.formattedScores}`, 'glsl');
     }
 
-    public async getQuestions(category: number) {
+    public async getQuestions(category: number): Promise<TriviaData> {
         const doc = new GoogleSpreadsheet(process.env.SPREADSHEET);
         await doc.useServiceAccountAuth({
             client_email: process.env.SERVICE_ACCOUNT_EMAIL,
@@ -60,6 +55,6 @@ export default class Trivia {
             answers.push(row.Answer.split('\n'));
         }
 
-        return { questions, answers } as TriviaData;
+        return { questions, answers };
     }
 }

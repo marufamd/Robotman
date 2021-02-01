@@ -18,7 +18,7 @@ export default class SettingsProvider extends Provider {
         this.idColumn = idColumn;
     }
 
-    public async init() {
+    public async init(): Promise<void> {
         const rows = await this.sql`select * from ${this.sql(this.table)}`;
         for (const row of rows) this.items.set(row.guild, row as GuildSettings);
     }
@@ -29,7 +29,7 @@ export default class SettingsProvider extends Provider {
         return defaultValue;
     }
 
-    public async set<K extends keyof GuildSettings>(guild: string | Guild, key: K, value: any) {
+    public async set<K extends keyof GuildSettings>(guild: string | Guild, key: K, value: any): Promise<GuildSettings> {
         const id = resolveGuild(guild);
         const has = this.items.has(id);
 
@@ -64,7 +64,7 @@ export default class SettingsProvider extends Provider {
         return row;
     }
 
-    public async delete<K extends keyof GuildSettings>(guild: string | Guild, key: K) {
+    public async delete<K extends keyof GuildSettings>(guild: string | Guild, key: K): Promise<GuildSettings> {
         const id = resolveGuild(guild);
         const data = this.items.get(id);
 
@@ -81,7 +81,7 @@ export default class SettingsProvider extends Provider {
         return row;
     }
 
-    public async clear(guild: string | Guild) {
+    public async clear(guild: string | Guild): Promise<GuildSettings> {
         const id = resolveGuild(guild);
         if (!this.items.has(id)) throw new Error(`Settings for guild ${id} do not exist.`);
 

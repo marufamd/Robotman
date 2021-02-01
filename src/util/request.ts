@@ -6,12 +6,12 @@ import fetch, { BodyInit, Headers, HeadersInit } from 'node-fetch';
 import { URL } from 'url';
 
 interface RequestOptions {
-    url?: string;
-    method?: string;
-    headers?: HeadersInit;
-    body?: BodyInit | null;
-    redirects?: number;
-    agent?: Agent | null;
+    url: string;
+    method: string;
+    headers: HeadersInit;
+    body: BodyInit | null;
+    redirects: number;
+    agent: Agent | null;
 }
 
 interface RequestResponse {
@@ -26,9 +26,9 @@ interface RequestResponse {
     body: any;
 }
 
-type StaticRequest = (url: string, options?: RequestOptions) => Request;
+type StaticRequest = (url: string, options?: Partial<RequestOptions>) => Request;
 
-class Request implements Promise<RequestResponse> {
+export default class Request implements Promise<RequestResponse> {
     public static acl: StaticRequest;
     public static bind: StaticRequest;
     public static checkout: StaticRequest;
@@ -79,7 +79,7 @@ class Request implements Promise<RequestResponse> {
         this.httpAgent = options.agent ?? undefined;
     }
 
-    private async request() {
+    private async request(): Promise<RequestResponse> {
         const response = await fetch(this.url.toString(), {
             method: this.method,
             headers: this.headers,
@@ -123,7 +123,9 @@ class Request implements Promise<RequestResponse> {
         return res;
     }
 
-    public query(params: Record<string, any> | string, value?: any) {
+    public query(params: Record<string, any>): this;
+    public query(params: string, value: any): this;
+    public query(params: Record<string, any> | string, value?: any): this {
         if (typeof params === 'object') {
             for (const [param, val] of Object.entries(params)) this.url.searchParams.append(param, val);
         } else if (typeof params === 'string' && value) {
@@ -135,7 +137,9 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public set(headers: Record<string, unknown> | string, value?: unknown) {
+    public set(headers: Record<string, unknown>): this;
+    public set(headers: string, value: unknown): this;
+    public set(headers: Record<string, unknown> | string, value?: unknown): this {
         if (typeof headers === 'object') {
             for (const [header, val] of Object.entries(headers)) (this.headers as Record<string, unknown>)[header.toLowerCase()] = val;
         } else if (typeof headers === 'string' && value) {
@@ -147,7 +151,7 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public attach(...args: [Record<string, any> | string, any]) {
+    public attach(...args: [Record<string, any> | string, any]): this {
         if (!this.body || !(this.body instanceof FormData)) this.body = new FormData();
 
         if (typeof args[0] === 'object') {
@@ -159,7 +163,7 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public send(body: BodyInit | Record<string, unknown>) {
+    public send(body: BodyInit | Record<string, unknown>): this {
         if (!(body instanceof FormData) && typeof body === 'object') {
             const header = (this.headers as Record<string, unknown>)['content-type'] as string;
             if (header && !/application\/json/gi.test(header)) void this.set('content-type', 'application/json');
@@ -171,36 +175,36 @@ class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public redirects(amount: number) {
+    public redirects(amount: number): this {
         if (typeof amount !== 'number') throw new TypeError('The "amount" parameter must be a number.');
         this.follow = amount;
 
         return this;
     }
 
-    public agent(agent: Agent) {
+    public agent(agent: Agent): this {
         this.httpAgent = agent;
         return this;
     }
 
-    public then(onFullfilled: (res: RequestResponse) => any, onRejected?: (e: any) => any) {
+    public then(onFullfilled: (res: RequestResponse) => any, onRejected?: (e: any) => any): Promise<any> {
         return this
             .request()
             .then(onFullfilled)
             .catch(onRejected);
     }
 
-    public catch(onRejected: (e: any) => any) {
+    public catch(onRejected: (e: any) => any): Promise<any> {
         return this.then(null, onRejected);
     }
 
-    public finally(onFinally: () => any) {
+    public finally(onFinally: () => void): Promise<RequestResponse> {
         return this
             .request()
             .finally(onFinally);
     }
 
-    public get [Symbol.toStringTag]() {
+    public get [Symbol.toStringTag](): string {
         return this.constructor.name;
     }
 }
@@ -210,10 +214,8 @@ for (const method of METHODS) {
 
     Object.defineProperty(Request, method.toLowerCase(), {
         enumerable: true,
-        value: function request(url: string, options: RequestOptions) {
+        value: function request(url: string, options: RequestOptions): Request {
             return new Request({ url, method, ...options });
         }
     });
 }
-
-export default Request;

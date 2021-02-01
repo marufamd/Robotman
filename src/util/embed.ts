@@ -9,7 +9,7 @@ export default class RobotmanEmbed extends MessageEmbed {
         super(data);
     }
 
-    public inlineFields() {
+    public inlineFields(): this {
         const length = this.fields.length - 5;
         if (length % 3 === 0) this.addField('\u200b', '\u200b', true);
         return this;

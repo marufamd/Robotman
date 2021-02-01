@@ -80,11 +80,11 @@ export default class Interaction extends Base {
         this.response = false;
     }
 
-    public get createdTimestamp() {
+    public get createdTimestamp(): number {
         return SnowflakeUtil.deconstruct(this.id).timestamp;
     }
 
-    public get createdAt() {
+    public get createdAt(): Date {
         return new Date(this.createdTimestamp);
     }
 
@@ -101,7 +101,7 @@ export default class Interaction extends Base {
         return found;
     }
 
-    public async respond(content: string | RobotmanEmbed | MessageEmbed | InteractionMessageOptions, options?: InteractionMessageOptions) {
+    public async respond(content: string | RobotmanEmbed | MessageEmbed | InteractionMessageOptions, options?: InteractionMessageOptions): Promise<boolean> {
         if (this.response) return;
         const data = Interaction.resolveData(content, options);
 
@@ -114,7 +114,7 @@ export default class Interaction extends Base {
         return this.response;
     }
 
-    public async edit(content: string, options?: InteractionMessageOptions) {
+    public async edit(content: string | RobotmanEmbed | MessageEmbed | InteractionMessageOptions, options?: InteractionMessageOptions): Promise<boolean> {
         if (!this.response) return false;
         const { data } = Interaction.resolveData(content, options);
 
