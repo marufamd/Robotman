@@ -1,4 +1,4 @@
-import { fetchReleases, SortTypes } from 'comicgeeks';
+import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { ApplicationCommandOptionType } from 'discord-api-types';
 import type { Message } from 'discord.js';
@@ -95,6 +95,11 @@ export default class extends Command {
     private async main(publisher: PublisherData, date: DateTime) {
         const pull = await fetchReleases(date.toFormat(formats.locg), {
             publishers: [publisher.id],
+            filter: [
+                FilterTypes.Regular,
+                FilterTypes.Digital,
+                FilterTypes.Annual
+            ],
             sort: SortTypes.AlphaAsc
         });
 

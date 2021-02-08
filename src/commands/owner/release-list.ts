@@ -1,4 +1,4 @@
-import { fetchReleases, SortTypes } from 'comicgeeks';
+import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { DateTime } from 'luxon';
 import { parseWebhook, split } from '../../util';
@@ -32,6 +32,11 @@ export default class extends Command {
         try {
             const pulls = await fetchReleases(date, {
                 publishers: ['DC Comics'],
+                filter: [
+                    FilterTypes.Regular,
+                    FilterTypes.Digital,
+                    FilterTypes.Annual
+                ],
                 sort: SortTypes.AlphaAsc
             });
             const embeds = [];

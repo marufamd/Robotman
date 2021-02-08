@@ -102,7 +102,7 @@ export default class extends Command {
             .embed()
             .setColor(colors.LOCG)
             .setFooter('League of Comic Geeks', `${BASE_URL}/assets/images/user-menu-logo-icon.png`)
-            .setAuthor(`${user.name}'s Pull List for the Week of ${week}`, user.avatar, user.url)
+            .setAuthor(`${user.name}'s Pull List for the Week of ${week}`, user.avatar, `${user.url}/pull-list`)
             .setDescription(pulls.length ? pulls.map(p => p.name).join('\n') : 'No pulls for this week');
 
         if (prices) embed.addField('Total', `$${prices} USD`);
