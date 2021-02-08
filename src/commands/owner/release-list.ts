@@ -21,13 +21,10 @@ export default class extends Command {
 
         const { id, token } = parseWebhook(webhookURL);
         const webhook = await this.client.fetchWebhook(id, token);
-        const date = (day.weekday <= 2
-            ? day
-                .set({ weekday: 2 })
-            : day
-                .set({ weekday: 2 })
-                .plus({ days: 7 })
-        ).toFormat(formats.locg);
+        const date = day
+            .set({ weekday: 2 })
+            .plus({ weeks: day.weekday <= 2 ? 0 : 1 })
+            .toFormat(formats.locg);
 
         try {
             const pulls = await fetchReleases(date, {

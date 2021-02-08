@@ -20,7 +20,7 @@ export default class extends Command {
                     'To get next week\'s pull list, do `{p}pullnextuser`',
                     'To get last week\'s pull list, do `{p}pulllastuser`\n',
                     'To get the pull list for a different week, you can put the date you want after the username\n',
-                    'You can create a LOCG account [here](https://leagueofcomicgeeks.com/)',
+                    `You can create a LOCG account [here](${BASE_URL})`,
                     'Once you have an account, simply subscribe to whatever series\' you are pulling to create a pull list'
                 ],
                 examples: [
@@ -81,7 +81,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: Interaction) {
-        const [username, date] = interaction.findOptions('username', 'date'); // eslint-disable-line prefer-const
+        const [username, date] = interaction.findOptions('username', 'date');
 
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
@@ -101,9 +101,9 @@ export default class extends Command {
         const embed = this.client.util
             .embed()
             .setColor(colors.LOCG)
-            .setFooter('League of Comic Geeks', `${BASE_URL}/assets/images/user-menu-logo-icon.png`)
             .setAuthor(`${user.name}'s Pull List for the Week of ${week}`, user.avatar, `${user.url}/pull-list`)
-            .setDescription(pulls.length ? pulls.map(p => p.name).join('\n') : 'No pulls for this week');
+            .setDescription(pulls.length ? pulls.map(p => p.name).join('\n') : 'No pulls for this week')
+            .setFooter('League of Comic Geeks', `${BASE_URL}/assets/images/user-menu-logo-icon.png`);
 
         if (prices) embed.addField('Total', `$${prices} USD`);
 
