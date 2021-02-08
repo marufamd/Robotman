@@ -5,7 +5,7 @@ const { pieces, nums } = connectFour;
 
 export default class ConnectFour {
     public readonly players: User[] = [];
-    public readonly board: string[][] = [];
+    public readonly board: Array<string[]> = [];
 
     public makeBoard(): this {
         for (let i = 0; i < 6; i++) this.board.push(Array(7).fill(pieces.default));

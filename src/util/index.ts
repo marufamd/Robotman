@@ -21,7 +21,7 @@ export function resolveGuild(guild: string | Guild): string {
 }
 
 export function title(str: string): string {
-    return str.replace(/\w\S*/g, (txt: string) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    return str.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 }
 
 export function capitalize(str: string): string {
@@ -67,7 +67,6 @@ export function codeblock(str: any, lang = ''): string {
 }
 
 export function redact(str: string): string {
-    if (typeof str !== 'string') return str;
     const tokens = [
         'WEBHOOK_URL',
         'DISCORD_TOKEN',
@@ -143,7 +142,7 @@ export function randomToken(amount = 1): string | string[] {
     return amount === 1 ? final[0] : final;
 }
 
-export function split(arr: any[], max: number): any[][] {
+export function split(arr: any[], max: number): Array<any[]> {
     const newArray = [];
     for (let i = 0; i < arr.length; i += max) newArray.push(arr.slice(i, i + max));
 

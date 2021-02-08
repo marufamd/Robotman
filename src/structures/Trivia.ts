@@ -5,7 +5,7 @@ const sort = (a: any[], b: any[]) => b[1] - a[1];
 
 interface TriviaData {
     questions: string[];
-    answers: string[][];
+    answers: Array<string[]>;
 }
 
 export default class Trivia {

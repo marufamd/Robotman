@@ -63,7 +63,7 @@ declare module 'discord-akairo' {
         mod: boolean;
         disableHelp: boolean;
         interactionOptions: APICommandData;
-        exec(message?: Message, args?: any): any;
+        exec(message?: Message, args?: Record<string, any>): any;
         interact(interaction: Interaction): Promise<boolean | Message | APIMessage>;
     }
 }

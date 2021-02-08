@@ -3,7 +3,6 @@
 import FormData from 'form-data';
 import { Agent, METHODS } from 'http';
 import fetch, { BodyInit, Headers, HeadersInit } from 'node-fetch';
-import { URL } from 'url';
 
 interface RequestOptions {
     url: string;
@@ -151,7 +150,9 @@ export default class Request implements Promise<RequestResponse> {
         return this;
     }
 
-    public attach(...args: [Record<string, any> | string, any]): this {
+    public attach(...args: [string, any]): this;
+    public attach(...args: [Record<string, any>]): this;
+    public attach(...args: [Record<string, any> | string, any?]): this {
         if (!this.body || !(this.body instanceof FormData)) this.body = new FormData();
 
         if (typeof args[0] === 'object') {
@@ -190,12 +191,13 @@ export default class Request implements Promise<RequestResponse> {
     public then(onFullfilled: (res: RequestResponse) => any, onRejected?: (e: any) => any): Promise<any> {
         return this
             .request()
-            .then(onFullfilled)
-            .catch(onRejected);
+            .then(onFullfilled, onRejected);
     }
 
     public catch(onRejected: (e: any) => any): Promise<any> {
-        return this.then(null, onRejected);
+        return this
+            .request()
+            .catch(onRejected);
     }
 
     public finally(onFinally: () => void): Promise<RequestResponse> {
