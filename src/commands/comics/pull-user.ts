@@ -1,9 +1,10 @@
+import { BASE_URL, fetchPulls, fetchUser, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import type Interaction from '../../structures/Interaction';
-import locg from '../../util/locg';
+import { getPullDate } from '../../util';
 import { pull, formats, colors } from '../../util/constants';
 
 const { previous, next } = pull.user;
@@ -68,7 +69,7 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { username, date }: { username: string; date: Date }) {
-        let week = locg.resolveDate(DateTime.fromJSDate(date).setZone('utc'));
+        let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
 
         if (next.includes(message.util.parsed.alias)) {
             week = week.plus({ days: 7 });
@@ -83,7 +84,7 @@ export default class extends Command {
         const [username, date] = interaction.findOptions('username', 'date'); // eslint-disable-line prefer-const
 
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
-        const week = locg.resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
+        const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
         return interaction.respond(await this.main(username, week));
     }
@@ -91,18 +92,17 @@ export default class extends Command {
     private async main(username: string, date: DateTime) {
         const week = date.toFormat(formats.locg);
 
-        const user = await locg.resolveUser(username);
+        const user = await fetchUser(username);
         if (!user) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
-        const pulls = await locg.getPulls(user.id, week);
+        const pulls = await fetchPulls(user.id, week, { sort: SortTypes.AlphaAsc });
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll('$', ''))).reduce((a, b) => a + b).toFixed(2) : null;
 
         const embed = this.client.util
             .embed()
             .setColor(colors.LOCG)
-            .setAuthor('League of Comic Geeks', `${locg.url}/assets/images/user-menu-logo-icon.png`, locg.url)
-            .setTitle(`${user.name}'s Pull List for the Week of ${week}`)
-            .setURL(user.url)
+            .setFooter('League of Comic Geeks', `${BASE_URL}/assets/images/user-menu-logo-icon.png`)
+            .setAuthor(`${user.name}'s Pull List for the Week of ${week}`, user.avatar, user.url)
             .setDescription(pulls.length ? pulls.map(p => p.name).join('\n') : 'No pulls for this week');
 
         if (prices) embed.addField('Total', `$${prices} USD`);

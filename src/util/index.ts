@@ -318,3 +318,9 @@ export async function define(word: string, synonym = false): Promise<Definition 
         date: result.date?.replace(/\{(.*?)\}/gi, '')
     };
 }
+
+export function getPullDate(date: DateTime): DateTime {
+    return date
+            .set({ weekday: 3 })
+            .plus({ weeks: date.weekday <= 3 ? 0 : 1 });
+}

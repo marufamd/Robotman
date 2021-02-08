@@ -2,22 +2,23 @@
     "compilerOptions": {
         "outDir": "dist",
         "lib": [
-            "ES2020",
-            "ESNext",
-            "DOM"
+            "es2019",
+            "es2020",
+            "esnext",
+            "dom"
         ],
         "module": "CommonJS",
-        "target": "ESNext",
+        "target": "esnext",
         "strict": true,
         "alwaysStrict": true,
         "strictNullChecks": false,
         "esModuleInterop": true,
-        "moduleResolution": "Node",
+        "moduleResolution": "node",
         "removeComments": false,
         "pretty": true,
         "resolveJsonModule": true
     },
     "include": [
-        "./src/*.ts"
+        "./src"
     ],
 }

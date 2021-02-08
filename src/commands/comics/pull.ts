@@ -1,11 +1,11 @@
+import { fetchReleases, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { ApplicationCommandOptionType } from 'discord-api-types';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import type Interaction from '../../structures/Interaction';
-import { closest } from '../../util';
+import { closest, getPullDate } from '../../util';
 import { publishers, pull, formats, Publisher, PublisherData } from '../../util/constants';
-import locg from '../../util/locg';
 
 const { previous, next } = pull.default;
 
@@ -72,7 +72,7 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }) {
-        let week = locg.resolveDate(DateTime.fromJSDate(date).setZone('utc'));
+        let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
 
         if (next.includes(message.util.parsed.alias)) {
             week = week.plus({ weeks: 1 });
@@ -87,13 +87,16 @@ export default class extends Command {
         const [name, date] = interaction.findOptions('publisher', 'date');
 
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
-        const day = locg.resolveDate(DateTime.fromJSDate(parsed).setZone('utc'));
+        const day = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
         return interaction.respond(await this.main(publishers.get(name), day));
     }
 
     private async main(publisher: PublisherData, date: DateTime) {
-        const pull = await locg.getComics(publisher.id, date.toFormat(formats.locg));
+        const pull = await fetchReleases(date.toFormat(formats.locg), {
+            publishers: [publisher.id],
+            sort: SortTypes.AlphaAsc
+        });
 
         const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(formats.locg);
 

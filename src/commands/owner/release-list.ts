@@ -1,8 +1,8 @@
+import { fetchReleases, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { DateTime } from 'luxon';
 import { parseWebhook, split } from '../../util';
 import { colors, formats } from '../../util/constants';
-import locg from '../../util/locg';
 
 export default class extends Command {
     public constructor() {
@@ -30,7 +30,10 @@ export default class extends Command {
         ).toFormat(formats.locg);
 
         try {
-            const pulls = await locg.getComics(1, date);
+            const pulls = await fetchReleases(date, {
+                publishers: ['DC Comics'],
+                sort: SortTypes.AlphaAsc
+            });
             const embeds = [];
 
             for (const pull of pulls) {
@@ -38,7 +41,7 @@ export default class extends Command {
                     .embed()
                     .setColor(colors.DC)
                     .setTitle(pull.name)
-                    .setURL(pull.link)
+                    .setURL(pull.url)
                     .setDescription(pull.description)
                     .setThumbnail(pull.cover)
                     .setFooter(`Cover Price: ${pull.price}`);
