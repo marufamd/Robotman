@@ -3,9 +3,9 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import type Interaction from '../../structures/Interaction';
-import { google, trim, title } from '../../util';
-import request from '../../util/request';
+import { google, title, trim } from '../../util';
 import { colors } from '../../util/constants';
+import request from '../../util/request';
 
 interface ComixologyData {
     publisher: {

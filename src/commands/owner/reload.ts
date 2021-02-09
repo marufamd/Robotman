@@ -1,4 +1,4 @@
-import { Argument, Command, Category, Inhibitor, Listener } from 'discord-akairo';
+import { Argument, Category, Command, Inhibitor, Listener } from 'discord-akairo';
 import type { Message } from 'discord.js';
 
 export default class extends Command {

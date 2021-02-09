@@ -1,8 +1,8 @@
 import { Command, PrefixSupplier } from 'discord-akairo';
 import type { CollectorFilter, Message } from 'discord.js';
 import Hangman from '../../structures/Hangman';
-import { randomResponse, plural } from '../../util';
-import { words, emojis, colors } from '../../util/constants';
+import { plural, randomResponse } from '../../util';
+import { colors, emojis, words } from '../../util/constants';
 import type RobotmanEmbed from '../../util/embed';
 
 const MAX_TIME = 60000;

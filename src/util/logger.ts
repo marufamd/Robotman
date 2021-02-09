@@ -1,5 +1,5 @@
 import * as colorette from 'colorette';
-import { WebhookClient, MessageEmbedOptions } from 'discord.js';
+import { MessageEmbedOptions, WebhookClient } from 'discord.js';
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
 import { parseWebhook } from './';

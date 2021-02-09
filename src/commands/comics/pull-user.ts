@@ -5,7 +5,7 @@ import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import type Interaction from '../../structures/Interaction';
 import { getPullDate } from '../../util';
-import { pull, formats, colors } from '../../util/constants';
+import { colors, formats, pull } from '../../util/constants';
 
 const { previous, next } = pull.user;
 

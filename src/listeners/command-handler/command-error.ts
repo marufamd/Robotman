@@ -1,4 +1,4 @@
-import { Listener, Command } from 'discord-akairo';
+import { Command, Listener } from 'discord-akairo';
 import { APIInteractionResponseType } from 'discord-api-types';
 import type { Message, TextChannel } from 'discord.js';
 import Interaction from '../../structures/Interaction';

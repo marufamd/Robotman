@@ -1,4 +1,4 @@
-import { Argument, ArgumentTypeCasterWithInteraction, Command, Category } from 'discord-akairo';
+import { Argument, ArgumentTypeCasterWithInteraction, Category, Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import { Message } from 'discord.js';
 import Interaction, { InteractionMessageOptions } from '../../structures/Interaction';

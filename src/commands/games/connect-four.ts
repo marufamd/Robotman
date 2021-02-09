@@ -3,7 +3,7 @@ import { Command, PrefixSupplier } from 'discord-akairo';
 import type { CollectorFilter, Message } from 'discord.js';
 import ConnectFour from '../../structures/ConnectFour';
 import { plural } from '../../util';
-import { connectFour, colors, emojis } from '../../util/constants';
+import { colors, connectFour, emojis } from '../../util/constants';
 
 const { CANCEL_TIME, WAIT_TIME, indicators } = connectFour;
 

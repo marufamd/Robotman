@@ -1,6 +1,6 @@
 import { Aki, Guess } from 'aki-api';
-import type { Message, CollectorFilter } from 'discord.js';
-import { title, randomResponse } from '../util';
+import type { CollectorFilter, Message } from 'discord.js';
+import { randomResponse, title } from '../util';
 import { aki as akiConfig, colors, emojis } from '../util/constants';
 
 export default class Akinator {

@@ -1,4 +1,4 @@
-import { Listener, Command } from 'discord-akairo';
+import { Command, Listener } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import type { BotStats } from '../../structures/ConfigManager';
 

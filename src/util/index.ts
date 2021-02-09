@@ -1,8 +1,8 @@
-import { SnowflakeUtil, Guild } from 'discord.js';
+import { Guild, SnowflakeUtil } from 'discord.js';
 import { DateTime } from 'luxon';
 import { basename, dirname } from 'path';
+import { EPOCH, formats } from './constants';
 import request from './request';
-import { formats, EPOCH } from './constants';
 
 interface WebhookCredentials {
     id: string;

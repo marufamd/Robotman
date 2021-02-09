@@ -1,23 +1,22 @@
-import { AkairoClient, CommandHandler, ListenerHandler, InhibitorHandler } from 'discord-akairo';
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+require('dotenv').config();
+
+import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
 import type { APIMessage } from 'discord-api-types';
 import type { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
-import { config } from 'dotenv';
 import { Job, RecurrenceRule, scheduleJob } from 'node-schedule';
 import { join } from 'path';
-import postgres, { Sql, Notice } from 'postgres';
-
-config();
-
-import ClientUtil from './ClientUtil';
-import ConfigManager from './ConfigManager';
-import type RobotmanEmbed from '../util/embed';
-import SettingsProvider from './SettingsProvider';
-import TagsProvider from './TagsProvider';
-import type Interaction from './Interaction';
-import InteractionHandler, { APICommandData } from './InteractionHandler';
+import postgres, { Notice, Sql } from 'postgres';
 import { plural } from '../util';
 import argumentTypes from '../util/argument-types';
+import type RobotmanEmbed from '../util/embed';
 import Logger from '../util/logger';
+import ClientUtil from './ClientUtil';
+import ConfigManager from './ConfigManager';
+import type Interaction from './Interaction';
+import InteractionHandler, { APICommandData } from './InteractionHandler';
+import SettingsProvider from './SettingsProvider';
+import TagsProvider from './TagsProvider';
 
 const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler, item: string): string => `• ${handler.modules.size} ${plural(item, handler.modules.size)}`;
 

@@ -1,7 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { Message, GuildMember, Util } from 'discord.js';
-import { title, formatDate, difference } from '../../util';
+import { GuildMember, Message, Util } from 'discord.js';
+import { difference, formatDate, title } from '../../util';
 
 export default class extends Command {
     public constructor() {

@@ -3,8 +3,8 @@ import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { Duration } from 'luxon';
 import type Interaction from '../../structures/Interaction';
-import usage from '../../util/cpu';
 import { formats } from '../../util/constants';
+import usage from '../../util/cpu';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const { dependencies, version } = require('../../../package.json');

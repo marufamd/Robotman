@@ -1,5 +1,5 @@
 import { oneLine } from 'common-tags';
-import { Listener, Command } from 'discord-akairo';
+import { Command, Listener } from 'discord-akairo';
 import { APIInteractionResponseType } from 'discord-api-types';
 import type { Message } from 'discord.js';
 import Interaction from '../../structures/Interaction';

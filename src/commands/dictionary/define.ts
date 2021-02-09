@@ -1,8 +1,8 @@
 import { Command } from 'discord-akairo';
-import type { Message } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v8';
+import type { Message } from 'discord.js';
 import type Interaction from '../../structures/Interaction';
-import { capitalize, define, trim, Definition } from '../../util';
+import { capitalize, define, Definition, trim } from '../../util';
 import { colors } from '../../util/constants';
 
 const BASE_URL = 'https://www.merriam-webster.com';

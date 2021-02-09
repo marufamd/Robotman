@@ -2,7 +2,7 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import { readdir, readFile } from 'fs/promises';
-import { join, extname } from 'path';
+import { extname, join } from 'path';
 import type Interaction from '../../structures/Interaction';
 import { randomResponse } from '../../util';
 

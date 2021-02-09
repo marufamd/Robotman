@@ -1,7 +1,7 @@
 import { ClientUtil, Command } from 'discord-akairo';
 import type { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
-import type RobotmanClient from './Client';
 import RobotmanEmbed from '../util/embed';
+import type RobotmanClient from './Client';
 
 export default class extends ClientUtil {
     public constructor(client: RobotmanClient) {

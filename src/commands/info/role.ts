@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { Message, Role, Permissions, Util } from 'discord.js';
+import { Message, Permissions, Role, Util } from 'discord.js';
 import { difference, formatDate, title } from '../../util';
 
 export default class extends Command {

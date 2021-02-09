@@ -1,8 +1,8 @@
 import { oneLine } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
-import Table from '../../util/table';
 import { codeblock, paste, plural } from '../../util';
+import Table from '../../util/table';
 
 export default class extends Command {
     public constructor() {
