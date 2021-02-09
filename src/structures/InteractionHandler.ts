@@ -67,6 +67,8 @@ export default class InteractionHandler {
 
     public async handle(data: APIInteraction): Promise<void> {
         const interaction = new Interaction(this.client, data);
+        if (!interaction.guild) return;
+
         const command = this.client.commandHandler.findCommand(interaction.command.name);
 
         if (!command?.interact) return;

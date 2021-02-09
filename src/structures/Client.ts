@@ -18,7 +18,7 @@ import InteractionHandler, { APICommandData } from './InteractionHandler';
 import SettingsProvider from './SettingsProvider';
 import TagsProvider from './TagsProvider';
 
-const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler, item: string): string => `• ${handler.modules.size} ${plural(item, handler.modules.size)}`;
+const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler): string => `• ${handler.modules.size} ${plural(handler.constructor.name.slice(0, 7).toLowerCase(), handler.modules.size)}`;
 
 declare module 'discord.js' {
     interface Message {
@@ -225,9 +225,9 @@ export default class RobotmanClient extends AkairoClient {
 
         this.log([
             'Loaded',
-            loaded(this.commandHandler, 'command'),
-            loaded(this.listenerHandler, 'listener'),
-            loaded(this.inhibitorHandler, 'inhibitor')
+            loaded(this.commandHandler),
+            loaded(this.listenerHandler),
+            loaded(this.inhibitorHandler)
         ]);
 
         await this.loadSchedule();
