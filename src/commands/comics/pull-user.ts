@@ -92,8 +92,8 @@ export default class extends Command {
     private async main(username: string, date: DateTime) {
         const week = date.toFormat(formats.locg);
 
-        const user = await fetchUser(username);
-        if (!user) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        const user = await fetchUser(username).catch(() => null);
+        if (!user) return { content: 'That user does not exist', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
 
         const pulls = await fetchPulls(user.id, week, { sort: SortTypes.AlphaAsc });
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll('$', ''))).reduce((a, b) => a + b).toFixed(2) : null;
