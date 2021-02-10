@@ -4,7 +4,7 @@
   "description": "A Discord bot",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rimraf ./dist && npx tsc",
+    "build": "rimraf ./dist && tsc",
     "test": "npm run build && node .",
     "start": "pm2 start dist/index.js --name \"robotman\"",
     "restart": "pm2 restart robotman",
