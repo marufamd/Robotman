@@ -75,12 +75,12 @@ export default class InteractionHandler {
         if (this.client.commandHandler.runCooldowns(interaction, command)) return;
 
         try {
-            if (command.typing) void (interaction.channel as TextChannel)?.startTyping();
+            if (command.typing) void interaction.channel?.startTyping();
             await command.interact(interaction);
         } catch (e) {
             this.client.commandHandler.emit('error', e, interaction, command);
         } finally {
-            if (command.typing) void (interaction.channel as TextChannel)?.stopTyping(true);
+            if (command.typing) void interaction.channel?.stopTyping(true);
         }
     }
 }

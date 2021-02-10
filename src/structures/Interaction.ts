@@ -9,12 +9,11 @@ import {
     APIInteractionResponseType,
     MessageFlags
 } from 'discord-api-types/v8';
-
 import {
     APIMessage,
     APIMessageContentResolvable,
     Base,
-    Channel,
+    DMChannel,
     Guild,
     GuildMember,
     Message,
@@ -22,6 +21,7 @@ import {
     MessageEmbed,
     MessageOptions,
     MessageTarget,
+    NewsChannel,
     SnowflakeUtil,
     StringResolvable,
     TextChannel,
@@ -30,7 +30,6 @@ import {
     WebhookClient,
     WebhookMessageOptions
 } from 'discord.js';
-
 import type RobotmanClient from './Client';
 import RobotmanEmbed from '../util/embed';
 
@@ -51,7 +50,7 @@ export default class Interaction extends Base {
     public client: RobotmanClient;
     public id: Snowflake;
     public token: string;
-    public channel: Channel | null;
+    public channel: TextChannel | DMChannel | NewsChannel | null;
     public guild: Guild | null;
     public member: GuildMember;
     public author: User;
@@ -65,7 +64,7 @@ export default class Interaction extends Base {
         this.id = data.id;
         this.token = data.token;
 
-        this.channel = this.client.channels?.cache.get(data.channel_id) ?? null;
+        this.channel = this.client.channels?.cache.get(data.channel_id) as TextChannel | DMChannel | NewsChannel ?? null;
         this.guild = this.client.guilds?.cache.get(data.guild_id) ?? null;
 
         this.member = this.guild?.members.add(data.member, false) ?? null;
