@@ -1,5 +1,5 @@
 import type { APIApplicationCommand, APIApplicationCommandOption, APIInteraction } from 'discord-api-types/v8';
-import type { Guild, TextChannel } from 'discord.js';
+import type { Guild } from 'discord.js';
 import { resolveGuild } from '../util';
 import type RobotmanClient from './Client';
 import Interaction from './Interaction';
