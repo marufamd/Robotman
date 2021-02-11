@@ -1,4 +1,4 @@
-import { BASE_URL, fetchPulls, fetchUser, SortTypes } from 'comicgeeks';
+import { BASE_URL, fetchPulls, fetchUser, SortTypes, User } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
@@ -33,7 +33,7 @@ export default class extends Command {
             args: [
                 {
                     id: 'username',
-                    type: 'string',
+                    type: 'lowercase',
                     prompt: {
                         start: 'Which user\'s pull list would you like to view?'
                     }
@@ -49,6 +49,8 @@ export default class extends Command {
             cooldown: 4e3
         });
     }
+
+    private readonly userCache = new Map<string, User>();
 
     public interactionOptions = {
         name: 'pull-user',
@@ -86,14 +88,19 @@ export default class extends Command {
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
-        return interaction.respond(await this.main(username, week));
+        return interaction.respond(await this.main(username.toLowerCase(), week));
     }
 
     private async main(username: string, date: DateTime) {
         const week = date.toFormat(formats.locg);
 
-        const user = await fetchUser(username).catch(() => null);
+        const user: User = this.userCache.has(username)
+            ? this.userCache.get(username)
+            : await fetchUser(username).catch(() => null);
+
         if (!user) return { content: 'That user does not exist', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+
+        if (!this.userCache.has(username)) this.userCache.set(username, user);
 
         const pulls = await fetchPulls(user.id, week, { sort: SortTypes.AlphaAsc });
         const prices = pulls.length ? pulls.map(p => Number(p.price.replaceAll('$', ''))).reduce((a, b) => a + b).toFixed(2) : null;
