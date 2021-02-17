@@ -277,6 +277,15 @@ export async function youtube(params: Record<string, any>, mode = 'search'): Pro
     return body.items[0];
 }
 
+export async function imgur(image: string): Promise<string> {
+    const { body } = await request
+        .post('https://api.imgur.com/3/image')
+        .set('Authorization', `Client-ID ${process.env.IMGUR_CLIENT_ID}`)
+        .send(image);
+
+    return body?.data?.link;
+}
+
 interface DictionaryBase {
     word: string;
 }

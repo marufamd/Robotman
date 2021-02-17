@@ -2,7 +2,7 @@ import { Command } from 'discord-akairo';
 import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
 import type { Message } from 'discord.js';
 import type Interaction from '../../structures/Interaction';
-import { randomResponse, title } from '../../util';
+import { imgur, randomResponse, title } from '../../util';
 import { colors, pokemon } from '../../util/constants';
 
 export default class extends Command {
@@ -17,12 +17,15 @@ export default class extends Command {
                     'Providing no Pokemon will fuse two random Pokemon.'
                 ],
                 examples: ['bulbasaur pikachu', 'squirtle charmander', '"mr. mime" alakazam']
-            }
+            },
+            cooldown: 3500
         });
     }
 
     public *args() {
-        const first = yield { type: 'lowercase' };
+        const first = yield {
+            type: 'lowercase'
+        };
 
         let second;
         if (first) {
@@ -54,16 +57,16 @@ export default class extends Command {
         ]
     };
 
-    public exec(message: Message, { first, second }: { first: string; second: string }) {
-        return message.util.send(this.main(first, second));
+    public async exec(message: Message, { first, second }: { first: string; second: string }) {
+        return message.util.send(await this.main(first, second));
     }
 
-    public interact(interaction: Interaction) {
+    public async interact(interaction: Interaction) {
         const [first, second] = interaction.findOptions('first', 'second');
-        return interaction.respond(this.main(first, second));
+        return interaction.respond(await this.main(first, second));
     }
 
-    private main(first: string, second: string) {
+    private async main(first: string, second: string) {
         let one: number;
         let two: number;
 
@@ -92,13 +95,14 @@ export default class extends Command {
         }
 
         const url = `https://japeal.prestocdn.net/wordpress/wp-content/themes/total/PKM/upload2/${one}X${two}X0.png`;
+        const image = await imgur(url).catch(() => null);
 
         const embed = this.client.util.embed()
             .setColor(colors.POKEMON)
             .setAuthor(`${title(first)} + ${title(second)}`)
             .setTitle(title(this.getPart(first) + this.getPart(second, true)))
-            .setURL(url)
-            .setImage(url)
+            .setURL(image)
+            .setImage(image)
             .setFooter('Pokemon Fusion Generator');
 
         return embed;
