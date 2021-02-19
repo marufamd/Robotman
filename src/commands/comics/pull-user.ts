@@ -42,7 +42,7 @@ export default class extends Command {
                     id: 'date',
                     type: 'parsedDate',
                     match: 'rest',
-                    default: new Date()
+                    default: () => new Date()
                 }
             ],
             typing: true,

@@ -2,7 +2,7 @@ import * as colorette from 'colorette';
 import { MessageEmbedOptions, WebhookClient } from 'discord.js';
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
-import { parseWebhook } from './';
+import { parseWebhook } from '.';
 import { formats, logTypes } from './constants';
 
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;

@@ -97,7 +97,8 @@ export default class extends Command {
         const url = `https://japeal.prestocdn.net/wordpress/wp-content/themes/total/PKM/upload2/${one}X${two}X0.png`;
         const image = await imgur(url).catch(() => null);
 
-        const embed = this.client.util.embed()
+        const embed = this.client.util
+            .embed()
             .setColor(colors.POKEMON)
             .setAuthor(`${title(first)} + ${title(second)}`)
             .setTitle(title(this.getPart(first) + this.getPart(second, true)))
