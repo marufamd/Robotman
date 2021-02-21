@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { closest, randomResponse, trim } from '../../util';
+import { closest, randomResponse, split, trim } from '../../util';
 import { formats } from '../../util/constants';
 import letterboxd, { ReviewEntry } from '../../util/letterboxd';
 
@@ -52,16 +52,20 @@ export default class extends Command {
 
         if (!film || film === 'all') {
             const films = list.map(r => `[${this.getFilm(r)}](${r.url}) ${r.rating ?? ''}`);
+            const chunks = split(films, 10).entries();
+
+            for (let [i, chunk] of chunks) {
+                embed.addField(`Page ${++i}`, trim(chunk.join('\n'), 1024), true);
+            }
 
             embed
                 .setTitle(`${user}'s Latest Reviews`)
-                .setURL(`https://letterboxd.com/${username}/films/reviews/`)
-                .setDescription(trim(films.slice(0, 23).join('\n'), 2048));
+                .setURL(`https://letterboxd.com/${username}/films/reviews/`);
         } else {
             if (['latest', 'recent'].includes(film)) {
                 rating = list[0];
             } else {
-                film = closest(film, list.map(a => a.film?.title).filter(a => a));
+                film = closest(film, list.map(a => a.film?.title).filter(Boolean));
                 rating = list.find(m => m.film?.title === film);
             }
 
