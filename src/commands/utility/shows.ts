@@ -50,6 +50,8 @@ export default class extends Command {
             if (!found.length) continue;
 
             for (const episode of found) {
+                if (episode.number === null) continue;
+
                 const day = DateTime.fromJSDate(new Date(episode.airdate), { zone: 'utc' });
 
                 const season = pad(episode.season);
