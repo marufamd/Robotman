@@ -22,7 +22,7 @@ export default class extends Command {
                     id: 'date',
                     type: 'parsedDate',
                     match: 'content',
-                    default: new Date()
+                    default: () => new Date()
                 }
             ],
             typing: true
