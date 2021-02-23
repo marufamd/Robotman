@@ -92,8 +92,6 @@ export default class extends Command {
                     sort: 'new',
                     t: 'all'
                 })})
-
-                * [This Week's Weekly Discussion]()
                 `;
 
                 final.push(template);
