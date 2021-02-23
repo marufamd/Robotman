@@ -12,7 +12,8 @@ export const formats = {
     day: 'EEEE',
     clock: "h':'mm a",
     regular: "MMMM d',' y",
-    days: 'd'
+    days: 'd',
+    template: 'MMMM d'
 };
 
 export const logTypes = {

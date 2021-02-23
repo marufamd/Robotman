@@ -330,6 +330,12 @@ export async function define(word: string, synonym = false): Promise<Definition 
 
 export function getPullDate(date: DateTime): DateTime {
     return date
-            .set({ weekday: 3 })
-            .plus({ weeks: date.weekday <= 3 ? 0 : 1 });
+        .set({ weekday: 3 })
+        .plus({ weeks: date.weekday <= 3 ? 0 : 1 });
+}
+
+export function pad(num: number): string {
+    return num
+        .toString()
+        .padStart(2, '0');
 }

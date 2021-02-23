@@ -4,11 +4,9 @@ import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { stringify } from 'querystring';
 import TurndownService from 'turndown';
-import { pastee as paste } from '../../util';
+import { pad, pastee as paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
-
-const pad = (num: number) => num.toString().padStart(2, '0');
 
 export default class extends Command {
     public constructor() {
@@ -62,36 +60,18 @@ export default class extends Command {
                 const season = pad(episode.season);
                 const number = pad(episode.number);
 
-                const synopsis = () => new TurndownService()
-                    .turndown(episode.summary)
-                    .split('\n').map(s => `> ${s}`)
-                    .join('\n');
-
                 const template = stripIndents`
-                [***${episode.show.name}*** **s${season}e${number}** - *${episode.name}*](${episode.show.image.original})
+                [***${episode.show.name}*** **S${season}E${number}** - *${episode.name}*](${episode.show.image.original})
 
-                Time/Date: ${day.toFormat(`MMMM d`)} ${convertTime(episode.airtime)} ET
+                Time/Date: ${day.toFormat(formats.template)} ${this.convertTime(episode.airtime)} ET
 
                 Network/Channel: ${(episode.show.network ?? episode.show.webChannel).name}
-                ${episode.summary?.length ? `\n${synopsis()}` : ''}
-
+                ${episode.summary?.length ? `\n${this.makeSynopsis(episode.summary)}\n` : ''}
                 ---
 
-                * [Previous Episode Discussions](https://www.reddit.com/r/DCcomics/search?${stringify({
-                    q: `tv discussion network ${episode.show.name?.toLowerCase()}`,
-                    restrict_sr: 'on',
-                    include_over_18: 'on',
-                    sort: 'new',
-                    t: 'all'
-                })})
+                * [Previous Episode Discussions](${this.makeURL(`tv discussion network ${episode.show.name?.toLowerCase()}`)})
 
-                * [TV Discussion Archives](https://www.reddit.com/r/DCcomics/search/?${stringify({
-                    q: 'tv discussion network service',
-                    restrict_sr: 'on',
-                    include_over_18: 'on',
-                    sort: 'new',
-                    t: 'all'
-                })})
+                * [TV Discussion Archives](${this.makeURL('tv discussion network service')})
                 `;
 
                 final.push(template);
@@ -102,20 +82,44 @@ export default class extends Command {
 
         const str = `Episode templates for the week of ${firstDay}`;
 
-        const link = await paste(final.join(`\n\n${'-'.repeat(150)}\n\n`), str, 'markdown');
+        const link = await paste(
+            final.join(`\n\n${'-'.repeat(150)}\n\n`),
+            str,
+            'markdown'
+        );
 
         return message.util.send(`${str}\n\n<${link}>`);
     }
-}
 
-function convertTime(time: string): string {
-    return new Date(`1970-01-01T${time}Z`)
-        .toLocaleTimeString([], {
-            timeZone: 'UTC',
-            hour12: true,
-            hour: 'numeric',
-            minute: 'numeric'
-        })
-        .toUpperCase()
-        .replaceAll('.', '');
+    private convertTime(time: string): string {
+        return new Date(`1970-01-01T${time}Z`)
+            .toLocaleTimeString([], {
+                timeZone: 'UTC',
+                hour12: true,
+                hour: 'numeric',
+                minute: 'numeric'
+            })
+            .toUpperCase()
+            .replaceAll('.', '');
+    }
+
+    private makeSynopsis(str: string): string {
+        return new TurndownService()
+            .turndown(str)
+            .split('\n')
+            .map(s => `> ${s}`)
+            .join('\n');
+    }
+
+    private makeURL(query: string): string {
+        const obj = {
+            q: query,
+            restrict_sr: 'on',
+            include_over_18: 'on',
+            sort: 'new',
+            t: 'all'
+        };
+
+        return `https://www.reddit.com/r/DCcomics/search/?${stringify(obj)}`;
+    }
 }

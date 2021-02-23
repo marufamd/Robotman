@@ -1,11 +1,9 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { codeblock, pastee as paste } from '../../util';
+import { codeblock, pad, pastee as paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
-
-const pad = (num: number) => num.toString().padStart(2, '0');
 
 export default class extends Command {
     public constructor() {
