@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { codeblock, paste } from '../../util';
+import { codeblock, pastee as paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
 
@@ -28,6 +28,8 @@ export default class extends Command {
             typing: true
         });
     }
+
+    public mod = true;
 
     public async exec(message: Message, { date }: { date: Date }) {
         const dtf = DateTime.fromJSDate(date, { zone: 'utc' });
