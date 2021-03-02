@@ -39,13 +39,15 @@ export default class extends Command {
                         if (!phrase) phrase = 'dc';
                         const name = closest(phrase.toLowerCase(), [...publishers.keys()]) as Publisher;
                         return publishers.get(name);
-                    }
+                    },
+                    unordered: true
                 },
                 {
                     id: 'date',
                     type: 'parsedDate',
                     match: 'rest',
-                    default: () => new Date()
+                    default: () => new Date(),
+                    unordered: true
                 }
             ],
             typing: true
