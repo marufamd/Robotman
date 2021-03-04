@@ -1,6 +1,6 @@
 # Robotman <img src="https://i.imgur.com/8RQzfdB.png" align="right">
 
-# Setup
+## Setup
 
 - Clone the repo `git clone https://github.com/maruf99/robotman.git`
 - Rename `.env.example` to `.env` and fill it out
