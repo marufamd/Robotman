@@ -70,16 +70,17 @@ export function redact(str: string): string {
     const tokens = [
         'WEBHOOK_URL',
         'DISCORD_TOKEN',
-        'DATABASE_URL',
+        'POSTGRES_URL',
         'GOOGLE_SEARCH_KEY',
         'GOOGLE_ENGINE_KEY',
         'SERVICE_ACCOUNT_EMAIL',
         'SERVICE_ACCOUNT_KEY',
-        'SPREADSHEET',
+        'SPREADSHEET_ID',
         'COMICVINE_KEY',
-        'PASTE_KEY',
-        'DICTIONARY_KEY',
-        'MOVIEDB_KEY'
+        'PASTEE_KEY',
+        'WEBSTER_DICTIONARY_KEY',
+        'WEBSTER_THESAURUS_KEY',
+        'OPEN_MOVIE_DB_KEY'
     ];
 
     return str.replaceAll(
@@ -228,7 +229,7 @@ export async function pastee(contents: string, title = 'Paste', lang = 'autodete
     const { body } = await request
         .post('https://api.paste.ee/v1/pastes')
         .set({
-            'X-Auth-Token': process.env.PASTE_KEY,
+            'X-Auth-Token': process.env.PASTEE_KEY,
             'Content-Type': 'application/json'
         })
         .send({ sections: [{ name: title, syntax: lang, contents }] });
@@ -306,7 +307,7 @@ export async function define(word: string, synonym = false): Promise<Definition 
 
     const { body } = await request
         .get(url)
-        .query('key', process.env[`${synonym ? 'THESAURUS' : 'DICTIONARY'}_KEY`]);
+        .query('key', process.env[`WEBSTER_${synonym ? 'THESAURUS' : 'DICTIONARY'}_KEY`]);
 
     if (!body.length) return null;
     const result = body[0];

@@ -74,7 +74,7 @@ export default class RobotmanClient extends AkairoClient {
     public ratelimits = 0;
     public schedule: Job;
 
-    public sql = postgres(process.env.DATABASE_URL, {
+    public sql = postgres(process.env.POSTGRES_URL, {
         onnotice: (notice: Notice) => {
             if (/relation "(.*)" already exists/gi.test(notice.message)) return;
             return this.log(notice, 'info', { code: true }, { title: 'Postgres' });

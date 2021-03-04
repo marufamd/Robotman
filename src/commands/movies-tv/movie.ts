@@ -54,7 +54,7 @@ export default class extends Command {
         const { body } = await request
             .get('https://www.omdbapi.com/')
             .query({
-                apikey: process.env.MOVIEDB_KEY,
+                apikey: process.env.OPEN_MOVIE_DB_KEY,
                 type: 'movie',
                 t: query.replaceAll(/spider man/gi, 'spider-man')
             });

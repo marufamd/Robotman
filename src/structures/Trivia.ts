@@ -36,7 +36,7 @@ export default class Trivia {
     }
 
     public async getQuestions(category: number): Promise<TriviaData> {
-        const doc = new GoogleSpreadsheet(process.env.SPREADSHEET);
+        const doc = new GoogleSpreadsheet(process.env.SPREADSHEET_ID);
         await doc.useServiceAccountAuth({
             client_email: process.env.SERVICE_ACCOUNT_EMAIL,
             private_key: process.env.SERVICE_ACCOUNT_KEY.replaceAll(String.raw`\n`, '\n')
