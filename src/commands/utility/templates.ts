@@ -4,7 +4,7 @@ import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { stringify } from 'querystring';
 import TurndownService from 'turndown';
-import { pad, pastee as paste } from '../../util';
+import { codeblock, pad, pastee as paste } from '../../util';
 import { formats, shows } from '../../util/constants';
 import request from '../../util/request';
 
@@ -35,7 +35,9 @@ export default class extends Command {
     public async exec(message: Message, { date }: { date: Date }) {
         const dtf = DateTime.fromJSDate(date, { zone: 'utc' });
 
-        const final = [];
+        const templates = [];
+        const list = [];
+
         let firstDay;
 
         for (let i = 1; i < 8; i++) {
@@ -60,8 +62,12 @@ export default class extends Command {
                 const season = pad(episode.season);
                 const number = pad(episode.number);
 
+                const part = (str = '') => `[***${episode.show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
+
                 const template = stripIndents`
-                [***${episode.show.name}*** **S${season}E${number}** - *${episode.name}*](${episode.show.image.original})
+                Title: [TV Discussion] ${episode.show.name} S${season}E${number} - ${episode.name}
+
+                ${part(episode.show.image.original)}
 
                 Time/Date: ${day.toFormat(formats.template)} ${this.convertTime(episode.airtime)} ET
 
@@ -74,21 +80,28 @@ export default class extends Command {
                 * [TV Discussion Archives](${this.makeURL('tv discussion network service')})
                 `;
 
-                final.push(template);
+                templates.push(template);
+                list.push(`* **${day.toFormat(formats.day)}:** ${part()}`);
             }
         }
 
-        if (!final.length) return message.channel.send(`There are no episodes scheduled for the week of ${firstDay}`);
+        if (!templates.length) return message.channel.send(`There are no episodes scheduled for the week of ${firstDay}`);
 
         const str = `Episode templates for the week of ${firstDay}`;
 
         const link = await paste(
-            final.join(`\n\n${'-'.repeat(150)}\n\n`),
+            templates.join(`\n\n${'-'.repeat(150)}\n\n`),
             str,
             'markdown'
         );
 
-        return message.util.send(`${str}\n\n<${link}>`);
+        return message.util.send(stripIndents`
+        ${str}
+        <${link}>
+
+        List
+        ${codeblock(list.join('\n'), 'md')}
+        `);
     }
 
     private convertTime(time: string): string {
