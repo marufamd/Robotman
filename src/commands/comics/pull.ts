@@ -76,9 +76,11 @@ export default class extends Command {
     public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }) {
         let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
 
-        if (next.includes(message.util.parsed.alias)) {
+        const alias = message.util.parsed.alias.replace(/pull(last|next)/gi, 'pull-$1');
+
+        if (next.includes(alias)) {
             week = week.plus({ weeks: 1 });
-        } else if (previous.includes(message.util.parsed.alias)) {
+        } else if (previous.includes(alias)) {
             week = week.minus({ weeks: 1 });
         }
 
