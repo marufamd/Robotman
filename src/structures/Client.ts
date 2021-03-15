@@ -169,9 +169,10 @@ export default class RobotmanClient extends AkairoClient {
             )`;
 
             await sql`create table if not exists guild_settings(
-                guild             varchar(25) primary key,
-                prefix            varchar(5),
-                disabled_commands text[]
+                guild              varchar(25) primary key,
+                prefix             varchar(5),
+                disabled_commands  text[],
+                crosspost_channels text
             )`;
 
             await sql`create table if not exists tags(

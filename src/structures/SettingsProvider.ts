@@ -7,6 +7,7 @@ export interface GuildSettings {
     guild: string;
     prefix: string;
     disabled_commands: string[];
+    crosspost_channels: string;
 }
 
 export default class SettingsProvider extends Provider {
