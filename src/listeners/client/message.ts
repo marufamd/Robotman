@@ -1,5 +1,5 @@
 import { Listener } from 'discord-akairo';
-import { Message } from 'discord.js';
+import { Message, Permissions } from 'discord.js';
 
 export default class extends Listener {
     public constructor() {
@@ -10,7 +10,7 @@ export default class extends Listener {
     }
 
     public async exec(message: Message) {
-        if (message.channel.type !== 'news') return;
+        if (message.channel.type !== 'news' || !message.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) return;
 
         const channels = this.client.settings.get(message.guild.id, 'crosspost_channels', []);
         if (!channels.includes(message.channel.id)) return;
