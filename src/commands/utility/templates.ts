@@ -77,7 +77,7 @@ export default class extends Command {
 
                 * [Previous Episode Discussions](${this.makeURL(`tv discussion network ${episode.show.name?.toLowerCase()}`)})
 
-                * [TV Discussion Archives](${this.makeURL('tv discussion network service')})
+                * [TV Discussion Archives](${this.makeURL('tv discussion network')})
                 `;
 
                 templates.push(template);
