@@ -343,8 +343,9 @@ export function pad(num: number): string {
 
 export async function scrapeRedditWiki(path: string, subreddit: string): Promise<Record<string, any>> {
     const url = `https://www.reddit.com/r/${subreddit}/wiki/${path}.json`;
-    const { body } = await request.get(url);
+    const data = await request.get(url).catch(() => null);
+    if (!data) return null;
 
-    if (body.reason === 'PAGE_NOT_CREATED') return null;
-    return body;
+    if (data.body.reason === 'PAGE_NOT_CREATED') return null;
+    return data.body;
 }

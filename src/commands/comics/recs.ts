@@ -7,7 +7,7 @@ export default class extends Command {
         super('recs', {
             aliases: ['recs', 'recommendations'],
             description: 'Displays a user\'s recommendation list.',
-            regex: /^(.+)\srec(commendation)?s$/i,
+            regex: /^(\w+)\srec(commendation)?s$/i,
             args: [
                 {
                     id: 'user',
