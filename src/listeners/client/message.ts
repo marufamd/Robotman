@@ -11,7 +11,7 @@ export default class extends Listener {
     }
 
     public async exec(message: Message) {
-        if (/^rec(ommendation)?s\sindex$/i.test(message.content)) {
+        if (/^taste test$/i.test(message.content)) {
             const body = await scrapeRedditWiki(`recsbot/tastetest`, 'DCcomics');
             if (!body || body.kind !== 'wikipage') return;
             return message.util.send(
