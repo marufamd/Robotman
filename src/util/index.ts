@@ -340,3 +340,11 @@ export function pad(num: number): string {
         .toString()
         .padStart(2, '0');
 }
+
+export async function scrapeRedditWiki(path: string, subreddit: string): Promise<Record<string, any>> {
+    const url = `https://www.reddit.com/r/${subreddit}/wiki/${path}.json`;
+    const { body } = await request.get(url);
+
+    if (body.reason === 'PAGE_NOT_CREATED') return null;
+    return body;
+}
