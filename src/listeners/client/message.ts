@@ -19,6 +19,7 @@ export default class extends Listener {
                     .split('\r\n\r\n')
                     .join('\n')
                     .replace(/\[(.+?)\]\((https?:\/\/[a-zA-Z0-9/.(]+?)\)/g, '$1')
+                    .replace(/##\*\*(Mods|Boosters)\*\*/g, '\n**$1**')
                     .replaceAll('amp:', '')
             );
         }
