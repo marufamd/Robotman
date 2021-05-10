@@ -25,8 +25,6 @@ export default class extends Listener {
             await fs.unlink(rebootPath);
         }
 
-        setInterval(this.client.recs.clear, 7200000);
-
         this.client.log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);
         if (!this.client.development) {
             void this.client.user.setPresence({
