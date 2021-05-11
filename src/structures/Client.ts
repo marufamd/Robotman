@@ -18,7 +18,7 @@ import InteractionHandler, { APICommandData } from './InteractionHandler';
 import SettingsProvider from './SettingsProvider';
 import TagsProvider from './TagsProvider';
 
-const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler): string => `• ${handler.modules.size} ${plural(handler.constructor.name.slice(0, 7).toLowerCase(), handler.modules.size)}`;
+const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler): string => `• ${handler.modules.size} ${plural(handler.constructor.name.slice(0, -7).toLowerCase(), handler.modules.size)}`;
 
 declare module 'discord.js' {
     interface Message {
