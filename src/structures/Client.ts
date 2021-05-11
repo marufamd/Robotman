@@ -34,7 +34,6 @@ declare module 'discord-akairo' {
         config: ConfigManager;
         settings: SettingsProvider;
         tags: TagsProvider;
-        recs: Map<string, string>;
         commandHandler: CommandHandler;
         interactionHandler: InteractionHandler;
         listenerHandler: ListenerHandler;
@@ -74,7 +73,6 @@ export default class RobotmanClient extends AkairoClient {
     public development = process.env.NODE_ENV === 'development';
     public ratelimits = 0;
     public schedule: Job;
-    public recs = new Map<string, string>();
 
     public sql = postgres(process.env.POSTGRES_URL, {
         onnotice: (notice: Notice) => {

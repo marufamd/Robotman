@@ -25,17 +25,8 @@ export default class extends Command {
     public async exec(message: Message, { user, match }: { user: string; match: string }) {
         if (!user?.length && match) user = match[1]?.toLowerCase();
 
-        if (this.client.recs.has(user)) return message.util.send(this.client.recs.get(user));
-
         const body = await scrapeRedditWiki(`recsbot/tastetest/${user}recs`, 'DCcomics');
         if (!body || body.kind !== 'wikipage') return;
-
-        const data = body.data.content_md
-            .split('\r\n\r\n')
-            .join('\n')
-            .replaceAll('amp;', '');
-
-        this.client.recs.set(user, data);
 
         return message.util.send(
             body.data.content_md
