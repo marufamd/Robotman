@@ -1,7 +1,9 @@
 import { Listener } from 'discord-akairo';
 import { Message, Permissions } from 'discord.js';
 import { scrapeRedditWiki, split } from '../../util';
-import { colors } from '../../util/constants';
+import { colors, tasteTestText } from '../../util/constants';
+
+const clean = (p: string) => p.replace(/recsbot\/tastetest\/(.+)recs(?:mod)?/g, '$1');
 
 export default class extends Listener {
     public constructor() {
@@ -13,21 +15,16 @@ export default class extends Listener {
 
     public async exec(message: Message) {
         if (/^taste test$/i.test(message.content)) {
-            const body = await scrapeRedditWiki(`recsbot/tastetest`, 'DCcomics');
-            if (!body || body.kind !== 'wikipage') return;
-            let [desc, mods, boosters] = this.formatData(body.data.content_md).split('\n\n');
-
-            mods = mods
-                .split('\n')
-                .splice(1)
-                .join('\n');
-
-            const [first, second] = split(boosters.split('\n').splice(1), 15);
+            const { data } = await scrapeRedditWiki(`pages`, 'DCcomics');
+            const list = (data as string[]).filter(p => p.startsWith('recsbot/tastetest/'));
+            const mods = list.filter(p => p.endsWith('mod')).map(clean);
+            const boosters = list.filter(p => !p.endsWith('mod')).map(clean);
+            const [first, second] = split(boosters, 15);
 
             const embed = this.client.util.embed()
                 .setColor(colors.DC)
-                .setDescription(desc)
-                .addField('Mods', mods, true)
+                .setDescription(tasteTestText)
+                .addField('Mods', mods.join('\n'), true)
                 .addField('Boosters', first.join('\n'), true)
                 .addField('\u200b', second.join('\n'), true);
 

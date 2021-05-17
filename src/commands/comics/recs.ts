@@ -25,7 +25,7 @@ export default class extends Command {
     public async exec(message: Message, { user, match }: { user: string; match: string }) {
         if (!user?.length && match) user = match[1]?.toLowerCase();
 
-        const body = await scrapeRedditWiki(`recsbot/tastetest/${user}recs`, 'DCcomics');
+        const body = await scrapeRedditWiki(`recsbot/tastetest/${user}recs`, 'DCcomics') ?? await scrapeRedditWiki(`recsbot/tastetest/${user}recsmod`, 'DCcomics');
         if (!body || body.kind !== 'wikipage') return;
 
         return message.util.send(

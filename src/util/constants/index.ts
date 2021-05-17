@@ -1,3 +1,4 @@
+import { oneLine } from 'common-tags';
 import colors from './colors.json';
 import pokemon from './pokemon.json';
 import timezones from './timezones.json';
@@ -260,3 +261,9 @@ export const publishers = new Map<Publisher, PublisherData>([
         thumbnail: 'https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png'
     }]
 ]);
+
+export const tasteTestText = oneLine`
+Welcome to **Taste Test**, where you can sample our mods' and boosters' 
+personal recommendations and personal taste! Feel free to engage us on a discussion, 
+and please, have fun discovering what we love.
+`;
