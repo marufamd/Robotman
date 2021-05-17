@@ -22,6 +22,7 @@ export default class extends Listener {
                 .filter(p => p.endsWith('mod'))
                 .map(clean)
                 .sort();
+
             const boosters = list
                 .filter(p => !p.endsWith('mod'))
                 .map(clean)
@@ -45,14 +46,5 @@ export default class extends Listener {
         if (!channels.includes(message.channel.id)) return;
 
         await message.crosspost().catch(e => this.client.log(e.stack, 'error'));
-    }
-
-    private formatData(str: string): string {
-        return str
-            .split('\r\n\r\n')
-            .join('\n')
-            .replace(/\[(.+?)\]\((https?:\/\/[a-zA-Z0-9/.(]+?)\)/g, '$1')
-            .replace(/##\*\*(Mods|Boosters)\*\*/g, '\n**$1**')
-            .replaceAll('amp:', '');
     }
 }
