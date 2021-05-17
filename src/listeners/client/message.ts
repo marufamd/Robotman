@@ -17,8 +17,16 @@ export default class extends Listener {
         if (/^taste test$/i.test(message.content)) {
             const { data } = await scrapeRedditWiki(`pages`, 'DCcomics');
             const list = (data as string[]).filter(p => p.startsWith('recsbot/tastetest/'));
-            const mods = list.filter(p => p.endsWith('mod')).map(clean);
-            const boosters = list.filter(p => !p.endsWith('mod')).map(clean);
+
+            const mods = list
+                .filter(p => p.endsWith('mod'))
+                .map(clean)
+                .sort();
+            const boosters = list
+                .filter(p => !p.endsWith('mod'))
+                .map(clean)
+                .sort();
+
             const [first, second] = split(boosters, 15);
 
             const embed = this.client.util.embed()
