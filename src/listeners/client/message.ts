@@ -3,7 +3,7 @@ import { Message, Permissions } from 'discord.js';
 import { scrapeRedditWiki, split } from '../../util';
 import { colors, tasteTestText } from '../../util/constants';
 
-const clean = (p: string) => p.replace(/recsbot\/tastetest\/(.+)recs(?:mod)?/g, '$1');
+const clean = (p: string): string => p.replace(/recsbot\/tastetest\/(.+)recs(?:mod)?/g, '$1');
 
 export default class extends Listener {
     public constructor() {

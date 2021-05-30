@@ -55,6 +55,7 @@ export const shows = new Set([
     36774, // Pennyworth
     37776, // Batwoman
     37809, // Stargirl
+    39764, // Sweet Tooth
     42668, // Y: The Last Man
     42827, // The Sandman
     44751, // Superman and Lois
