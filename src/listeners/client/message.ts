@@ -50,7 +50,8 @@ export default class extends Listener {
                 .split('\n')
                 .map(w => w
                     .replace(/\[(.+?)\]\((https?:\/\/[a-zA-Z0-9/.(]+?)\)/g, '$1')
-                    .trim());
+                    .trim())
+                .sort();
 
             const columns = split(list, 20);
 
