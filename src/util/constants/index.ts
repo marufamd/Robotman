@@ -268,3 +268,5 @@ Welcome to **Taste Test**, where you can sample our mods' and boosters'
 personal recommendations and personal taste! Feel free to engage us on a discussion, 
 and please, have fun discovering what we love.
 `;
+
+export const recChannels = ['538424492544884738', '248985053441294337', '763091344590897182'];
