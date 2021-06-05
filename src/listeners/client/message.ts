@@ -42,7 +42,7 @@ export default class extends Listener {
             return message.util.send(embed);
         }
 
-        if (/^writers? recs$/i.test(message.content)) {
+        if (/^writers? rec(ommendation)?s$/i.test(message.content)) {
             const { data: { content_md: data } } = await scrapeRedditWiki(`recsbot/writersrecs`, 'DCcomics');
             const [text, writers] = data.split('\r\n\r\n');
 
