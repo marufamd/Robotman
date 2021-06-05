@@ -28,14 +28,39 @@ export default class extends Listener {
                 .map(clean)
                 .sort();
 
-            const [first, second] = split(boosters, 15);
+            const columns = split(boosters, 15);
 
             const embed = this.client.util.embed()
                 .setColor(colors.DC)
                 .setDescription(tasteTestText)
-                .addField('Mods', mods.join('\n'), true)
-                .addField('Boosters', first.join('\n'), true)
-                .addField('\u200b', second.join('\n'), true);
+                .addField('Mods', mods.join('\n'), true);
+
+            for (const column of columns) {
+                embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);
+            }
+
+            return message.util.send(embed);
+        }
+
+        if (/^writers? recs$/i.test(message.content)) {
+            const { data: { content_md: data } } = await scrapeRedditWiki(`recsbot/writersrecs`, 'DCcomics');
+            const [text, writers] = data.split('\r\n\r\n');
+
+            const list = (writers as string)
+                .split('\n')
+                .map(w => w
+                    .replace(/\[(.+?)\]\((https?:\/\/[a-zA-Z0-9/.(]+?)\)/g, '$1')
+                    .trim());
+
+            const columns = split(list, 20);
+
+            const embed = this.client.util.embed()
+                .setColor(colors.DC)
+                .setDescription(text);
+
+            for (const column of columns) {
+                embed.addField('\u200b', column.join('\n'), true);
+            }
 
             return message.util.send(embed);
         }

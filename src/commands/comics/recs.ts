@@ -7,25 +7,26 @@ export default class extends Command {
         super('recs', {
             aliases: ['recs', 'recommendations'],
             description: 'Displays a user\'s recommendation list.',
-            regex: /^(\w+)\srec(commendation)?s$/i,
+            regex: /^(.+)\srec(commendation)?s$/i,
             args: [
                 {
-                    id: 'user',
+                    id: 'list',
                     type: 'lowercase',
                     match: 'content',
-                    prompt: {
-                        start: 'Which user\'s recommendations would you like to view?'
-                    }
+                    otherwise: 'Please provide a recommendation list to view.'
                 }
             ],
             cooldown: 1000
         });
     }
 
-    public async exec(message: Message, { user, match }: { user: string; match: string }) {
-        if (!user?.length && match) user = match[1]?.toLowerCase();
+    public async exec(message: Message, { list, match }: { list: string; match: string }) {
+        if (!list?.length && match) list = match[1]?.toLowerCase();
 
-        const body = await scrapeRedditWiki(`recsbot/tastetest/${user}recs`, 'DCcomics') ?? await scrapeRedditWiki(`recsbot/tastetest/${user}recsmod`, 'DCcomics');
+        const body = list.includes(' ')
+            ? await scrapeRedditWiki(`recsbot/writersrecs/${list.replace(/[^a-z]+/g, '')}recs`, 'DCcomics')
+            : await scrapeRedditWiki(`recsbot/tastetest/${list}recs`, 'DCcomics') ?? await scrapeRedditWiki(`recsbot/tastetest/${list}recsmod`, 'DCcomics');
+
         if (!body || body.kind !== 'wikipage') return;
 
         return message.util.send(
@@ -33,6 +34,8 @@ export default class extends Command {
                 .split('\r\n\r\n')
                 .join('\n')
                 .replaceAll('amp;', '')
+                .replaceAll('&lt;', '<')
+                .replaceAll('&gt;', '>')
         );
     }
 }
