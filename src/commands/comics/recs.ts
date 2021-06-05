@@ -23,16 +23,23 @@ export default class extends Command {
     public async exec(message: Message, { list, match }: { list: string; match: string }) {
         if (!list?.length && match) list = match[1]?.toLowerCase();
 
-        const body = list.includes(' ')
+        const isWriter = list.includes(' ');
+
+        const body = isWriter
             ? await scrapeRedditWiki(`recsbot/writersrecs/${list.replace(/[^a-z]+/g, '')}recs`, 'DCcomics')
             : await scrapeRedditWiki(`recsbot/tastetest/${list}recs`, 'DCcomics') ?? await scrapeRedditWiki(`recsbot/tastetest/${list}recsmod`, 'DCcomics');
 
         if (!body || body.kind !== 'wikipage') return;
 
-        return message.util.send(
-            body.data.content_md
+        const text = isWriter
+            ? body.data.content_md
+            : body.data.content_md
                 .split('\r\n\r\n')
-                .join('\n')
+                .join('\n');
+
+
+        return message.util.send(
+            text
                 .replaceAll('amp;', '')
                 .replaceAll('&lt;', '<')
                 .replaceAll('&gt;', '>')
