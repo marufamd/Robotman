@@ -1,9 +1,7 @@
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types';
-import type { Message } from 'discord.js';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import type Interaction from '../../structures/Interaction';
 import { closest, getPullDate } from '../../util';
 import { formats, Publisher, PublisherData, publishers, pull } from '../../util/constants';
 
@@ -13,27 +11,7 @@ export default class extends Command {
     public constructor() {
         super('pull', {
             aliases: ['pull', 'p', 'releases', previous, next].flat(),
-            description: {
-                info: 'Gets the pull list for a publisher for a specified week. Defaults to DC.',
-                usage: '<publisher> [date]',
-                extended: [
-                    'To get next week\'s pull list, do `{p}pullnext`',
-                    'To get last week\'s pull list, do `{p}pulllast`',
-                    'To get the pull list for a different week, you can put the date you want after the publisher\n',
-                    'Publisher codes are in codeblocks:\n',
-                    [...publishers]
-                        .map(([k, { name }]) => `${name} \`${k}\``)
-                        .join('\n')
-                ],
-                examples: [
-                    'dc',
-                    'pulllast marvel',
-                    'pullnext archie',
-                    'idw December 2 2020',
-                    'darkhorse 17 Jan 2021',
-                    'boom 2021-02-13'
-                ]
-            },
+            description: 'Gets the pull list for a publisher for a specified week. Defaults to DC.',
             args: [
                 {
                     id: 'publisher',
@@ -56,19 +34,40 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<publisher> [date]',
+        extended: [
+            'To get next week\'s pull list, do `{p}pullnext`',
+            'To get last week\'s pull list, do `{p}pulllast`',
+            'To get the pull list for a different week, you can put the date you want after the publisher\n',
+            'Publisher codes are in codeblocks:\n',
+            [...publishers]
+                .map(([k, { name }]) => `${name} \`${k}\``)
+                .join('\n')
+        ],
+        examples: [
+            'dc',
+            'pulllast marvel',
+            'pullnext archie',
+            'idw December 2 2020',
+            'darkhorse 17 Jan 2021',
+            'boom 2021-02-13'
+        ]
+    };
+
     public interactionOptions = {
         name: 'pull',
         description: 'Gets the pull list for a publisher for a specified week.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'publisher',
                 description: 'The publisher to view the pull list for.',
                 choices: [...publishers].map(([value, { name }]) => ({ name, value })).slice(0, 10),
                 required: true
             },
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'date',
                 description: 'The week to view the pull list for.'
             }
@@ -86,19 +85,18 @@ export default class extends Command {
             week = week.minus({ weeks: 1 });
         }
 
-        return message.util.send(await this.main(publisher, week));
+        return message.util.send(await this.run(publisher, week));
     }
 
-    public async interact(interaction: Interaction) {
-        const [name, date] = interaction.findOptions('publisher', 'date');
-
+    public async interact(interaction: CommandInteraction, { publisher, date }: { publisher: Publisher; date: string }) {
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const day = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
-        return interaction.respond(await this.main(publishers.get(name), day));
+        const main = this.client.util.checkEmbed(await this.run(publishers.get(publisher), day));
+        return interaction.reply(main);
     }
 
-    private async main(publisher: PublisherData, date: DateTime) {
+    private async run(publisher: PublisherData, date: DateTime) {
         const pull = await fetchReleases(date.toFormat(formats.locg), {
             publishers: [publisher.id],
             filter: [
@@ -118,6 +116,6 @@ export default class extends Command {
             .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
             .setThumbnail(publisher.thumbnail);
 
-        return embed;
+        return { embed };
     }
 }

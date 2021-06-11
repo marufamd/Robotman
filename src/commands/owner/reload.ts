@@ -1,19 +1,17 @@
-import { Argument, Category, Command, Inhibitor, Listener } from 'discord-akairo';
+import {
+    Argument,
+    Category,
+    Command,
+    Inhibitor,
+    Listener
+} from 'discord-akairo';
 import type { Message } from 'discord.js';
 
 export default class extends Command {
     public constructor() {
         super('reload', {
             aliases: ['reload'],
-            description: {
-                info: 'Reloads a module or category.',
-                usage: '<module or category>',
-                examples: [
-                    'ping',
-                    'user-info',
-                    'all:commands'
-                ]
-            },
+            description: 'Reloads a module or category.',
             ownerOnly: true,
             args: [
                 {
@@ -29,6 +27,15 @@ export default class extends Command {
             ]
         });
     }
+
+    public data = {
+        usage: '<module or category>',
+        examples: [
+            'ping',
+            'user-info',
+            'all:commands'
+        ]
+    };
 
     public exec(message: Message, { mod, all }: { mod: Command | Category<string, any> | Inhibitor | Listener; all: 'commands' | 'listeners' | 'inhibitors' }) {
         let response;

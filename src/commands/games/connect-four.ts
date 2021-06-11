@@ -73,7 +73,7 @@ export default class extends Command {
                 .addField('Time', emojis.timer, true)
                 .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move.`);
 
-            const msg = await message.channel.send(embed);
+            const msg = await message.channel.send({ embed });
 
             const turnFilter = (resp: Message) => {
                 const num = parseInt(resp.content);
@@ -116,10 +116,10 @@ export default class extends Command {
             embed.setTitle('The board is filled. The game was a draw!');
         }
 
-        return message.channel.send(embed);
+        return message.channel.send({ embed });
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter, time: number): Promise<Message | null> {
+    private async getResponse(message: Message, filter: CollectorFilter<[Message]>, time: number): Promise<Message> {
         const collected = await message.channel
             .awaitMessages(filter, { max: 1, time, errors: ['time'] })
             .catch(() => null);

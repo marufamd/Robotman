@@ -10,10 +10,7 @@ export default class extends Command {
     public constructor() {
         super('exec', {
             aliases: ['exec', 'execute', 'commandline'],
-            description: {
-                info: 'Executes a command on the command line.',
-                usage: '<code>'
-            },
+            description: 'Executes a command on the command line.',
             regex: /^(?:\$>)(?:\s+)?(.+)/,
             ownerOnly: true,
             args: [

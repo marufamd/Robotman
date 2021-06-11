@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import type { CommandInteraction, Message } from 'discord.js';
 
 export default class extends Command {
     public constructor() {
@@ -32,10 +30,13 @@ export default class extends Command {
                 inline: true
             });
 
-        return msg.edit(null, { embed });
+        return msg.edit({ content: null, embed });
     }
 
-    public interact(interaction: Interaction) {
-        return interaction.respond(`🏓 **Pong!** Took ${Date.now() - interaction.createdTimestamp}ms`, { type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
+    public interact(interaction: CommandInteraction) {
+        return interaction.reply({
+            content: `🏓 **Pong!** Took ${Date.now() - interaction.createdTimestamp}ms`,
+            ephemeral: true
+        });
     }
 }

@@ -1,5 +1,6 @@
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
+import type { Message, Snowflake } from 'discord.js';
 import { DateTime } from 'luxon';
 import { parseWebhook, split } from '../../util';
 import { colors, formats } from '../../util/constants';
@@ -20,7 +21,7 @@ export default class extends Command {
         const day = DateTime.local();
 
         const { id, token } = parseWebhook(webhookURL);
-        const webhook = await this.client.fetchWebhook(id, token);
+        const webhook = await this.client.fetchWebhook(id as Snowflake, token);
         const date = day
             .set({ weekday: 2 })
             .plus({ weeks: day.weekday <= 2 ? 0 : 1 })
@@ -51,7 +52,7 @@ export default class extends Command {
                 embeds.push(embed);
             }
 
-            const msg = await webhook.send(`**__Comics Release List for ${date}__**`);
+            const msg = await webhook.send(`**__Comics Release List for ${date}__**`) as Message;
 
             if (embeds.length > 10) {
                 const newEmbeds = split(embeds, 10);

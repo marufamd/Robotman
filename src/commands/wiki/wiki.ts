@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { Constants, CommandInteraction, Message } from 'discord.js';
 import { formatQuery, trim } from '../../util';
 import { wikiParams } from '../../util/constants';
 import request from '../../util/request';
@@ -14,11 +12,7 @@ export default class extends Command {
     public constructor() {
         super('wiki', {
             aliases: ['wiki', 'wikipedia'],
-            description: {
-                info: 'Searches Wikipedia.',
-                usage: '<query>',
-                examples: ['comicbooks']
-            },
+            description: 'Searches Wikipedia.',
             args: [
                 {
                     id: 'query',
@@ -38,7 +32,7 @@ export default class extends Command {
         description: 'Searches Wikipedia.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The query to search for.',
                 required: true
@@ -47,20 +41,20 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const wordlist = await this.getBadWords();
-        if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', ephemeral: true };
 
         const page = await this.search(formatQuery(query));
-        if (!page) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!page) return { content: 'No results found.', ephemeral: true };
 
         const embed = this.client.util
             .embed()
@@ -72,7 +66,7 @@ export default class extends Command {
 
         if (page.image) embed.setImage(page.image);
 
-        return embed;
+        return { embed };
     }
 
     private async search(query: string) {

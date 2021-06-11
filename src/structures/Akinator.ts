@@ -133,8 +133,10 @@ export default class Akinator {
             }
         }
 
-        const end = this.finalResponse(loss);
-        void message.channel.send(end, { files: [{ attachment: 'https://i.imgur.com/m3nIXvs.png', name: 'aki.png' }] });
+        void message.channel.send({
+            content: this.finalResponse(loss),
+            files: [{ attachment: 'https://i.imgur.com/m3nIXvs.png', name: 'aki.png' }]
+        });
     }
 
     private question(message: Message): string[] {
@@ -150,7 +152,7 @@ export default class Akinator {
             .addField('Time', emojis.timer, true)
             .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
 
-        void message.channel.send(embed);
+        void message.channel.send({ embed });
 
         return answers;
     }
@@ -172,10 +174,10 @@ export default class Akinator {
             .addField('Time', emojis.timer, true)
             .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
 
-        void message.channel.send(embed);
+        void message.channel.send({ embed });
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter): Promise<string> {
+    private async getResponse(message: Message, filter: CollectorFilter<[Message]>): Promise<string> {
         const responses = await message.channel.awaitMessages(filter, { max: 1, time: 60000, errors: ['time'] }).catch(() => null);
         if (!responses) return 'timeout';
         const response = responses.first().content.toLowerCase().replace('’', '\'').trim();

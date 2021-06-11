@@ -1,8 +1,6 @@
 import cheerio from 'cheerio';
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { google, title, trim } from '../../util';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
@@ -32,15 +30,7 @@ export default class extends Command {
     public constructor() {
         super('comic', {
             aliases: ['comic', 'comixology', 'issue', 'trade'],
-            description: {
-                info: 'Searches ComiXology for an issue/trade.',
-                usage: '<query>',
-                extended: ['More specific queries will give a more accurate result (e.g. including the launch year of the book, the writer, etc)'],
-                examples: [
-                    'daredevil 1 zdarsky',
-                    'batman 50'
-                ]
-            },
+            description: 'Searches ComiXology for an issue/trade.',
             args: [
                 {
                     id: 'query',
@@ -55,12 +45,21 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<query>',
+        extended: ['More specific queries will give a more accurate result (e.g. including the launch year of the book, the writer, etc)'],
+        examples: [
+            'daredevil 1 zdarsky',
+            'batman 50'
+        ]
+    };
+
     public interactionOptions = {
         name: 'comic',
         description: 'Searches ComiXology for an issue/trade.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The issue/trade to search for.',
                 required: true
@@ -69,17 +68,17 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const main = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(main);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const comic = await this.search(query);
-        if (!comic) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!comic) return { content: 'No results found', ephemeral: true };
 
         const embed = this.client.util
             .embed()
@@ -97,10 +96,10 @@ export default class extends Command {
 
         const { releaseDate, pageCount } = comic;
 
-        if (pageCount) embed.addField('Page Count', pageCount, true);
+        if (pageCount) embed.addField('Page Count', pageCount.toString(), true);
         if (releaseDate) embed.addField('Release Date', releaseDate, true);
 
-        return embed.inlineFields();
+        return { embed: embed.inlineFields() };
     }
 
     private async search(query: string): Promise<ComixologyData> {

@@ -1,26 +1,13 @@
+import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { colors } from '../../util/constants';
 
 export default class extends Command {
     public constructor() {
         super('color', {
             aliases: ['color', 'colour', 'color-code', 'hex-code', 'hex', 'rgb'],
-            description: {
-                info: 'Displays information about a specified color.',
-                usage: '<color>',
-                extended: [`Color can be a hex code, integer, RGB value, or a specific name of a color from a pre-defined list.`],
-                examples: [
-                    '#e67E22',
-                    '0xE67E22',
-                    'dark orange',
-                    '3447003',
-                    '(230, 126, 34)',
-                    '230 126 34'
-                ]
-            },
+            description: 'Displays information about a specified color.',
             args: [
                 {
                     id: 'color',
@@ -38,12 +25,25 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<color>',
+        extended: [`Color can be a hex code, integer, RGB value, or a specific name of a color from a pre-defined list.`],
+        examples: [
+            '#e67E22',
+            '0xE67E22',
+            'dark orange',
+            '3447003',
+            '(230, 126, 34)',
+            '230 126 34'
+        ]
+    };
+
     public interactionOptions = {
         name: 'color',
         description: 'Displays information about a specified color.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'color',
                 description: 'The color to show information for.',
                 required: true
@@ -52,18 +52,18 @@ export default class extends Command {
     };
 
     public exec(message: Message, { color }: { color: number }) {
-        return message.util.send(this.main(color));
+        return message.util.send(this.run(color));
     }
 
-    public interact(interaction: Interaction) {
-        const color = interaction.option('color') as string;
+    public interact(interaction: CommandInteraction, { color }: { color: string }) {
         const resolved = this.resolveString(color);
+        if (resolved === null) return interaction.reply({ content: 'Invalid Color.', ephemeral: true });
 
-        if (resolved === null) return interaction.respond({ content: 'Invalid Color.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
-        return interaction.respond(this.main(resolved));
+        const data = this.client.util.checkEmbed(this.run(resolved));
+        return interaction.reply(data);
     }
 
-    private main(color: number) {
+    private run(color: number) {
         const embed = this.client.util.embed().setColor(color);
 
         if (embed.color === 16777215) embed.color = 16777200;
@@ -79,14 +79,14 @@ export default class extends Command {
         const rgb = this.decimalToRGB(color);
 
         embed
-            .setDescription([
-                `• Hex: ${hex}`,
-                `• RGB: (${rgb.join(', ')})`,
-                `• Integer: ${isNaN(color) ? 0 : color}`
-            ])
+            .setDescription(stripIndents`
+                • Hex: ${hex}
+                • RGB: (${rgb.join(', ')})
+                • Integer: ${isNaN(color) ? 0 : color}
+            `)
             .setImage(url);
 
-        return embed;
+        return { embed };
     }
 
     private resolveString(phrase: string) {

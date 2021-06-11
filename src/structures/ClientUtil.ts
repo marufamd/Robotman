@@ -1,5 +1,5 @@
 import { ClientUtil, Command } from 'discord-akairo';
-import type { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import { InteractionReplyOptions, Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
 import RobotmanEmbed from '../util/embed';
 import type RobotmanClient from './Client';
 
@@ -12,14 +12,13 @@ export default class extends ClientUtil {
         return new RobotmanEmbed(data);
     }
 
-    public getDescription(command: Command): string {
-        if (!command?.description) return null;
-        return typeof command.description !== 'string' ? command.description.info : command.description;
+    public checkEmbed(data: string | InteractionReplyOptions | { embed: MessageEmbed | RobotmanEmbed }): string | InteractionReplyOptions {
+        return typeof data === 'object' && 'embed' in data ? { embeds: [data.embed] } : data;
     }
 
     public getExtended(command: Command, prefix: string): string {
-        if (!command?.description?.extended?.length) return this.getDescription(command);
-        return `${command.description.info}\n\n${command.description.extended.join('\n').replaceAll('{p}', prefix)}`;
+        if (!command?.data?.extended?.length) return command.description;
+        return `${command.description}\n\n${command.data.extended.join('\n').replaceAll('{p}', prefix)}`;
     }
 
     public formatPrefix(message: Message): string {
@@ -27,7 +26,7 @@ export default class extends ClientUtil {
     }
 
     public formatExamples(command: Command, prefix: string): string {
-        return command.description.examples
+        return command.data.examples
             .map((e: string) => {
                 if (command.aliases.some(a => e.startsWith(a + ' '))) return `${prefix}${e}`;
                 return `${prefix}${command.id} ${e}`;

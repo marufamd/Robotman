@@ -40,7 +40,6 @@ export default class extends Command {
                 .split('\r\n\r\n')
                 .join('\n');
 
-
         return message.util.send(
             text
                 .replaceAll('amp;', '')

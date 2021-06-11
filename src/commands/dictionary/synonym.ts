@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { define, Synonyms } from '../../util';
 import { colors } from '../../util/constants';
 
@@ -11,11 +9,7 @@ export default class extends Command {
     public constructor() {
         super('synonym', {
             aliases: ['synonym', 'thesaurus', 'synonyms', 'syns', 'syn'],
-            description: {
-                info: 'Displays synonyms for a word from the thesaurus.',
-                usage: '<word>',
-                examples: ['robot']
-            },
+            description: 'Displays synonyms for a word from the thesaurus.',
             args: [
                 {
                     id: 'word',
@@ -36,7 +30,7 @@ export default class extends Command {
         description: 'Shows synonyms for a word from the thesaurus.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'word',
                 description: 'The word to search for.',
                 required: true
@@ -45,17 +39,17 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { word }: { word: string }) {
-        return message.util.send(await this.main(word));
+        return message.util.send(await this.run(word));
     }
 
-    public async interact(interaction: Interaction) {
-        const word = interaction.option('word') as string;
-        return interaction.respond(await this.main(word));
+    public async interact(interaction: CommandInteraction, { word }: { word: string }) {
+        const data = this.client.util.checkEmbed(await this.run(word));
+        return interaction.reply(data);
     }
 
-    private async main(word: string) {
+    private async run(word: string) {
         const defined = await define(word, true) as Synonyms;
-        if (!defined?.synonyms?.length) return { content: 'No synonyms found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!defined?.synonyms?.length) return { content: 'No synonyms found', ephemeral: true };
 
         const embed = this.client.util
             .embed()
@@ -65,14 +59,23 @@ export default class extends Command {
         if (Array.isArray(defined)) {
             embed
                 .setTitle(`No synonyms found for \`${word}\``)
-                .addField('Did you mean:', defined.map(a => `[${a}](${BASE_URL}/thesaurus/${encodeURIComponent(a)})`).join('\n'));
+                .addField(
+                    'Did you mean:',
+                    defined
+                        .map(a => `[${a}](${BASE_URL}/thesaurus/${encodeURIComponent(a)})`)
+                        .join('\n')
+                );
         } else {
             embed
                 .setTitle(`Synonyms for ${defined.word}`)
                 .setURL(`https://www.merriam-webster.com/thesaurus/${encodeURIComponent(defined.word)}`)
-                .setDescription(defined.synonyms.map(s => `[${s}](${BASE_URL}/dictionary/${encodeURIComponent(s)})`));
+                .setDescription(
+                    defined.synonyms
+                        .map(s => `[${s}](${BASE_URL}/dictionary/${encodeURIComponent(s)})`)
+                        .join('\n')
+                );
         }
 
-        return embed;
+        return { embed };
     }
 }

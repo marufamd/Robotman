@@ -1,8 +1,6 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import TurndownService from 'turndown';
-import type Interaction from '../../structures/Interaction';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
 
@@ -10,11 +8,7 @@ export default class extends Command {
     public constructor() {
         super('show', {
             aliases: ['show', 'tv', 'tv-show'],
-            description: {
-                info: 'Shows information about a TV show.',
-                usage: '<query>',
-                examples: ['Daredevil']
-            },
+            description: 'Shows information about a TV show.',
             args: [
                 {
                     id: 'query',
@@ -34,7 +28,7 @@ export default class extends Command {
         description: 'Shows information about a TV show.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The TV show to search for.',
                 required: true
@@ -43,20 +37,20 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const { body } = await request
             .get('https://api.tvmaze.com/search/shows')
             .query('q', query);
 
-        if (!body?.length) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!body?.length) return { content: 'No results found.', ephemeral: true };
 
         const { show } = body[0];
         const network = show.network || show.webChannel;
@@ -78,6 +72,6 @@ export default class extends Command {
         if (show.officialSite) embed.addField('Website', `[Click Here](${show.officialSite})`, true);
         if (embed.fields.length === 5) embed.addField('\u200b', '\u200b', true);
 
-        return embed;
+        return { embed };
     }
 }

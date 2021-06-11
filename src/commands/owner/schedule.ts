@@ -1,5 +1,5 @@
 import { Command } from 'discord-akairo';
-import type { Message } from 'discord.js';
+import type { Message, Snowflake } from 'discord.js';
 import { parseWebhook } from '../../util';
 
 const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -16,7 +16,7 @@ export default class extends Command {
         });
     }
 
-    public *args() {
+    public *args(): unknown {
         const mode = yield {
             type: ['time', 'view', 'webhook'],
             default: 'view'
@@ -77,7 +77,7 @@ export default class extends Command {
 
                 if (row.webhook_url) {
                     const { id, token } = parseWebhook(row.webhook_url);
-                    str += `\n**Webhook:** ${(await this.client.fetchWebhook(id, token)).name}`;
+                    str += `\n**Webhook:** ${(await this.client.fetchWebhook(id as Snowflake, token)).name}`;
                 }
 
                 if (!row.webhook_url && !row.schedule) {
@@ -92,7 +92,7 @@ export default class extends Command {
                 await this.client.config.set('webhook_url', data as string);
 
                 const { id, token } = parseWebhook(data as string);
-                const webhook = await this.client.fetchWebhook(id, token).catch(() => null);
+                const webhook = await this.client.fetchWebhook(id as Snowflake, token).catch(() => null);
 
                 if (!webhook) {
                     response = 'Invalid Webhook.';

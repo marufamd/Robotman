@@ -1,9 +1,16 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 require('dotenv').config();
 
-import { AkairoClient, CommandHandler, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import type { APIMessage } from 'discord-api-types';
-import type { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
+import type {
+    ApplicationCommandData,
+    CommandInteraction,
+    InteractionReplyOptions,
+    Message,
+    MessageEmbed,
+    MessageEmbedOptions,
+    Snowflake
+} from 'discord.js';
 import { Job, RecurrenceRule, scheduleJob } from 'node-schedule';
 import { join } from 'path';
 import postgres, { Notice, Sql } from 'postgres';
@@ -12,13 +19,12 @@ import argumentTypes from '../util/argument-types';
 import type RobotmanEmbed from '../util/embed';
 import Logger from '../util/logger';
 import ClientUtil from './ClientUtil';
+import RobotmanCommandHandler from './CommandHandler';
 import ConfigManager from './ConfigManager';
-import type Interaction from './Interaction';
-import InteractionHandler, { APICommandData } from './InteractionHandler';
 import SettingsProvider from './SettingsProvider';
 import TagsProvider from './TagsProvider';
 
-const loaded = (handler: CommandHandler | ListenerHandler | InhibitorHandler): string => `• ${handler.modules.size} ${plural(handler.constructor.name.slice(0, -7).toLowerCase(), handler.modules.size)}`;
+const loaded = (handler: RobotmanCommandHandler | ListenerHandler | InhibitorHandler): string => `• ${handler.modules.size} ${plural(handler.constructor.name.replace(/robotman|handler/gi, '').toLowerCase(), handler.modules.size)}`;
 
 declare module 'discord.js' {
     interface Message {
@@ -34,8 +40,7 @@ declare module 'discord-akairo' {
         config: ConfigManager;
         settings: SettingsProvider;
         tags: TagsProvider;
-        commandHandler: CommandHandler;
-        interactionHandler: InteractionHandler;
+        commandHandler: RobotmanCommandHandler;
         listenerHandler: ListenerHandler;
         inhibitorHandler: InhibitorHandler;
         ratelimits: number;
@@ -43,10 +48,9 @@ declare module 'discord-akairo' {
         loadSchedule(): Promise<void>;
     }
 
-    export type ArgumentTypeCasterWithInteraction = (message: Message | Interaction, phrase: string) => any;
-
     interface ClientUtil {
         embed(data?: MessageEmbed | MessageEmbedOptions): RobotmanEmbed;
+        checkEmbed(data: string | InteractionReplyOptions | { embed: MessageEmbed | RobotmanEmbed }): string | InteractionReplyOptions;
         getDescription(command: Command): string;
         getExtended(command: Command, prefix: string): string;
         formatPrefix(message: Message): string;
@@ -54,16 +58,18 @@ declare module 'discord-akairo' {
         getPrefix(message: Message): string;
     }
 
-    interface CommandHandler {
-        runCooldowns(message: Message | Interaction, command: Command): boolean;
-    }
-
     interface Command {
+        data?: {
+            disableHelp?: boolean;
+            usage?: string;
+            extended?: string[];
+            examples?: string[];
+        };
         mod: boolean;
         disableHelp: boolean;
-        interactionOptions: APICommandData;
+        interactionOptions: ApplicationCommandData;
         exec(message?: Message, args?: Record<string, any>): any;
-        interact(interaction: Interaction): Promise<boolean | Message | APIMessage>;
+        interact(interaction: CommandInteraction, args?: Record<string, any>): any;
     }
 }
 
@@ -85,7 +91,7 @@ export default class RobotmanClient extends AkairoClient {
     public settings = new SettingsProvider(this.sql, 'guild_settings', 'guild');
     public tags = new TagsProvider(this.sql, 'tags');
 
-    public commandHandler: CommandHandler = new CommandHandler(this, {
+    public commandHandler: RobotmanCommandHandler = new RobotmanCommandHandler(this, {
         directory: join(__dirname, '..', 'commands'),
         automateCategories: true,
         prefix: m => this.settings.get(m.guild.id, 'prefix', process.env.BOT_PREFIX),
@@ -107,8 +113,6 @@ export default class RobotmanClient extends AkairoClient {
         }
     });
 
-    public interactionHandler: InteractionHandler = new InteractionHandler(this);
-
     public listenerHandler: ListenerHandler = new ListenerHandler(this, {
         directory: join(__dirname, '..', 'listeners'),
         automateCategories: true
@@ -119,21 +123,18 @@ export default class RobotmanClient extends AkairoClient {
     });
 
     public constructor() {
-        super({ ownerID: process.env.BOT_OWNER }, {
+        super({ ownerID: process.env.BOT_OWNER as Snowflake }, {
             messageCacheMaxSize: 50,
             messageCacheLifetime: 600,
             messageSweepInterval: 600,
-            messageEditHistoryMaxSize: 0,
             allowedMentions: {
                 parse: ['users']
             },
-            ws: {
-                intents: [
-                    'GUILDS',
-                    'GUILD_MEMBERS',
-                    'GUILD_MESSAGES'
-                ]
-            }
+            intents: [
+                'GUILDS',
+                'GUILD_MEMBERS',
+                'GUILD_MESSAGES'
+            ]
         });
 
         for (const [name, fn] of Object.entries(argumentTypes)) this.commandHandler.resolver.addType(name, fn);

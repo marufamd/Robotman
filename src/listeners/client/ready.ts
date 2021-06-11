@@ -25,13 +25,16 @@ export default class extends Listener {
             await fs.unlink(rebootPath);
         }
 
+        if (!this.client.application?.owner) await this.client.application?.fetch();
+
         this.client.log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);
+
         if (!this.client.development) {
             void this.client.user.setPresence({
-                activity: {
+                activities: [{
                     name: `${process.env.BOT_PREFIX}help`,
                     type: 'LISTENING'
-                }
+                }]
             });
         }
     }

@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { Constants, CommandInteraction, Message } from 'discord.js';
 import { formatQuery } from '../../util';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
@@ -10,11 +8,7 @@ export default class extends Command {
     public constructor() {
         super('wikia', {
             aliases: ['wikia', 'fandom'],
-            description: {
-                info: 'Searches a specifed wikia site.',
-                usage: '<fandom> <query>',
-                examples: ['marvel daredevil']
-            },
+            description: 'Searches a specifed wikia site.',
             args: [
                 {
                     id: 'wikia',
@@ -36,18 +30,23 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<fandom> <query>',
+        examples: ['marvel daredevil']
+    };
+
     public interactionOptions = {
         name: 'wikia',
         description: 'Searches a specifed wikia site.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'wikia',
                 description: 'The wikia to search in.',
                 required: true
             },
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The query to search for.',
                 required: true
@@ -56,15 +55,15 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { wikia, query }: { wikia: string; query: string }) {
-        return message.util.send(await this.main(wikia, query));
+        return message.util.send(await this.run(wikia, query));
     }
 
-    public async interact(interaction: Interaction) {
-        const [wikia, content] = interaction.findOptions('wikia', 'query');
-        return interaction.respond(await this.main(wikia, content));
+    public async interact(interaction: CommandInteraction, { wikia, query }: { wikia: string; query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(wikia, query));
+        return interaction.reply(data);
     }
 
-    private async main(wikia: string, content: string) {
+    private async run(wikia: string, content: string) {
         const baseURL = `https://${wikia}.fandom.com`;
 
         const { body: { query } } = await request
@@ -77,11 +76,11 @@ export default class extends Command {
                 redirects: true
             });
 
-        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', ephemeral: true };
         const { pageid } = query.pages[0];
 
         const result = await this.getData(baseURL, pageid);
-        if (!result) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!result) return { content: 'No results found.', ephemeral: true };
 
         const embed = this.client.util
             .embed()
@@ -92,7 +91,7 @@ export default class extends Command {
             .setDescription(result.description)
             .setImage(result.image);
 
-        return embed;
+        return { embed };
     }
 
     private async getData(baseURL: string, id: number) {

@@ -7,12 +7,7 @@ export default class extends Command {
     public constructor() {
         super('prefix', {
             aliases: ['prefix', 'set-prefix'],
-            description: {
-                info: `Changes the bot prefix for the server. Maximum length of ${MAX_CHARS} characters.`,
-                extended: ['To reset the prefix, do {p}prefix reset'],
-                usage: '<new prefix>',
-                examples: ['$']
-            },
+            description: `Changes the bot prefix for the server. Maximum length of ${MAX_CHARS} characters.`,
             args: [
                 {
                     id: 'prefix',
@@ -25,6 +20,12 @@ export default class extends Command {
             ]
         });
     }
+
+    public data = {
+        extended: ['To reset the prefix, do {p}prefix reset'],
+        usage: '<new prefix>',
+        examples: ['$']
+    };
 
     public mod = true;
 

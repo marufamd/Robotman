@@ -1,3 +1,4 @@
+import { stripIndents } from 'common-tags';
 import { Command, PrefixSupplier } from 'discord-akairo';
 import type { CollectorFilter, Message } from 'discord.js';
 import Hangman from '../../structures/Hangman';
@@ -11,10 +12,10 @@ export default class extends Command {
     public constructor() {
         super('hangman', {
             aliases: ['hangman'],
-            description: {
-                info: 'Starts a Hangman game.',
-                extended: [`Available Words: ${words.length}`]
-            },
+            description: stripIndents`
+            Starts a Hangman game.
+            Available Words: ${words.length}
+            `,
             editable: false,
             lock: 'channel'
         });
@@ -125,7 +126,7 @@ export default class extends Command {
 
         if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
-        return message.channel.send(embed);
+        return message.channel.send({ embed });
     }
 
     private embed(game: Hangman, text: string[]) {
@@ -141,14 +142,14 @@ export default class extends Command {
 
         if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
-        return embed;
+        return { embed };
     }
 
     private addGuesses(game: Hangman, embed: RobotmanEmbed) {
         embed.addField(`Guesses (${game.incorrectGuesses.length}/7)`, game.incorrectGuesses.join(' '));
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter) {
+    private async getResponse(message: Message, filter: CollectorFilter<[Message]>): Promise<string> {
         const collected = await message.channel
             .awaitMessages(filter, { max: 1, time: MAX_TIME, errors: ['time'] })
             .catch(() => null);

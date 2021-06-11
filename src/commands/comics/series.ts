@@ -1,8 +1,6 @@
 import { BASE_URL, CollectionTypes, fetchSearchResults } from 'comicgeeks';
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { split } from '../../util';
 import { colors } from '../../util/constants';
 
@@ -12,11 +10,7 @@ export default class extends Command {
     public constructor() {
         super('series', {
             aliases: ['series', 'locg-search', 'comic-search', 'series-search'],
-            description: {
-                info: 'Searches League of Comic Geeks for a series.',
-                usage: '<query>',
-                examples: ['batman', 'daredevil', 'stillwater']
-            },
+            description: 'Searches League of Comic Geeks for a series.',
             args: [
                 {
                     id: 'query',
@@ -31,12 +25,21 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<query>',
+        examples: [
+            'batman',
+            'daredevil',
+            'stillwater'
+        ]
+    };
+
     public interactionOptions = {
         name: 'series',
         description: 'Searches League of Comic Geeks for a series.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The series to search for.',
                 required: true
@@ -45,17 +48,18 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        console.log(query);
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const results = await fetchSearchResults(query, CollectionTypes.Series);
-        if (!results.length) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!results.length) return { content: 'No results found', ephemeral: true };
 
         let num = this.MAX_SEARCH_RESULTS;
         const half = num / 2;
@@ -88,6 +92,6 @@ export default class extends Command {
 
         if (page2?.length) embed.addField('Page 2', page2.join('\n'), true);
 
-        return embed;
+        return { embed };
     }
 }

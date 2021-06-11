@@ -1,6 +1,5 @@
 import { Command } from 'discord-akairo';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Message } from 'discord.js';
 import { dadJoke } from '../../util';
 
 export default class extends Command {
@@ -21,7 +20,7 @@ export default class extends Command {
         return message.util.send(await dadJoke());
     }
 
-    public async interact(interaction: Interaction) {
-        return interaction.respond(await dadJoke());
+    public async interact(interaction: CommandInteraction) {
+        return interaction.reply(await dadJoke());
     }
 }

@@ -5,11 +5,7 @@ export default class extends Command {
     public constructor() {
         super('enable', {
             aliases: ['enable', 'enable-command'],
-            description: {
-                info: 'Enables a command.',
-                usage: '<command>',
-                examples: ['ping']
-            },
+            description: 'Enables a command.',
             args: [
                 {
                     id: 'command',

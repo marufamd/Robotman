@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { capitalize, define, Definition, trim } from '../../util';
 import { colors } from '../../util/constants';
 
@@ -11,11 +9,7 @@ export default class extends Command {
     public constructor() {
         super('define', {
             aliases: ['define', 'dictionary'],
-            description: {
-                info: 'Shows a definition for a word from the dictionary.',
-                usage: '<word>',
-                examples: ['robot']
-            },
+            description: 'Shows a definition for a word from the dictionary.',
             args: [
                 {
                     id: 'word',
@@ -36,7 +30,7 @@ export default class extends Command {
         description: 'Shows a definition for a word from the dictionary.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'word',
                 description: 'The word to search for.',
                 required: true
@@ -45,15 +39,15 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { word }: { word: string }) {
-        return message.util.send(await this.main(word));
+        return message.util.send(await this.run(word));
     }
 
-    public async interact(interaction: Interaction) {
-        const word = interaction.option('word') as string;
-        return interaction.respond(await this.main(word));
+    public async interact(interaction: CommandInteraction, { word }: { word: string }) {
+        const data = this.client.util.checkEmbed(await this.run(word));
+        return interaction.reply(data);
     }
 
-    private async main(word: string) {
+    private async run(word: string) {
         const defined = await define(word) as Definition;
         if (!defined) return 'No results found';
 
@@ -80,6 +74,6 @@ export default class extends Command {
             if (defined.date) embed.addField('First Known Use', defined.date);
         }
 
-        return embed;
+        return { embed };
     }
 }

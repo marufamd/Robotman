@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { formatQuery, trim } from '../../util';
 import { colors, wikiParams } from '../../util/constants';
 import request from '../../util/request';
@@ -12,14 +10,10 @@ export default class extends Command {
     public constructor() {
         super('pokemon', {
             aliases: ['pokemon', 'bulbapedia', 'poke'],
-            description: {
-                info: 'Searches Bulbapedia for a Pokemon.',
-                usage: '<query>',
-                examples: ['charmander']
-            },
+            description: 'Searches Bulbapedia for a Pokemon.',
             args: [
                 {
-                    id: 'pokemon',
+                    id: 'query',
                     type: 'string',
                     match: 'content',
                     prompt: {
@@ -37,7 +31,7 @@ export default class extends Command {
         description: 'Searches Bulbapedia for a Pokemon.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The Pokemon to search for.',
                 required: true
@@ -45,16 +39,16 @@ export default class extends Command {
         ]
     };
 
-    public async exec(message: Message, { pokemon }: { pokemon: string }) {
-        return message.util.send(await this.main(pokemon));
+    public async exec(message: Message, { query }: { query: string }) {
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(pokemon: string) {
+    private async run(pokemon: string) {
         let query = formatQuery(pokemon).replaceAll(/(m(r(s|)|s)|jr)/gi, `$&.`);
 
         const num = parseInt(pokemon.replaceAll('#', ''));
@@ -64,7 +58,7 @@ export default class extends Command {
         }
 
         const poke = await this.search(query);
-        if (!poke) return { content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!poke) return { content: 'No results found.', ephemeral: true };
 
         const embed = this.client.util.embed()
             .setColor(colors.BULBAPEDIA)
@@ -75,7 +69,7 @@ export default class extends Command {
 
         if (poke.image) embed.setImage(poke.image);
 
-        return embed;
+        return { embed };
     }
 
     private async search(query: string) {

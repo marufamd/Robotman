@@ -1,8 +1,6 @@
 import { oneLine } from 'common-tags';
 import { Command, Listener } from 'discord-akairo';
-import { APIInteractionResponseType } from 'discord-api-types';
-import type { Message } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import { CommandInteraction, Message } from 'discord.js';
 import { plural, wait } from '../../util';
 
 export default class extends Listener {
@@ -13,21 +11,22 @@ export default class extends Listener {
         });
     }
 
-    public async exec(message: Message | Interaction, command: Command, remaining: number) {
+    public async exec(thing: Message | CommandInteraction, command: Command, remaining: number) {
         const seconds = remaining / 1000;
-        const interaction = message instanceof Interaction;
 
-        const send = (interaction ? (message as Interaction).respond : (message as Message).util.send).bind((message as Message).util ?? message);
+        const isInteraction = thing instanceof CommandInteraction;
+        const interaction = thing as CommandInteraction;
+        const message = thing as Message;
 
-        const msg = await send({
-            content: oneLine`
-            ${message.author}, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
-            before using \`${command.id}\` again. ${interaction ? '' : 'This message will delete when the cooldown ends.'}`,
-            type: APIInteractionResponseType.ChannelMessage,
-            ephemeral: true
-        });
+        const text = (user: string) => oneLine`
+        ${user}, please wait **${seconds.toFixed(1)}** ${plural('second', seconds)}
+        before using \`${command.id}\` again. ${isInteraction ? '' : 'This message will delete when the cooldown ends.'}`;
 
+        if (isInteraction) return interaction.reply({ content: text(interaction.user.toString()), ephemeral: true });
+
+        const msg = await message.channel.send(text(message.author.toString()));
         await wait(remaining);
-        if (!interaction) void (msg as Message).delete();
+
+        return msg.delete();
     }
 }

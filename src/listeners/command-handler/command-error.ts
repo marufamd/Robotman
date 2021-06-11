@@ -1,7 +1,5 @@
 import { Command, Listener } from 'discord-akairo';
-import { APIInteractionResponseType } from 'discord-api-types';
-import type { Message, TextChannel } from 'discord.js';
-import Interaction from '../../structures/Interaction';
+import { CommandInteraction, Message } from 'discord.js';
 
 export default class extends Listener {
     public constructor() {
@@ -11,14 +9,20 @@ export default class extends Listener {
         });
     }
 
-    public exec(error: any, message: Message | Interaction, command: Command) {
-        if (error.message !== 'Unknown interaction') {
-            if (message instanceof Interaction && !message.response) {
-                void message.respond('An error occurred', { type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
+    public exec(error: any, data: Message | CommandInteraction, command: Command) {
+        const interaction = data as CommandInteraction;
+        const message = data as Message;
+
+        const err = { content: 'An error occurred.', ephemeral: true };
+
+        if (data instanceof CommandInteraction) {
+            if (interaction.replied) {
+                void interaction.followUp(err);
             } else {
-                const channel = message instanceof Interaction ? message.channel as TextChannel : message?.util;
-                if (channel) void channel.send('An error occurred.');
+                void interaction.reply(err);
             }
+        } else {
+            void message.util.send(err);
         }
 
         const extra = {

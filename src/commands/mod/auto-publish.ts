@@ -5,14 +5,7 @@ export default class extends Command {
     public constructor() {
         super('autopublish', {
             aliases: ['auto-publish', 'publish'],
-            description: {
-                info: 'Adds or removes channels to the auto publishing list.',
-                usage: '<-add | -remove> <channel>',
-                examples: [
-                    'add #news',
-                    'remove #news'
-                ]
-            },
+            description: 'Adds or removes channels to the auto publishing list.',
             args: [
                 {
                     id: 'mode',
@@ -30,6 +23,14 @@ export default class extends Command {
             ]
         });
     }
+
+    public data = {
+        usage: '<-add | -remove> <channel>',
+        examples: [
+            'add #news',
+            'remove #news'
+        ]
+    };
 
     public mod = true;
 

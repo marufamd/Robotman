@@ -1,7 +1,5 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
 
@@ -11,21 +9,13 @@ export default class extends Command {
     public constructor() {
         super('character', {
             aliases: ['character', 'char', 'comic-vine'],
-            description: {
-                info: 'Searches Comic Vine for a character.',
-                usage: '<query>',
-                examples: [
-                    'daredevil',
-                    'batman',
-                    'spider-man'
-                ]
-            },
+            description: 'Searches Comic Vine for a character.',
             args: [
                 {
                     id: 'query',
                     match: 'content',
                     prompt: {
-                        start: 'What would you like to search for?'
+                        start: 'What character would you like to search for?'
                     }
                 }
             ],
@@ -34,12 +24,21 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<query>',
+        examples: [
+            'daredevil',
+            'batman',
+            'spider-man'
+        ]
+    };
+
     public interactionOptions = {
         name: 'character',
         description: 'Searches Comic Vine for a character.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The character to search for.',
                 required: true
@@ -48,15 +47,15 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const params = {
             api_key: process.env.COMICVINE_KEY,
             filter: `name:${query}`,
@@ -67,7 +66,7 @@ export default class extends Command {
             .get(`${BASE_URL}/api/characters/`)
             .query(params);
 
-        if (!body.number_of_total_results || !body.results?.length) return { content: 'No results found', type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+        if (!body.number_of_total_results || !body.results?.length) return { content: 'No results found', ephemeral: true };
 
         const char = body.results[0];
 
@@ -89,6 +88,6 @@ export default class extends Command {
 
         if (char.aliases?.length) embed.addField('Aliases', char.aliases.replaceAll('\r', '').split('\n').join(', '));
 
-        return embed;
+        return { embed };
     }
 }

@@ -11,13 +11,7 @@ import request from '../../util/request';
 export default class extends Command {
     public constructor() {
         super('templates', {
-            aliases: ['templates'],
-            description: {
-                info: 'Displays the upcoming shows for the specified week.',
-                usage: '<date>',
-                examples: ['jan 1 2021'],
-                disableHelp: true
-            },
+            aliases: ['templates', 'shows'],
             args: [
                 {
                     id: 'date',

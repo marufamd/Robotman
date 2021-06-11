@@ -1,18 +1,12 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
-import type Interaction from '../../structures/Interaction';
+import { Constants, CommandInteraction, Message } from 'discord.js';
 import { youtube } from '../../util';
 
 export default class extends Command {
     public constructor() {
         super('youtube', {
             aliases: ['youtube', 'yt'],
-            description: {
-                info: 'Searches YouTube and returns the first result.',
-                usage: '<query>',
-                examples: ['comicbooks']
-            },
+            description: 'Searches YouTube and returns the first result.',
             args: [
                 {
                     id: 'query',
@@ -33,7 +27,7 @@ export default class extends Command {
         description: 'Searches YouTube.',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
                 description: 'The query to search for.',
                 required: true
@@ -42,17 +36,17 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.main(query));
+        return message.util.send(await this.run(query));
     }
 
-    public async interact(interaction: Interaction) {
-        const query = interaction.option('query') as string;
-        return interaction.respond(await this.main(query));
+    public async interact(interaction: CommandInteraction, { query }: { query: string }) {
+        const data = this.client.util.checkEmbed(await this.run(query));
+        return interaction.reply(data);
     }
 
-    private async main(query: string) {
+    private async run(query: string) {
         const result = await this.search(query);
-        return result ? `Showing top result for **${query}**\n${result.link}` : ({ content: 'No results found.', type: APIInteractionResponseType.ChannelMessage, ephemeral: true });
+        return result ? `Showing top result for **${query}**\n${result.link}` : ({ content: 'No results found.', ephemeral: true });
     }
 
     private async search(query: string, safe = false) {

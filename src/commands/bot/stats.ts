@@ -2,7 +2,6 @@ import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { Duration } from 'luxon';
-import type Interaction from '../../structures/Interaction';
 import { formats } from '../../util/constants';
 import usage from '../../util/cpu';
 
@@ -18,20 +17,7 @@ export default class extends Command {
         });
     }
 
-    public interactionOptions = {
-        name: 'stats',
-        description: 'Displays the bot\'s statistics.'
-    };
-
     public async exec(message: Message) {
-        return message.util.send(await this.main());
-    }
-
-    public async interact(interaction: Interaction) {
-        return interaction.respond(await this.main());
-    }
-
-    private async main() {
         const stats = await this.client.config.getStats();
 
         const embed = this.client.util
@@ -59,6 +45,6 @@ export default class extends Command {
                 inline: true
             });
 
-        return embed;
+        return message.util.send({ embed });
     }
 }

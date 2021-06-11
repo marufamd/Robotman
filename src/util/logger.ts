@@ -1,5 +1,5 @@
 import * as colorette from 'colorette';
-import { MessageEmbedOptions, WebhookClient } from 'discord.js';
+import { MessageEmbedOptions, WebhookClient, Snowflake } from 'discord.js';
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
 import { parseWebhook } from '.';
@@ -8,7 +8,7 @@ import { formats, logTypes } from './constants';
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
 const { id, token } = parseWebhook(WEBHOOK_URL);
 
-const webhook = new WebhookClient(id, token);
+const webhook = new WebhookClient(id as Snowflake, token);
 
 type ConsoleType = 'log' | 'error' | 'info' | 'warn';
 type ColoretteType = 'green' | 'red' | 'blue' | 'yellow';
@@ -53,10 +53,22 @@ export default class Logger {
                 else if (code) text = `\`\`\`${typeof code === 'string' ? code : 'js'}\n${text}\`\`\``;
 
                 if (typeof embed.description === 'undefined') embed.description = text;
-                void webhook.send(ping ? `<@${BOT_OWNER}>` : null, { embeds: [embed] });
+                void webhook.send({
+                    content: ping ? `<@${BOT_OWNER}>` : null,
+                    embeds: [embed]
+                });
             } else {
-                void webhook.send(ping ? `<@${BOT_OWNER}>` : null, { embeds: [embed] });
-                void webhook.send(text, { code: logType === 'error' ? 'xl' : (code === true ? 'js' : code), split: { char: '' } });
+                void webhook.send({
+                    content: ping ? `<@${BOT_OWNER}>` : null,
+                    embeds: [embed]
+                });
+                void webhook.send({
+                    content: text,
+                    code: logType === 'error' ? 'xl' : (code === true ? 'js' : code),
+                    split: {
+                        char: ''
+                    }
+                });
             }
         } catch (e) {
             Logger.write(e, 'error');

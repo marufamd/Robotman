@@ -31,7 +31,7 @@ export default class extends Listener {
             },
             {
                 name: 'Request Limit',
-                value: info.limit,
+                value: info.limit.toString(),
                 inline: true
             }
         ];

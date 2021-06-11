@@ -40,7 +40,7 @@ export default class extends Listener {
                     embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);
                 }
 
-                return message.util.send(embed);
+                return message.util.send({ embed });
             }
 
             if (/^writers? rec(ommendation)?s$/i.test(message.content)) {
@@ -64,7 +64,7 @@ export default class extends Listener {
                     embed.addField('\u200b', column.join('\n'), true);
                 }
 
-                return message.util.send(embed);
+                return message.util.send({ embed });
             }
         }
 

@@ -8,33 +8,34 @@ export default class extends Command {
     public constructor() {
         super('time', {
             aliases: ['time', 'time-zone', 'convert-time', 'current-time'],
-            description: {
-                info: 'Shows the current time in a specified timezone.',
-                usage: '<timezone>',
-                extended: ['To view a list of timezones, do `{p}timezones index`'],
-                examples: [
-                    'utc',
-                    'los angeles',
-                    'America/New York',
-                    'gmt'
-                ]
-            },
+            description: 'Shows the current time in a specified timezone.',
             args: [
-                {
-                    id: 'timezone',
-                    type: (_, phrase) => {
-                        if (!phrase) return null;
-                        const target = closest(phrase.toLowerCase().split(' ').join('_'), timezones.map(t => t.toLowerCase()));
-                        return timezones.find(t => t.toLowerCase() === target);
-                    },
-                    match: 'content',
-                    prompt: {
-                        start: 'What timezone would you like to view the current time in?'
+                    {
+                        id: 'timezone',
+                        type: (_, phrase) => {
+                            if (!phrase) return null;
+                            const target = closest(phrase.toLowerCase().split(' ').join('_'), timezones.map(t => t.toLowerCase()));
+                            return timezones.find(t => t.toLowerCase() === target);
+                        },
+                        match: 'content',
+                        prompt: {
+                            start: 'What timezone would you like to view the current time in?'
+                        }
                     }
-                }
-            ]
-        });
+                ]
+            });
     }
+
+    public data = {
+        usage: '<timezone>',
+        extended: ['To view a list of timezones, do `{p}timezones index`'],
+        examples: [
+            'utc',
+            'los angeles',
+            'America/New York',
+            'gmt'
+        ]
+    };
 
     public exec(message: Message, { timezone }: { timezone: string }) {
         const formatted = DateTime.local().setZone(timezone).toFormat(formats.clock);

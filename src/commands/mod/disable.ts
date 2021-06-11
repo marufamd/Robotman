@@ -5,11 +5,7 @@ export default class extends Command {
     public constructor() {
         super('disable', {
             aliases: ['disable', 'disable-command'],
-            description: {
-                info: 'Disables a command.',
-                usage: '<command>',
-                examples: ['ping']
-            },
+            description: 'Disables a command.',
             args: [
                 {
                     id: 'command',

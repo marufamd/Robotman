@@ -15,10 +15,7 @@ export default class extends Command {
     public constructor() {
         super('letterboxd', {
             aliases: ['letterboxd', 'letterbox'],
-            description: {
-                info: 'Shows movie reviews on a letterboxd account.',
-                usage: '<user> <film>'
-            },
+            description: 'Shows movie reviews on a letterboxd account.',
             args: [
                 {
                     id: 'username',
@@ -36,6 +33,10 @@ export default class extends Command {
             typing: true
         });
     }
+
+    public data = {
+        usage: '<user> <film>'
+    };
 
     public async exec(message: Message, { username, film }: { username: string; film: string }) {
         const { user, diaries: list } = await letterboxd.get(username);
@@ -89,7 +90,7 @@ export default class extends Command {
             if (rating.rating) embed.addField('Rating', rating.rating);
         }
 
-        return message.util.send(embed);
+        return message.util.send({ embed });
     }
 
     private getFilm(rating: ReviewEntry) {

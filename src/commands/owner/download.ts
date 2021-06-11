@@ -8,10 +8,7 @@ export default class extends Command {
     public constructor() {
         super('download', {
             aliases: ['download', 'dl'],
-            description: {
-                info: 'Downloads a file to the specified path.',
-                usage: '<url> <path> <options>'
-            },
+            description: 'Downloads a file to the specified path.',
             ownerOnly: true,
             args: [
                 {
@@ -33,6 +30,10 @@ export default class extends Command {
             ]
         });
     }
+
+    public data = {
+        usage: '<url> <path> <options>'
+    };
 
     public async exec(message: Message, { url, path, json }: { url: string; path: string; json: boolean }) {
         try {

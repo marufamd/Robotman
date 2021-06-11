@@ -1,25 +1,12 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType, ApplicationCommandOptionType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
+import { CommandInteraction, Constants, Message } from 'discord.js';
 import { Parser } from 'expr-eval';
-import type Interaction from '../../structures/Interaction';
 import { paste } from '../../util';
 
 export default class extends Command {
     public constructor() {
         super('math', {
             aliases: ['math', 'calculate', 'calculator', 'solve', 'convert'],
-            description: {
-                info: 'Evaluates a mathematical expression',
-                usage: '<expression>',
-                examples: [
-                    '1 + 2',
-                    '12 / (2.3 + 0.7)',
-                    'sin(45 deg) ^ 2',
-                    '12.7 cm to inch',
-                    '10 weeks to days'
-                ]
-            },
             args: [
                 {
                     id: 'expression',
@@ -42,12 +29,23 @@ export default class extends Command {
         });
     }
 
+    public data = {
+        usage: '<expression>',
+        examples: [
+            '1 + 2',
+            '12 / (2.3 + 0.7)',
+            'sin(45 deg) ^ 2',
+            '12.7 cm to inch',
+            '10 weeks to days'
+        ]
+    };
+
     public interactionOptions = {
         name: 'math',
         description: 'Evaluates a mathematical expression',
         options: [
             {
-                type: ApplicationCommandOptionType.STRING,
+                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'expression',
                 description: 'The expression to evaluate.',
                 required: true
@@ -56,20 +54,19 @@ export default class extends Command {
     };
 
     public async exec(message: Message, { expression }: { expression: string }) {
-        return message.util.send(await this.main(expression));
+        return message.util.send(await this.run(expression));
     }
 
-    public async interact(interaction: Interaction) {
-        const expression = interaction.option('expression') as string;
-        return interaction.respond(await this.main(expression));
+    public async interact(interaction: CommandInteraction, { expression }: { expression: string }) {
+        return interaction.reply(await this.run(expression));
     }
 
-    public async main(expression: string) {
+    public async run(expression: string) {
         try {
             const answer = Parser.evaluate(expression).toString();
             return answer.length > 1015 ? `Output was uploaded to hastebin. ${await paste(answer, '')}` : `\`\`\`${answer}\`\`\``;
         } catch {
-            return { content: `\`${expression}\` is not a valid expression.`, type: APIInteractionResponseType.ChannelMessage, ephemeral: true };
+            return { content: `\`${expression}\` is not a valid expression.`, ephemeral: true };
         }
     }
 }

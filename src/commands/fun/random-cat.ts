@@ -1,8 +1,6 @@
 import { Command } from 'discord-akairo';
-import { APIInteractionResponseType } from 'discord-api-types/v8';
-import type { Message } from 'discord.js';
+import { CommandInteraction, Message } from 'discord.js';
 import { extname } from 'path';
-import type Interaction from '../../structures/Interaction';
 import request from '../../util/request';
 
 export default class extends Command {
@@ -20,16 +18,20 @@ export default class extends Command {
     };
 
     public async exec(message: Message) {
-        return message.util.send(await this.main());
+        return message.util.send(await this.run());
     }
 
-    public async interact(interaction: Interaction) {
-        await interaction.respond({ type: APIInteractionResponseType.AcknowledgeWithSource });
-        return interaction.send(await this.main());
+    public async interact(interaction: CommandInteraction) {
+        await interaction.reply('Loading...');
+        await interaction.editReply(await this.run());
     }
 
-    private async main() {
+    private async run() {
         const { body: { file } } = await request.get('https://aws.random.cat/meow');
-        return this.client.util.attachment(file, `cat${extname(file)}`);
+        return {
+            files: [
+                this.client.util.attachment(file, `cat${extname(file)}`)
+            ]
+        };
     }
 }

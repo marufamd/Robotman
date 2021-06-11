@@ -17,10 +17,7 @@ export default class extends Command {
     public constructor() {
         super('eval', {
             aliases: ['eval', 'async'],
-            description: {
-                info: 'Evaluates code.',
-                usage: '<code> [--depth=<integer>]'
-            },
+            description: 'Evaluates code.',
             ownerOnly: true,
             args: [
                 {
@@ -48,13 +45,17 @@ export default class extends Command {
         });
     }
 
+    public usage = {
+        usage: '<code> [--depth=<integer>]'
+    };
+
     public async exec(message: Message, { code, depth }: { code: string; depth: number }) {
         /* eslint-disable @typescript-eslint/no-unused-vars */
         const DateTime = dateTime;
         const Duration = duration;
         const request = Request;
         const { lastInput, lastResult, client } = this;
-        const { commandHandler: commands, interactionHandler: interactions, sql } = client;
+        const { commandHandler: commands, application: { commands: interactions }, sql } = client;
         /* eslint-enable @typescript-eslint/no-unused-vars */
 
         const msg = await message.util.send('Evaluating...');

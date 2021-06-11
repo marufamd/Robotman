@@ -18,22 +18,7 @@ export default class extends Command {
     public constructor() {
         super('trivia', {
             aliases: ['trivia', 'quiz'],
-            description: {
-                info: 'Starts a trivia game with the specified category.',
-                usage: '<category> <amount of questions>',
-                extended: [
-                    '**How it Works:**',
-                    'A question is asked by the bot, and players have 20 seconds to answer. Whoever answers correctly first gets a point. Whoever has the most points at the end of the game wins.',
-                    'The amount of questions are defaulted to 30, and can be specified at the start.',
-                    'To view the list of available categories type `categories` after the command.',
-                    'To stop a trivia game, do `triviastop`.',
-                    'Note: You must have started the game, or have the Manage Server permission to stop the game.'
-                ],
-                examples: [
-                    'dccomics 20',
-                    'marvelcomics'
-                ]
-            },
+            description: 'Starts a trivia game with the specified category.',
             args: [
                 {
                     id: 'category',
@@ -53,6 +38,22 @@ export default class extends Command {
             lock: 'channel'
         });
     }
+
+    public data = {
+        usage: '<category> <amount of questions>',
+        extended: [
+            '**How it Works:**',
+            'A question is asked by the bot, and players have 20 seconds to answer. Whoever answers correctly first gets a point. Whoever has the most points at the end of the game wins.',
+            'The amount of questions are defaulted to 30, and can be specified at the start.',
+            'To view the list of available categories type `categories` after the command.',
+            'To stop a trivia game, do `triviastop`.',
+            'Note: You must have started the game, or have the Manage Server permission to stop the game.'
+        ],
+        examples: [
+            'dccomics 20',
+            'marvelcomics'
+        ]
+    };
 
     public async exec(message: Message, { category, amount }: { category: string; amount: number }) {
         const game = new Trivia(message.author.id);
@@ -102,7 +103,7 @@ export default class extends Command {
                 const str = ['Game has been stopped.'];
                 if (game.scorelist) str.push(game.renderedScoreboard);
 
-                return message.channel.send(str);
+                return message.channel.send(str.join('\n'));
             }
 
             const winner = response.author.username;
@@ -133,7 +134,7 @@ export default class extends Command {
         str.push(toPush);
         if (scoreboard) str.push(game.renderedScoreboard);
 
-        return message.channel.send(str);
+        return message.channel.send(str.join('\n'));
     }
 
     private format(str: string) {
