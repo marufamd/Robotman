@@ -4,6 +4,7 @@ export interface BotStats {
     aki: number;
     hangman: number;
     trivia: number;
+    tic_tac_toe: number;
     connect_four: number;
     commands_run: number;
 }
@@ -45,7 +46,8 @@ export default class ConfigManager {
             'hangman',
             'trivia',
             'connect_four',
-            'commands_run'
+            'commands_run',
+            'tic_tac_toe'
         ])} from ${this.sql(this.table)}
         where id = 1
         `;

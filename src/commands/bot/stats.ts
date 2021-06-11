@@ -41,6 +41,7 @@ export default class extends Command {
                 • **Connect Four Games:** ${stats.connect_four}
                 • **Hangman Games:** ${stats.hangman}
                 • **Trivia Games:** ${stats.trivia}
+                • **Tic Tac Toe Games:** ${stats.tic_tac_toe}
                 `,
                 inline: true
             });

@@ -1,4 +1,5 @@
 import { oneLine } from 'common-tags';
+import type { Message, MessageButtonStyleResolvable, User } from 'discord.js';
 import colors from './colors.json';
 import pokemon from './pokemon.json';
 import timezones from './timezones.json';
@@ -98,6 +99,28 @@ export const connectFour = {
     },
     CANCEL_TIME: 15,
     WAIT_TIME: 1
+};
+
+export const ticTacToe = {
+    emojis: {
+        o: '⭕',
+        x: '❌'
+    },
+    styles: {
+        o: 'SUCCESS',
+        x: 'DANGER'
+    },
+    messages: {
+        match: message => `**${message.author.tag}** vs. **${message.client.user.tag} (CPU)**`,
+        turn: message => `${ticTacToe.messages.match(message)}\n\n${message.author.username}'s turn. You have 20 seconds.`,
+        forfeit: message => `${ticTacToe.messages.match(message)}\n\n**${message.author.username}** has failed to make a move. **${message.client.user.tag}** wins!`,
+        draw: message => `${ticTacToe.messages.match(message)}\n\nThe game is a draw!`,
+        win: (message, user) => `${ticTacToe.messages.match(message)}\n\n**${user.username}** wins!`
+    }
+} as {
+    emojis: Record<string, string>;
+    styles: Record<string, MessageButtonStyleResolvable>;
+    messages: Record<string, (message: Message, user?: User) => string>;
 };
 
 export const pull = {
