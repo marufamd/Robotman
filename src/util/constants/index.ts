@@ -1,5 +1,5 @@
 import { oneLine } from 'common-tags';
-import type { Message, MessageButtonStyleResolvable, User } from 'discord.js';
+import type { MessageButtonStyleResolvable, User } from 'discord.js';
 import colors from './colors.json';
 import pokemon from './pokemon.json';
 import timezones from './timezones.json';
@@ -111,16 +111,16 @@ export const ticTacToe = {
         x: 'DANGER'
     },
     messages: {
-        match: message => `**${message.author.tag}** vs. **${message.client.user.tag} (CPU)**`,
-        turn: message => `${ticTacToe.messages.match(message)}\n\n${message.author.username}'s turn. You have 20 seconds.`,
-        forfeit: message => `${ticTacToe.messages.match(message)}\n\n**${message.author.username}** has failed to make a move. **${message.client.user.tag}** wins!`,
-        draw: message => `${ticTacToe.messages.match(message)}\n\nThe game is a draw!`,
-        win: (message, user) => `${ticTacToe.messages.match(message)}\n\n**${user.username}** wins!`
+        match: (player1, player2) => `**${player1.tag}** vs. **${player2.tag}**`,
+        turn: (player1, player2, current) => `${ticTacToe.messages.match(player1, player2)}\n\n${current.username}'s turn. You have 20 seconds.`,
+        forfeit: (loser, winner) => `${ticTacToe.messages.match(winner, loser)}\n\n**${loser.username}** has failed to make a move. **${winner.username}** wins!`,
+        draw: (player1, player2) => `${ticTacToe.messages.match(player1, player2)}\n\nThe game is a draw!`,
+        win: (winner, loser) => `${ticTacToe.messages.match(winner, loser)}\n\n**${winner.username}** wins!`
     }
 } as {
     emojis: Record<string, string>;
     styles: Record<string, MessageButtonStyleResolvable>;
-    messages: Record<string, (message: Message, user?: User) => string>;
+    messages: Record<string, (player1?: User, player2?: User, current?: User) => string>;
 };
 
 export const pull = {
