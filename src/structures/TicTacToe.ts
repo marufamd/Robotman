@@ -89,7 +89,7 @@ export default class TicTacToe {
         }
 
         await move.update({
-            content: ticTacToe.messages.turn(this.player1, this.player2, this.getOtherPlayer(player)),
+            content: ticTacToe.messages.turn(this.player1, this.player2, player),
             components: this.updateBoard(move.customID, player.id === firstPlayer.id)
         });
 
