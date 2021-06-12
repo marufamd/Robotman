@@ -38,29 +38,11 @@ export default class TicTacToe {
             components: this.board
         });
 
-        const filter = (i: MessageComponentInteraction) => {
-            const button = this.findButton(i.customID);
-            return button.label === '\u200b' && firstPlayer.id === i.user.id;
-        };
-
-        const firstMove = await this.message.awaitMessageComponentInteraction(filter, 20000).catch(() => null);
-        if (!firstMove) {
-            return this.message.edit({
-                content: ticTacToe.messages.forfeit(firstPlayer, this.getOtherPlayer(firstPlayer)),
-                components: this.disableEmptyButtons()
-            });
-        }
-
-        await firstMove.update({
-            content: ticTacToe.messages.match(this.player1, this.player2),
-            components: this.updateBoard(firstMove.customID, firstPlayer.id === this.player2.id)
-        });
-
-        let status = this.engine.makeNextMove(...this.getSpace(firstMove.customID));
+        let status = await this.makeMove(firstPlayer, firstPlayer);
         let otherTurn = firstPlayer.id !== this.player2.id;
 
         while (status === GameStatus.ONGOING) {
-            await this.message.edit(ticTacToe.messages.turn(this.player1, this.player2, otherTurn ? this.player2 : this.player1));
+            const currentPlayer = otherTurn ? this.player2 : this.player1;
 
             if (otherTurn && this.cpu) {
                 const { x, y } = this.engine.getBestMove();
@@ -69,7 +51,8 @@ export default class TicTacToe {
 
                 status = this.engine.makeNextMove(x, y);
             } else {
-                status = await this.makeMove(otherTurn ? this.player2 : this.player1);
+                await this.message.edit(ticTacToe.messages.turn(this.player1, this.player2, currentPlayer));
+                status = await this.makeMove(currentPlayer, firstPlayer);
             }
 
             otherTurn = !otherTurn;
@@ -89,7 +72,7 @@ export default class TicTacToe {
         });
     }
 
-    private async makeMove(player: User) {
+    private async makeMove(player: User, firstPlayer: User) {
         const filter = (i: MessageComponentInteraction) => {
             const button = this.findButton(i.customID);
             return button.label === '\u200b' && player.id === i.user.id;
@@ -108,7 +91,7 @@ export default class TicTacToe {
 
         await move.update({
             content: ticTacToe.messages.match(this.player1, this.player2),
-            components: this.updateBoard(move.customID, player.id === this.player2.id)
+            components: this.updateBoard(move.customID, player.id === firstPlayer.id)
         });
 
         return this.engine.makeNextMove(...this.getSpace(move.customID));
