@@ -79,10 +79,12 @@ export default class extends Command {
             components: [joinRow]
         });
 
-        const response = await msg.awaitMessageComponentInteraction(
-            i => (i.user.id === message.author.id && i.customID === 'cancel') || (i.user.id !== message.author.id && i.customID === 'join'),
-            300000
-        );
+        const response = await msg
+            .awaitMessageComponentInteraction(
+                i => (i.user.id === message.author.id && i.customID === 'cancel') || (i.user.id !== message.author.id && i.customID === 'join'),
+                300000
+            )
+            .catch(() => null);
 
         if (!response) {
             await msg.edit({
