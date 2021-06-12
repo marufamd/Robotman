@@ -55,7 +55,7 @@ export default class TicTacToe {
         });
 
         let status = this.engine.makeNextMove(...this.getSpace(firstMove.customID));
-        let otherTurn = true;
+        let otherTurn = firstPlayer.id !== this.player2.id;
 
         while (status === GameStatus.ONGOING) {
             await this.message.edit(ticTacToe.messages.turn(this.player1, this.player2, otherTurn ? this.player2 : this.player1));
