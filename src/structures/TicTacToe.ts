@@ -11,7 +11,7 @@ import { ticTacToe } from '../util/constants';
 
 export default class TicTacToe {
     private readonly board: MessageActionRow[] = [];
-    private readonly engine = new TicTacToeEngine(Player.PLAYER_ONE);
+    private engine: TicTacToeEngine;
     private readonly player1: User;
     private readonly player2: User;
     private readonly players: [User, User];
@@ -30,6 +30,8 @@ export default class TicTacToe {
         this.createBoard();
 
         const firstPlayer = this.firstPlayer();
+
+        this.engine = new TicTacToeEngine(firstPlayer.id === this.player1.id ? Player.PLAYER_ONE : Player.PLAYER_TWO);
 
         await this.message.edit({
             content: ticTacToe.messages.turn(this.player1, this.player2, firstPlayer),
@@ -73,12 +75,12 @@ export default class TicTacToe {
             otherTurn = !otherTurn;
         }
 
-        let endMessage = ticTacToe.messages.win(this.player2, this.player1);
+        let endMessage = ticTacToe.messages.win(this.player1, this.player2);
 
         if (status === GameStatus.DRAW) {
             endMessage = ticTacToe.messages.draw(this.player1, this.player2);
         } else if (this.checkWin(status)) {
-            endMessage = ticTacToe.messages.win(this.player1, this.player2);
+            endMessage = ticTacToe.messages.win(this.player2, this.player1);
         }
 
         return this.message.edit({
