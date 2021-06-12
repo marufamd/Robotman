@@ -23,7 +23,7 @@ export default class TicTacToe {
         this.player1 = player1;
         this.player2 = player2;
         this.players = [this.player1, this.player2];
-        this.cpu = this.player2.id === message.client.user.id ? true : false;
+        this.cpu = this.player2.id === message.client.user.id;
     }
 
     public async run() {
@@ -45,25 +45,24 @@ export default class TicTacToe {
             const currentPlayer = otherTurn ? this.player2 : this.player1;
 
             if (otherTurn && this.cpu) {
-                const { x, y } = this.engine.getBestMove();
+                const cpuMove = this.randomMove();
 
-                await this.message.edit({ components: this.updateBoard(`${x}${y}`, false) });
+                await this.message.edit({ components: this.updateBoard(cpuMove, false) });
 
-                status = this.engine.makeNextMove(x, y);
+                status = this.engine.makeNextMove(...this.getSpace(cpuMove));
             } else {
-                await this.message.edit(ticTacToe.messages.turn(this.player1, this.player2, currentPlayer));
                 status = await this.makeMove(currentPlayer, firstPlayer);
             }
 
             otherTurn = !otherTurn;
         }
 
-        let endMessage = ticTacToe.messages.win(this.player1, this.player2);
+        let endMessage = ticTacToe.messages.win(otherTurn ? this.player2 : this.player1, otherTurn ? this.player1 : this.player2);
 
         if (status === GameStatus.DRAW) {
             endMessage = ticTacToe.messages.draw(this.player1, this.player2);
         } else if (this.checkWin(status)) {
-            endMessage = ticTacToe.messages.win(this.player2, this.player1);
+            endMessage = ticTacToe.messages.win(otherTurn ? this.player1 : this.player2, otherTurn ? this.player2 : this.player1);
         }
 
         return this.message.edit({
@@ -90,7 +89,7 @@ export default class TicTacToe {
         }
 
         await move.update({
-            content: ticTacToe.messages.match(this.player1, this.player2),
+            content: ticTacToe.messages.turn(this.player1, this.player2, this.getOtherPlayer(player)),
             components: this.updateBoard(move.customID, player.id === firstPlayer.id)
         });
 
@@ -164,5 +163,17 @@ export default class TicTacToe {
             GameStatus.WIN_ON_RIGHT_DIAGONAL
         ]
             .includes(status);
+    }
+
+    private randomMove() {
+        const spaces = [];
+
+        for (const row of this.board) {
+            for (const button of row.components) {
+                if (button.label === '\u200b') spaces.push(button.customID);
+            }
+        }
+
+        return randomResponse(spaces);
     }
 }
