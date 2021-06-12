@@ -73,12 +73,12 @@ export default class TicTacToe {
             otherTurn = !otherTurn;
         }
 
-        let endMessage = ticTacToe.messages.win(this.player1, this.player2);
+        let endMessage = ticTacToe.messages.win(this.player2, this.player1);
 
         if (status === GameStatus.DRAW) {
             endMessage = ticTacToe.messages.draw(this.player1, this.player2);
         } else if (this.checkWin(status)) {
-            endMessage = ticTacToe.messages.win(this.player2, this.player1);
+            endMessage = ticTacToe.messages.win(this.player1, this.player2);
         }
 
         return this.message.edit({
