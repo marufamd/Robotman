@@ -49,6 +49,6 @@ export default class extends Listener {
             });
         }
 
-        this.client.log(error.stack, 'error', { ping: true }, extra);
+        this.client.log(error.stack ?? error, 'error', { ping: true }, extra);
     }
 }

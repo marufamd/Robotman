@@ -1,4 +1,11 @@
-import { Guild, SnowflakeUtil } from 'discord.js';
+import {
+    Guild,
+    Message,
+    MessageActionRow,
+    MessageButton,
+    MessageComponentInteraction,
+    SnowflakeUtil
+} from 'discord.js';
 import { DateTime } from 'luxon';
 import { basename, dirname } from 'path';
 import { EPOCH, formats } from './constants';
@@ -348,4 +355,99 @@ export async function scrapeRedditWiki(path: string, subreddit: string): Promise
 
     if (data.body.reason === 'PAGE_NOT_CREATED') return null;
     return data.body;
+}
+
+export async function choosePlayer(message: Message) {
+    const row = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+                .setCustomID('human')
+                .setLabel('Human')
+                .setStyle('SUCCESS'),
+            new MessageButton()
+                .setCustomID('cpu')
+                .setLabel('Computer')
+                .setStyle('DANGER')
+        );
+
+    const msg = await message.channel.send({
+        content: 'Who would you like to play against? You have ten seconds to choose.',
+        components: [row]
+    });
+
+    const option: MessageComponentInteraction = await msg
+        .awaitMessageComponentInteraction(
+            i => i.user.id === message.author.id,
+            10000
+        )
+        .catch(() => null);
+
+    if (!option) {
+        await msg.edit({
+            content: 'You took too long. The game has been cancelled.',
+            components: []
+        });
+
+        return null;
+    }
+
+    await option.deferUpdate();
+
+    if (option.customID === 'cpu') {
+        return {
+            message: msg,
+            player: message.client.user,
+            interaction: option
+        };
+    }
+
+    const joinRow = new MessageActionRow()
+        .addComponents(
+            new MessageButton()
+                .setCustomID('join')
+                .setLabel('Join')
+                .setStyle('SUCCESS'),
+            new MessageButton()
+                .setCustomID('cancel')
+                .setLabel('Cancel')
+                .setStyle('DANGER')
+        );
+
+    await option.editReply({
+        content: `**${message.author.username}** has started a game!`,
+        components: [joinRow]
+    });
+
+    const response: MessageComponentInteraction = await msg
+        .awaitMessageComponentInteraction(
+            i => (i.user.id === message.author.id && i.customID === 'cancel') || (i.user.id !== message.author.id && i.customID === 'join'),
+            300000
+        )
+        .catch(() => null);
+
+    if (!response) {
+        await msg.edit({
+            content: 'No one has joined. The game has been cancelled.',
+            components: []
+        });
+
+        return null;
+    }
+
+    if (response.customID === 'cancel') {
+        await response.update({
+            content: 'The game has been cancelled.',
+            components: []
+        });
+
+        return null;
+    }
+
+    await response.deferUpdate();
+
+    return {
+        message: msg,
+        player: response.user,
+        interaction: response
+    };
 }

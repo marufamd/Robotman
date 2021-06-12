@@ -1,11 +1,11 @@
-import { oneLine } from 'common-tags';
-import { Command, PrefixSupplier } from 'discord-akairo';
-import type { CollectorFilter, Message } from 'discord.js';
+import { Command } from 'discord-akairo';
+import { Message, MessageActionRow, MessageButton, MessageComponentInteraction } from 'discord.js';
 import ConnectFour from '../../structures/ConnectFour';
-import { plural } from '../../util';
+import { choosePlayer, plural } from '../../util';
 import { colors, connectFour, emojis } from '../../util/constants';
+import { Connect4AI } from 'connect4-ai';
 
-const { CANCEL_TIME, WAIT_TIME, indicators } = connectFour;
+const { WAIT_TIME, indicators } = connectFour;
 
 export default class extends Command {
     public constructor() {
@@ -18,30 +18,16 @@ export default class extends Command {
     }
 
     public async exec(message: Message) {
-        const prefix = (this.handler.prefix as PrefixSupplier)(message);
+        const data = await choosePlayer(message);
+        if (!data) return;
 
-        await message.channel.send(oneLine`
-        **${message.author.username}** has started a game! Type \`${prefix}connectjoin\` to face them. 
-        To cancel the game, type \`${prefix}connectend\`. The game will be automatically cancelled if no one joins in the next ${CANCEL_TIME} minutes.
-        `);
-
-        const command = (resp: Message, cmd: string) => resp.content.toLowerCase() === `${prefix}connect${cmd}`;
-
-        const filter = (resp: Message) =>
-            (resp.author.id !== message.author.id && command(resp, 'join')) ||
-            (resp.author.id === message.author.id && command(resp, 'end'));
-
-        const join = await this.getResponse(message, filter, CANCEL_TIME * 60000);
-
-        if (!join) return message.channel.send('A second player has not joined. The game has been cancelled.');
-
-        if (join.author.id === message.author.id && command(join, 'end')) return message.channel.send('Cancelled the game.');
+        const msg = data.message;
 
         const game = new ConnectFour()
             .addPlayer(message.author)
-            .addPlayer(join.author);
+            .addPlayer(data.player);
 
-        await message.channel.send(`**${join.author.username}** has joined the game!`);
+        const engine = new Connect4AI();
 
         const turns = {
             red: {
@@ -54,8 +40,12 @@ export default class extends Command {
             }
         };
 
-        let turn = true,
-            lastSkipped = false;
+        const title = `**${game.players[0].tag}** vs. **${game.players[1].tag}**`;
+
+        let response = data.interaction;
+
+        let turn = true;
+        let skipMove = false;
 
         game.makeBoard();
 
@@ -63,51 +53,63 @@ export default class extends Command {
             const piece = turn ? 'red' : 'yellow';
             const { player, emoji } = turns[piece];
 
+            const otherPlayer = game.players.find(p => p.id !== player.id);
+
             turn = !turn;
+
+            if (player.bot) {
+                game.addPiece(engine.playAI('hard'), piece);
+                continue;
+            }
 
             const embed = this.client.util
                 .embed()
                 .setColor(colors.CONNECT_FOUR)
                 .setTitle(`\\${emoji} ${player.username}, it's your turn!`)
-                .setDescription(`Type a number from 1-7 to place a piece, or \`${prefix}connectstop\` to forfeit.\n\n${game.currentBoard}`)
+                .setDescription(game.currentBoard)
                 .addField('Time', emojis.timer, true)
-                .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move.`);
+                .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move, or your move will be made for you.`);
 
-            const msg = await message.channel.send({ embed });
+            await response.editReply({
+                content: skipMove ? `${title}\n\n${otherPlayer} has failed to make a move, so I have played for them.` : title,
+                embeds: [embed],
+                components: this.generateButtons()
+            });
 
-            const turnFilter = (resp: Message) => {
-                const num = parseInt(resp.content);
-                return resp.author.id === player.id &&
-                    ((this.inRange(num) && game.addPiece(num, piece)) || command(resp, 'stop'));
-            };
+            const filter = (i: MessageComponentInteraction) => i.user.id === player.id && (game.addPiece(Number(i.customID), piece) || i.customID === 'stop');
 
-            const move = await this.getResponse(message, turnFilter, WAIT_TIME * 60000);
+            const move = await msg.awaitMessageComponentInteraction(filter, WAIT_TIME * 60000).catch(() => null);
 
             if (!move) {
-                if (lastSkipped) return message.channel.send('Both players have failed to make a move. Game has been cancelled.');
-
-                await msg.delete();
-                await message.channel.send(`${player}, you have failed to make a move. Your turn has been skipped.`);
-
-                lastSkipped = true;
+                skipMove = true;
+                await game.addPiece(engine.playAI('hard') + 1, piece);
                 continue;
             }
 
-            if (command(move, 'stop')) {
-                const winner = game.players.filter(p => p.id !== player.id)[0];
-                return message.channel.send(`${player} has forfeited the match, ${winner} wins!`);
+            await move.deferUpdate();
+
+            if (move.customID === 'stop') {
+                embed.fields = [];
+                embed.setTitle(`${player.username} has forfeitted. ${otherPlayer.username} wins!`);
+
+                return move.editReply({
+                    content: title,
+                    embeds: [embed],
+                    components: this.generateButtons(true)
+                });
             }
 
-            if (lastSkipped) lastSkipped = false;
+            response = move;
 
-            await msg.delete();
+            engine.play(Number(move.customID) - 1);
+
+            if (skipMove) skipMove = false;
         }
 
         const embed = this.client.util
             .embed()
             .setColor(colors.CONNECT_FOUR)
-            .setDescription(game.currentBoard)
-            .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);
+            .setDescription(game.currentBoard);
 
         if (game.win) {
             const winner = turns[turn ? 'yellow' : 'red'];
@@ -116,20 +118,47 @@ export default class extends Command {
             embed.setTitle('The board is filled. The game was a draw!');
         }
 
-        return message.channel.send({ embed });
+        return response.editReply({
+            content: title,
+            embeds: [embed],
+            components: this.generateButtons(true)
+        });
     }
 
-    private async getResponse(message: Message, filter: CollectorFilter<[Message]>, time: number): Promise<Message> {
-        const collected = await message.channel
-            .awaitMessages(filter, { max: 1, time, errors: ['time'] })
-            .catch(() => null);
+    private generateButtons(disabled = false) {
+        let count = 0;
+        const rows = [];
 
-        if (!collected) return null;
+        for (let i = 0; i < 2; i++) {
+            const row = [];
 
-        return collected.first();
-    }
+            for (let j = 0; j < 4; j++) {
+                let button: MessageButton;
 
-    private inRange(x: number) {
-        return x >= 1 && x <= 7;
+                if (count === 7) {
+                    button = new MessageButton()
+                        .setCustomID('stop')
+                        .setLabel('Forfeit')
+                        .setStyle('DANGER')
+                        .setDisabled(disabled);
+                } else {
+                    const id = (++count).toString();
+                    button = new MessageButton()
+                        .setCustomID(id)
+                        .setLabel(id)
+                        .setStyle('PRIMARY')
+                        .setDisabled(disabled);
+                }
+
+                row.push(button);
+            }
+
+            rows.push(
+                new MessageActionRow()
+                    .addComponents(...row)
+            );
+        }
+
+        return rows;
     }
 }

@@ -26,7 +26,7 @@ export default class Logger {
         if (typeof text === 'object') text = inspect(text);
         if (!(logType.toLowerCase() in logTypes)) logType = 'log';
 
-        if (logToConsole) Logger.write(text.replaceAll(/(```(\w+)?|`|\*|__|~~)/g, ''), logType);
+        if (logToConsole) Logger.write(text?.replaceAll(/(```(\w+)?|`|\*|__|~~)/g, ''), logType);
         if (logToWebhook && id && token) Logger.webhook(text, logType, ping, code, extra);
     }
 
