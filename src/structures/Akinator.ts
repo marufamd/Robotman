@@ -1,31 +1,40 @@
 import { Aki, Guess } from 'aki-api';
-import type { CollectorFilter, Message } from 'discord.js';
-import { randomResponse, title } from '../util';
+import {
+    InteractionReplyOptions,
+    Message,
+    MessageActionRow,
+    MessageButton,
+    MessageComponentInteraction,
+    MessageEmbed
+} from 'discord.js';
+import { randomResponse } from '../util';
 import { aki as akiConfig, colors, emojis } from '../util/constants';
 
 export default class Akinator {
-    private readonly aki: Aki;
-    private readonly failed: Set<`${number}`>;
-    private player: string;
+    private readonly aki = new Aki('en', true);
+    private readonly failed = new Set<`${number}`>();
+    private player: string = null;
 
-    public constructor() {
-        this.aki = new Aki('en', true);
-        this.failed = new Set();
-        this.player = null;
-    }
-
-    public async run(message: Message): Promise<void> {
+    public async run(message: Message) {
         this.player = message.author.id;
         const { aki } = this;
+
+        let msg = await message.channel.send('Starting...');
+
         await aki.start();
 
-        let keepGoing = true;
-        let loss: boolean | string = false;
+        let activeGame = true;
         let stop = false;
         let back = false;
-        let answer: number;
 
-        while (keepGoing) {
+        let answer: number;
+        let lastGuess: Guess;
+        let status: 'win' | 'loss' | 'timeout' = 'win';
+
+        let response: MessageComponentInteraction;
+        const filter = (i: MessageComponentInteraction) => i.user.id === this.player;
+
+        while (activeGame) {
             if (back) {
                 back = false;
             } else {
@@ -34,162 +43,191 @@ export default class Akinator {
 
             if (!aki.answers.length || aki.currentStep >= 78) stop = true;
 
-            const answers = await this.question(message);
-            answers.push(...akiConfig.responses.all);
-            const filter = (resp: Message) => this.isPlayer(resp) && answers.includes(resp.content.toLowerCase().replaceAll('’', '\''));
-            const response = await this.getResponse(message, filter);
+            const embed = this.embed()
+                .setAuthor(`Question #${aki.currentStep}`)
+                .setTitle(aki.question)
+                .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
 
-            switch (response) {
-                case 'timeout':
-                    loss = 'timeout';
-                    break;
-                case 'stop':
-                case 's':
-                    stop = true;
-                    break;
-                case 'back':
-                case 'b':
-                    back = true;
-                    break;
-                case 'yeah':
-                case 'yep':
-                case 'ye':
-                case 'y':
-                    answer = answers.indexOf('yes');
-                    break;
-                case 'nope':
-                case 'nah':
-                case 'n':
-                    answer = answers.indexOf('no');
-                    break;
-                case 'probs':
-                case 'prob':
-                case 'p':
-                    answer = answers.indexOf('probably');
-                    break;
-                case 'probs not':
-                case 'prob not':
-                case 'pn':
-                    answer = answers.indexOf('probably not');
-                    break;
-                case 'dont know':
-                case 'dunno':
-                case 'idk':
-                case 'dk':
-                case 'd':
-                    answer = answers.indexOf('don\'t know');
-                    break;
-                default:
-                    answer = answers.indexOf(response);
+            if (response) {
+                await response.editReply({
+                    content: null,
+                    embeds: [embed],
+                    components: this.generateButtons()
+                });
+                msg = response.message as Message;
+            } else {
+                msg = await msg.edit({
+                    content: null,
+                    embed,
+                    components: this.generateButtons()
+                });
             }
 
-            if (loss === 'timeout') break;
-            if (back) {
-                await aki.back();
-                continue;
+            response = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+
+            if (!response) {
+                status = 'timeout';
+                break;
+            }
+
+            await response.update({
+                content: 'Processing...',
+                components: this.generateButtons(true)
+            });
+
+            switch (response.customID) {
+                case 'Stop':
+                    stop = true;
+                    break;
+                case 'Back':
+                    back = true;
+                    await aki.back();
+                    continue;
+                default:
+                    answer = (this.aki.answers as string[]).indexOf(response.customID);
             }
 
             if (aki.progress >= 90 || stop) {
-                const guess = await this.guess(message);
-                if (guess === 'loss') {
-                    loss = true;
-                    void message.channel.send('I couldn\'t think of anyone.');
+                await this.aki.win();
+
+                const guesses = (this.aki.answers as Guess[]).filter(g => !this.failed.has(g.id));
+
+                if (!guesses.length) {
+                    status = 'loss';
                     break;
                 }
 
-                const newFilter = (resp: Message) => this.isPlayer(resp) && akiConfig.responses.specific.includes(resp.content.toLowerCase());
-                const newResponse = await this.getResponse(message, newFilter);
+                activeGame = false;
 
-                keepGoing = false;
+                const [guess] = guesses;
+                lastGuess = guess;
+                this.failed.add(guess.id);
 
-                switch (newResponse) {
-                    case 'timeout':
-                        loss = 'timeout';
+                const embed = this.embed()
+                    .setTitle(`Is your character ${guess.name}${guess.description ? ` (${guess.description})` : ''}`)
+                    .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
+                    .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
+
+                const row = new MessageActionRow()
+                    .addComponents(
+                        new MessageButton()
+                            .setCustomID('yes')
+                            .setLabel('Yes')
+                            .setStyle('SUCCESS'),
+                        new MessageButton()
+                            .setCustomID('no')
+                            .setLabel('No')
+                            .setStyle('DANGER')
+                    );
+
+                await response.editReply({
+                    content: null,
+                    embeds: [embed],
+                    components: [row]
+                });
+
+                const newResponse = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+
+                if (!newResponse) {
+                    status = 'timeout';
+                    break;
+                } else {
+                    await newResponse.deferUpdate();
+
+                    if (newResponse.customID === 'yes') {
+                        status = 'win';
                         break;
-                    case 'yeah':
-                    case 'yep':
-                    case 'yes':
-                    case 'ye':
-                    case 'y':
-                        loss = false;
-                        break;
-                    default:
+                    } else {
                         if (stop) {
-                            loss = true;
-                            break;
-                        } else {
-                            void message.channel.send('Hmmm, Should I keep going then? `Yes` | `No`');
-                            const resp = await this.getResponse(message, newFilter);
-
-                            if (['n', 'nah', 'no', 'nope', 'timeout'].includes(resp)) {
-                                if (resp === 'timeout') void message.channel.send('I guess that means no then.');
-                                loss = true;
-                            } else {
-                                keepGoing = true;
-                            }
+                            status = 'loss';
                             break;
                         }
+
+                        void response.editReply({
+                            content: akiConfig.responses.keepGoing,
+                            embeds: []
+                        });
+
+                        const nextResponse = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+
+                        if (!nextResponse || nextResponse.customID === 'no') {
+                            status = 'loss';
+                            break;
+                        } else {
+                            activeGame = true;
+                        }
+
+                        await nextResponse.deferUpdate();
+                    }
                 }
             }
         }
 
-        void message.channel.send({
-            content: this.finalResponse(loss),
-            files: [{ attachment: 'https://i.imgur.com/m3nIXvs.png', name: 'aki.png' }]
-        });
+        let endOptions: InteractionReplyOptions = {
+            content: randomResponse(akiConfig.responses[status]),
+            files: [{ attachment: akiConfig.images.end, name: 'aki.png' }],
+            embeds: [],
+            components: []
+        };
+
+        if (status === 'win') {
+            const embed = this.embed()
+                .setThumbnail(akiConfig.images.end)
+                .setTitle(randomResponse(akiConfig.responses[status]))
+                .setDescription(`Your character was **${lastGuess.name}${lastGuess.description ? ` (${lastGuess.description})**` : ''}`)
+                .setImage(lastGuess.nsfw ? null : this.replaceImage(lastGuess.absolute_picture_path) ?? null);
+
+            endOptions = {
+                content: null,
+                embeds: [embed],
+                components: []
+            };
+        }
+
+        return response.editReply(endOptions);
     }
 
-    private question(message: Message): string[] {
-        const answers = (this.aki.answers as string[]).map(a => a.toLowerCase());
-        if (this.aki.currentStep > 1) answers.push('back');
-        answers.push('stop');
-
-        const embed = message.client.util.embed()
+    private embed() {
+        return new MessageEmbed()
             .setColor(colors.AKINATOR)
-            .setTitle(`Question #${this.aki.currentStep}`)
-            .setDescription(`${this.aki.question}\n\n${answers.map(a => `\`${title(a)}\``).join(' | ')}`)
-            .setThumbnail(randomResponse(akiConfig.images))
-            .addField('Time', emojis.timer, true)
-            .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
-
-        void message.channel.send({ embed });
-
-        return answers;
+            .setThumbnail(randomResponse(akiConfig.images.random))
+            .addField('Time', emojis.timer, true);
     }
 
-    private async guess(message: Message): Promise<string | void> {
-        await this.aki.win();
+    private generateButtons(disabled = false) {
+        const first = [];
+        const second = [
+            new MessageButton()
+                .setCustomID('Stop')
+                .setLabel('Stop')
+                .setStyle('DANGER')
+                .setDisabled(disabled)
+        ];
 
-        const guesses = (this.aki.answers as Guess[]).filter(g => !this.failed.has(g.id));
-        if (!guesses.length) return 'loss';
-        const [guess] = guesses;
-        this.failed.add(guess.id);
+        for (const answer of (this.aki.answers as string[])) {
+            first.push(
+                new MessageButton()
+                    .setCustomID(answer)
+                    .setLabel(answer)
+                    .setStyle('PRIMARY')
+                    .setDisabled(disabled)
+            );
+        }
 
-        const embed = message.client.util.embed()
-            .setColor(colors.AKINATOR)
-            .setTitle('Guess')
-            .setDescription(`Is your character **${guess.name}${guess.description ? ` (${guess.description})` : ''}**?\n\n\`Yes\` | \`No\``)
-            .setThumbnail(randomResponse(akiConfig.images))
-            .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
-            .addField('Time', emojis.timer, true)
-            .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
+        if (this.aki.currentStep > 1) {
+            second.unshift(
+                new MessageButton()
+                    .setCustomID('Back')
+                    .setLabel('Back')
+                    .setStyle('SECONDARY')
+                    .setDisabled(disabled)
+            );
+        }
 
-        void message.channel.send({ embed });
-    }
-
-    private async getResponse(message: Message, filter: CollectorFilter<[Message]>): Promise<string> {
-        const responses = await message.channel.awaitMessages(filter, { max: 1, time: 60000, errors: ['time'] }).catch(() => null);
-        if (!responses) return 'timeout';
-        const response = responses.first().content.toLowerCase().replace('’', '\'').trim();
-
-        return response;
-    }
-
-    private finalResponse(loss: boolean | string): string {
-        const { win, lost, silent } = akiConfig.responses.final;
-        const endMessage = loss ? (loss === 'timeout' ? silent : lost) : win;
-
-        return randomResponse(endMessage);
+        return [
+            new MessageActionRow().addComponents(...first),
+            new MessageActionRow().addComponents(...second)
+        ];
     }
 
     private replaceImage(link: string): string {
@@ -198,9 +236,5 @@ export default class Akinator {
 
         for (const [from, to] of Object.entries(akiConfig.replace)) link = link.replace(`${base}/${from}`, `${imgur}/${to}`);
         return link;
-    }
-
-    private isPlayer(message: Message): boolean {
-        return message.author.id === this.player;
     }
 }

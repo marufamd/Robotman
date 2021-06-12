@@ -135,34 +135,34 @@ export const pull = {
 };
 
 export const aki = {
-    images: ['https://i.imgur.com/2xGxFEr.png', 'https://i.imgur.com/8P54YME.png'],
+    images: {
+        end: 'https://i.imgur.com/m3nIXvs.png',
+        random: ['https://i.imgur.com/2xGxFEr.png', 'https://i.imgur.com/8P54YME.png']
+    },
     replace: {
         's/724826__99926454.jpg': 'tttQgxw.jpg',
         'o/790322__776944019.jpg': 'jCb7p4V.png'
     },
     responses: {
-        'all': ['yeah', 'nah', 'y', 'n', 'yep', 'nope', 'b', 'p', 'pn', 'idk', 'dunno', 'd', 'dk', 's', 'ye', 'probs', 'prob', 'probs not', 'prob not'],
-        'specific': ['yes', 'no', 'y', 'n', 'yeah', 'nah', 'ye', 'yep', 'nope'],
-        'final': {
-            win: [
-                'Great! I\'ve guessed right once again!',
-                'Great! I have won once again!',
-                'Nice, guessed right one more time!',
-                'Yes! I\'m victorious once again!',
-                'Looks like I\'ve won!'
-            ],
-            lost: [
-                'Seems that I\'ve been beaten. Till next time!',
-                'Bravo, you have defeated me!',
-                'Damn, you\'re good. Till next time!',
-                'Darn, looks like I\'ve been beaten!',
-                'I\'ve lost! You truly are a worthy opponent. Till next time!'
-            ],
-            silent: [
-                'Silence. Looks like I\'ve won!',
-                'Time\'s up! Seems like I\'ve won!'
-            ]
-        }
+        keepGoing: 'Hmmm, Should I keep going then?',
+        win: [
+            'Great! I\'ve guessed right once again!',
+            'Great! I have won once again!',
+            'Nice, guessed right one more time!',
+            'Yes! I\'m victorious once again!',
+            'Looks like I\'ve won!'
+        ],
+        loss: [
+            'Seems that I\'ve been beaten. Till next time!',
+            'Bravo, you have defeated me!',
+            'Damn, you\'re good. Till next time!',
+            'Darn, looks like I\'ve been beaten!',
+            'I\'ve lost! You truly are a worthy opponent. Till next time!'
+        ],
+        timeout: [
+            'Silence. Looks like I\'ve won!',
+            'Time\'s up! Seems like I\'ve won!'
+        ]
     }
 };
 

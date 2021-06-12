@@ -27,7 +27,6 @@ export default class extends Command {
     };
 
     public async exec(message: Message) {
-        await message.channel.send('Starting...');
         await new Akinator().run(message);
     }
 }
