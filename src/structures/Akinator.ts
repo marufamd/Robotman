@@ -180,7 +180,7 @@ export default class Akinator {
             endOptions = {
                 content: null,
                 embeds: [embed],
-                components: []
+                components: this.generateButtons(true)
             };
         }
 
