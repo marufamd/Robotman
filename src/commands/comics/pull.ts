@@ -17,7 +17,7 @@ export default class extends Command {
                     id: 'publisher',
                     type: (_, phrase) => {
                         if (!phrase) phrase = 'dc';
-                        return publishers.has(phrase.toLowerCase() as Publisher) ? publishers.get(phrase.toLowerCase() as Publisher) : null;
+                        return publishers.get(phrase.toLowerCase() as Publisher) ?? null;
                     },
                     otherwise: 'Invalid publisher.',
                     unordered: true

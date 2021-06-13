@@ -31,7 +31,7 @@
     "node-fetch": "^2.6.1",
     "node-schedule": "^1.3.2",
     "postgres": "^2.0.0-beta.2",
-    "tic-tac-toe-minimax-engine": "^1.0.8",
+    "tictactoe-minimax-ai": "^1.2.1",
     "turndown": "^7.0.0"
   },
   "devDependencies": {

@@ -5,83 +5,96 @@ import {
     MessageComponentInteraction,
     User
 } from 'discord.js';
-import TicTacToeEngine, { GameStatus, Player } from 'tic-tac-toe-minimax-engine';
+import * as engine from 'tictactoe-minimax-ai';
 import { randomResponse } from '../util';
 import { ticTacToe } from '../util/constants';
 
 export default class TicTacToe {
     private readonly board: MessageActionRow[] = [];
-    private engine: TicTacToeEngine;
-    private readonly player1: User;
-    private readonly player2: User;
-    private readonly players: [User, User];
-    private readonly cpu: boolean;
-    private readonly message: Message;
+    private readonly players: User[] = [];
 
-    public constructor(message: Message, player1: User, player2: User) {
+    public constructor(private readonly message: Message, private interaction: MessageComponentInteraction) {
         this.message = message;
-        this.player1 = player1;
-        this.player2 = player2;
-        this.players = [this.player1, this.player2];
-        this.cpu = this.player2.id === message.client.user.id;
+        this.interaction = interaction;
     }
 
     public async run() {
         this.createBoard();
 
         const firstPlayer = this.firstPlayer();
+        const secondPlayer = this.getOtherPlayer(firstPlayer);
 
-        this.engine = new TicTacToeEngine(firstPlayer.id === this.player1.id ? Player.PLAYER_ONE : Player.PLAYER_TWO);
-
-        await this.message.edit({
-            content: ticTacToe.messages.turn(this.player1, this.player2, firstPlayer),
+        await this.interaction.editReply({
+            content: ticTacToe.messages.turn(firstPlayer, secondPlayer, firstPlayer.bot ? secondPlayer : firstPlayer),
             components: this.board
         });
 
-        let status = await this.makeMove(firstPlayer, firstPlayer);
-        let otherTurn = firstPlayer.id !== this.player2.id;
+        const options: engine.GameOptions = {
+            computer: 'o',
+            opponent: 'x'
+        };
 
-        while (status === GameStatus.ONGOING) {
-            const currentPlayer = otherTurn ? this.player2 : this.player1;
+        let currentPlayer;
+        let otherTurn = false;
 
-            if (otherTurn && this.cpu) {
-                const cpuMove = this.randomMove();
+        while (engine.boardEvaluate(this.arrayBoard).status === 'none') {
+            currentPlayer = otherTurn ? secondPlayer : firstPlayer;
 
-                await this.message.edit({ components: this.updateBoard(cpuMove, false) });
+            if (currentPlayer.bot) {
+                const cpuMove = engine.bestMove(this.arrayBoard, options).toString();
 
-                status = this.engine.makeNextMove(...this.getSpace(cpuMove));
+                await this.interaction.editReply({
+                    content: ticTacToe.messages.turn(firstPlayer, this.getOtherPlayer(firstPlayer), this.getOtherPlayer(currentPlayer)),
+                    components: this.updateBoard(cpuMove, currentPlayer.id === firstPlayer.id)
+                });
             } else {
-                status = await this.makeMove(currentPlayer, firstPlayer);
+                await this.makeMove(currentPlayer, firstPlayer);
             }
 
             otherTurn = !otherTurn;
         }
 
-        let endMessage = ticTacToe.messages.win(otherTurn ? this.player2 : this.player1, otherTurn ? this.player1 : this.player2);
+        const { status } = engine.boardEvaluate(this.arrayBoard);
 
-        if (status === GameStatus.DRAW) {
-            endMessage = ticTacToe.messages.draw(this.player1, this.player2);
-        } else if (this.checkWin(status)) {
-            endMessage = ticTacToe.messages.win(otherTurn ? this.player1 : this.player2, otherTurn ? this.player2 : this.player1);
+        let endMessage: string;
+
+        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+        switch (status) {
+            case 'win':
+                endMessage = ticTacToe.messages.win(secondPlayer, firstPlayer);
+                break;
+            case 'loss':
+                endMessage = ticTacToe.messages.win(firstPlayer, secondPlayer);
+                break;
+            case 'tie':
+                endMessage = ticTacToe.messages.draw(firstPlayer, secondPlayer);
+                break;
         }
 
-        return this.message.edit({
+        return this.interaction.editReply({
             content: endMessage,
             components: this.disableEmptyButtons()
         });
     }
 
-    private async makeMove(player: User, firstPlayer: User) {
+    public addPlayer(player: User) {
+        this.players.push(player);
+        return this;
+    }
+
+    private async makeMove(player: User, firstPlayer: User): Promise<void> {
         const filter = (i: MessageComponentInteraction) => {
             const button = this.findButton(i.customID);
             return button.label === '\u200b' && player.id === i.user.id;
         };
 
+        const opponent = this.getOtherPlayer(player);
+
         const move = await this.message.awaitMessageComponentInteraction(filter, 20000).catch(() => null);
 
         if (!move) {
-            await this.message.edit({
-                content: ticTacToe.messages.forfeit(player, this.getOtherPlayer(player)),
+            await this.interaction.editReply({
+                content: ticTacToe.messages.forfeit(player, opponent),
                 components: this.disableEmptyButtons()
             });
 
@@ -89,15 +102,14 @@ export default class TicTacToe {
         }
 
         await move.update({
-            content: ticTacToe.messages.turn(this.player1, this.player2, this.cpu ? player : this.getOtherPlayer(player)),
+            content: ticTacToe.messages.turn(firstPlayer, this.getOtherPlayer(firstPlayer), opponent.bot ? player : opponent),
             components: this.updateBoard(move.customID, player.id === firstPlayer.id)
         });
 
-        return this.engine.makeNextMove(...this.getSpace(move.customID));
+        this.interaction = move;
     }
 
     private firstPlayer() {
-        if (this.cpu) return this.player1;
         return randomResponse(this.players);
     }
 
@@ -106,19 +118,26 @@ export default class TicTacToe {
     }
 
     private createBoard() {
+        let id = 0;
+
         for (let i = 0; i < 3; i++) {
             const buttons = [];
 
             for (let j = 0; j < 3; j++) {
                 buttons.push(
                     new MessageButton()
-                        .setCustomID(`${i}${j}`)
+                        .setCustomID(id.toString())
                         .setLabel('\u200b')
                         .setStyle('SECONDARY')
                 );
+
+                id++;
             }
 
-            this.board.push(new MessageActionRow().addComponents(...buttons));
+            this.board.push(
+                new MessageActionRow()
+                    .addComponents(...buttons)
+            );
         }
     }
 
@@ -131,6 +150,19 @@ export default class TicTacToe {
             .setDisabled(true);
 
         return this.board;
+    }
+
+    private get arrayBoard() {
+        return this.board.map(r => r.components.map(c => {
+            switch (c.label) {
+                case '\u200b':
+                    return '_';
+                case ticTacToe.emojis.o:
+                    return 'o';
+                case ticTacToe.emojis.x:
+                    return 'x';
+            }
+        }));
     }
 
     private findButton(id: string) {
@@ -153,16 +185,6 @@ export default class TicTacToe {
 
     private getSpace(id: string) {
         return id.split('').map(Number) as [number, number];
-    }
-
-    private checkWin(status: GameStatus) {
-        return [
-            GameStatus.WIN_ON_HORIZONTAL,
-            GameStatus.WIN_ON_VERTICAL,
-            GameStatus.WIN_ON_LEFT_DIAGONAL,
-            GameStatus.WIN_ON_RIGHT_DIAGONAL
-        ]
-            .includes(status);
     }
 
     private randomMove() {

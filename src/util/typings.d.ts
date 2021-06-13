@@ -74,3 +74,15 @@ declare module 'connect4-ai' {
         public canPlay(column: number): boolean;
     }
 }
+
+declare module 'tictactoe-minimax-ai' {
+    export type Piece = 'o' | 'x';
+
+    export interface GameOptions {
+        computer: Piece;
+        opponent: Piece;
+    }
+
+    export function bestMove(board: string[][], options: GameOptions): number;
+    export function boardEvaluate(board: string[][]): { status: 'win' | 'loss' | 'tie' | 'none' };
+}
