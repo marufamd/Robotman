@@ -58,7 +58,7 @@ export default class extends Command {
             turn = !turn;
 
             if (player.bot) {
-                game.addPiece(engine.playAI('hard'), piece);
+                game.addPiece(engine.playAI('hard') + 1, piece);
                 continue;
             }
 
