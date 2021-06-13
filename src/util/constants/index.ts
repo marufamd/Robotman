@@ -201,8 +201,10 @@ export type Publisher =
     | 'archie'
     | 'dynamite'
     | 'vault'
+    | 'milestone'
     | 'aftershock'
-    | 'zenescope';
+    | 'zenescope'
+    | 'ahoy';
 
 export interface PublisherData {
     id: number;
@@ -222,7 +224,7 @@ export const publishers = new Map<Publisher, PublisherData>([
         id: 2,
         name: 'Marvel Comics',
         color: 15538723,
-        thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/MarvelLogo.svg/1280px-MarvelLogo.svg.png'
+        thumbnail: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Marvel_Logo.svg/1200px-Marvel_Logo.svg.png'
     }],
     ['darkhorse', {
         id: 5,
@@ -272,6 +274,12 @@ export const publishers = new Map<Publisher, PublisherData>([
         color: 15678244,
         thumbnail: 'http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg'
     }],
+    ['milestone', {
+        id: 59,
+        name: 'Milestone Comics',
+        color: 0,
+        thumbnail: 'https://i.imgur.com/8WVi3pV.png'
+    }],
     ['vault', {
         id: 261,
         name: 'Vault Comics',
@@ -283,6 +291,12 @@ export const publishers = new Map<Publisher, PublisherData>([
         name: 'Aftershock Comics',
         color: 12391451,
         thumbnail: 'https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png'
+    }],
+    ['ahoy', {
+        id: 524,
+        name: 'Ahoy Comics',
+        color: 14370876,
+        thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/71/AhoyComicsLogo.png/220px-AhoyComicsLogo.png'
     }]
 ]);
 

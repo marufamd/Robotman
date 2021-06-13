@@ -2,7 +2,7 @@ import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
 import { CommandInteraction, Constants, Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { closest, getPullDate } from '../../util';
+import { getPullDate } from '../../util';
 import { formats, Publisher, PublisherData, publishers, pull } from '../../util/constants';
 
 const { previous, next } = pull.default;
@@ -17,9 +17,9 @@ export default class extends Command {
                     id: 'publisher',
                     type: (_, phrase) => {
                         if (!phrase) phrase = 'dc';
-                        const name = closest(phrase.toLowerCase(), [...publishers.keys()]) as Publisher;
-                        return publishers.get(name);
+                        return publishers.has(phrase.toLowerCase() as Publisher) ? publishers.get(phrase.toLowerCase() as Publisher) : null;
                     },
+                    otherwise: 'Invalid publisher.',
                     unordered: true
                 },
                 {
