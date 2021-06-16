@@ -8,7 +8,6 @@ export default class extends Command {
         super('tic-tac-toe', {
             aliases: ['tic-tac-toe', 'ttt'],
             description: 'Starts a Tic Tac Toe game.',
-            lock: 'channel',
             editable: false
         });
     }

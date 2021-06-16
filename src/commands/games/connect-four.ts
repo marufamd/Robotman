@@ -12,8 +12,7 @@ export default class extends Command {
         super('connect-four', {
             aliases: ['connect-four', 'connect', 'c4', 'c-four'],
             description: 'Starts a Connect Four game. Requires two players.',
-            editable: false,
-            lock: 'channel'
+            editable: false
         });
     }
 
