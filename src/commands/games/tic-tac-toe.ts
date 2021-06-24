@@ -16,9 +16,14 @@ export default class extends Command {
         const data = await choosePlayer(message);
         if (!data) return;
 
-        await new TicTacToe(data.message, data.interaction)
-            .addPlayer(message.author)
-            .addPlayer(data.player)
+        return new TicTacToe(
+            data.message,
+            data.interaction
+        )
+            .addPlayers(
+                message.author,
+                data.player
+            )
             .run();
     }
 }

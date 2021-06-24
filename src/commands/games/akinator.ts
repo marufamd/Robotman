@@ -27,6 +27,6 @@ export default class extends Command {
     };
 
     public async exec(message: Message) {
-        await new Akinator().run(message);
+        return new Akinator().run(message);
     }
 }

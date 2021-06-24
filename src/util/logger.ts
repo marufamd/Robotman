@@ -1,8 +1,8 @@
 import * as colorette from 'colorette';
-import { MessageEmbedOptions, WebhookClient, Snowflake } from 'discord.js';
+import { MessageEmbedOptions, WebhookClient, Snowflake, Util } from 'discord.js';
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
-import { parseWebhook } from '.';
+import { parseWebhook, codeblock } from '.';
 import { formats, logTypes } from './constants';
 
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
@@ -62,13 +62,19 @@ export default class Logger {
                     content: ping ? `<@${BOT_OWNER}>` : null,
                     embeds: [embed]
                 });
-                void webhook.send({
-                    content: text,
-                    code: logType === 'error' ? 'xl' : (code === true ? 'js' : code),
-                    split: {
-                        char: ''
-                    }
-                });
+
+                const texts = Util.splitMessage(text, { maxLength: 1980, char: '' });
+
+                for (const item of texts) {
+                    void webhook.send(
+                        codeblock(
+                            item,
+                            logType === 'error'
+                                ? 'xl'
+                                : (code === true ? 'js' : code as string)
+                        )
+                    );
+                }
             }
         } catch (e) {
             Logger.write(e, 'error');

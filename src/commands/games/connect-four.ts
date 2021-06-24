@@ -10,7 +10,7 @@ const { WAIT_TIME, indicators } = connectFour;
 export default class extends Command {
     public constructor() {
         super('connect-four', {
-            aliases: ['connect-four', 'connect', 'c4', 'c-four'],
+            aliases: ['connect-four', 'connect', 'c4', 'c-four', 'connect-4'],
             description: 'Starts a Connect Four game. Requires two players.',
             editable: false
         });

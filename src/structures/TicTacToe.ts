@@ -21,7 +21,7 @@ export default class TicTacToe {
     public async run() {
         this.createBoard();
 
-        const firstPlayer = this.firstPlayer();
+        const firstPlayer = randomResponse(this.players);
         const secondPlayer = this.getOtherPlayer(firstPlayer);
 
         await this.interaction.editReply({
@@ -29,19 +29,21 @@ export default class TicTacToe {
             components: this.board
         });
 
-        const options: engine.GameOptions = {
-            computer: 'o',
-            opponent: 'x'
-        };
-
-        let currentPlayer;
         let otherTurn = false;
 
         while (engine.boardEvaluate(this.arrayBoard).status === 'none') {
-            currentPlayer = otherTurn ? secondPlayer : firstPlayer;
+            const currentPlayer = otherTurn ? secondPlayer : firstPlayer;
 
             if (currentPlayer.bot) {
-                const cpuMove = engine.bestMove(this.arrayBoard, options).toString();
+                const cpuMove = engine
+                    .bestMove(
+                        this.arrayBoard,
+                        {
+                            computer: 'o',
+                            opponent: 'x'
+                        }
+                    )
+                    .toString();
 
                 await this.interaction.editReply({
                     content: ticTacToe.messages.turn(firstPlayer, this.getOtherPlayer(firstPlayer), this.getOtherPlayer(currentPlayer)),
@@ -58,8 +60,7 @@ export default class TicTacToe {
 
         let endMessage: string;
 
-        // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-        switch (status) {
+        switch (status as 'win' | 'loss' | 'tie') {
             case 'win':
                 endMessage = ticTacToe.messages.win(secondPlayer, firstPlayer);
                 break;
@@ -77,8 +78,8 @@ export default class TicTacToe {
         });
     }
 
-    public addPlayer(player: User) {
-        this.players.push(player);
+    public addPlayers(...players: User[]) {
+        this.players.push(...players);
         return this;
     }
 
@@ -107,10 +108,6 @@ export default class TicTacToe {
         });
 
         this.interaction = move;
-    }
-
-    private firstPlayer() {
-        return randomResponse(this.players);
     }
 
     private getOtherPlayer(player: User) {
@@ -181,21 +178,5 @@ export default class TicTacToe {
         }
 
         return this.board;
-    }
-
-    private getSpace(id: string) {
-        return id.split('').map(Number) as [number, number];
-    }
-
-    private randomMove() {
-        const spaces = [];
-
-        for (const row of this.board) {
-            for (const button of row.components) {
-                if (button.label === '\u200b') spaces.push(button.customID);
-            }
-        }
-
-        return randomResponse(spaces);
     }
 }
