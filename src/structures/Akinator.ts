@@ -135,10 +135,18 @@ export default class Akinator {
                             embeds: []
                         });
 
-                        const nextResponse = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
+                        const nextResponse: MessageComponentInteraction = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
 
                         if (!nextResponse || nextResponse.customId === 'no') {
                             status = 'loss';
+
+                            await nextResponse.reply({
+                                content: null,
+                                embeds: [embed]
+                            });
+
+                            response = nextResponse;
+
                             break;
                         } else {
                             activeGame = true;
