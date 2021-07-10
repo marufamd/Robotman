@@ -43,8 +43,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
-        const data = this.client.util.checkEmbed(await this.run(query));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(query));
     }
 
     private async run(query: string) {
@@ -78,6 +77,6 @@ export default class extends Command {
         if ('pageCount' in book) embed.addField('Page Count', book.pageCount.toString(), true);
         if (book.categories?.length) embed.addField('Categories', book.categories.join(', '), true);
 
-        return { embed: embed.inlineFields() };
+        return { embeds: [embed.inlineFields()] };
     }
 }

@@ -1,13 +1,13 @@
 import { Aki, Guess } from 'aki-api';
 import {
-    InteractionReplyOptions,
     Message,
     MessageActionRow,
     MessageButton,
     MessageComponentInteraction,
-    MessageEmbed
+    MessageEmbed,
+    MessageEditOptions
 } from 'discord.js';
-import { randomResponse } from '../util';
+import { disableComponents, randomResponse } from '../util';
 import { aki as akiConfig, colors, emojis } from '../util/constants';
 
 export default class Akinator {
@@ -28,7 +28,6 @@ export default class Akinator {
         let back = false;
 
         let answer: number;
-        let lastGuess: Guess;
         let status: 'win' | 'loss' | 'timeout' = 'win';
 
         let response: MessageComponentInteraction;
@@ -48,22 +47,20 @@ export default class Akinator {
                 .setTitle(aki.question)
                 .setFooter(`Confidence Level: ${Math.round(parseInt(this.aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
 
+            const options: MessageEditOptions = {
+                content: null,
+                embeds: [embed],
+                components: this.generateButtons()
+            };
+
             if (response) {
-                await response.editReply({
-                    content: null,
-                    embeds: [embed],
-                    components: this.generateButtons()
-                });
+                await response.editReply(options);
                 msg = response.message as Message;
             } else {
-                msg = await msg.edit({
-                    content: null,
-                    embed,
-                    components: this.generateButtons()
-                });
+                msg = await msg.edit(options);
             }
 
-            response = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+            response = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
 
             if (!response) {
                 status = 'timeout';
@@ -72,10 +69,11 @@ export default class Akinator {
 
             await response.update({
                 content: 'Processing...',
+                embeds: [],
                 components: this.generateButtons(true)
             });
 
-            switch (response.customID) {
+            switch (response.customId) {
                 case 'Stop':
                     stop = true;
                     break;
@@ -84,7 +82,7 @@ export default class Akinator {
                     await aki.back();
                     continue;
                 default:
-                    answer = (this.aki.answers as string[]).indexOf(response.customID);
+                    answer = (this.aki.answers as string[]).indexOf(response.customId);
             }
 
             if (aki.progress >= 90 || stop) {
@@ -100,7 +98,6 @@ export default class Akinator {
                 activeGame = false;
 
                 const [guess] = guesses;
-                lastGuess = guess;
                 this.failed.add(guess.id);
 
                 const embed = this.embed()
@@ -108,25 +105,15 @@ export default class Akinator {
                     .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
                     .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
 
-                const row = new MessageActionRow()
-                    .addComponents(
-                        new MessageButton()
-                            .setCustomID('yes')
-                            .setLabel('Yes')
-                            .setStyle('SUCCESS'),
-                        new MessageButton()
-                            .setCustomID('no')
-                            .setLabel('No')
-                            .setStyle('DANGER')
-                    );
-
                 await response.editReply({
                     content: null,
                     embeds: [embed],
-                    components: [row]
+                    components: this.generateYesNoButtons()
                 });
 
-                const newResponse = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+                const newResponse = await msg
+                    .awaitMessageComponent({ filter, time: 60000 })
+                    .catch(() => null);
 
                 if (!newResponse) {
                     status = 'timeout';
@@ -134,7 +121,7 @@ export default class Akinator {
                 } else {
                     await newResponse.deferUpdate();
 
-                    if (newResponse.customID === 'yes') {
+                    if (newResponse.customId === 'yes') {
                         status = 'win';
                         break;
                     } else {
@@ -148,9 +135,9 @@ export default class Akinator {
                             embeds: []
                         });
 
-                        const nextResponse = await msg.awaitMessageComponentInteraction(filter, 60000).catch(() => null);
+                        const nextResponse = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
 
-                        if (!nextResponse || nextResponse.customID === 'no') {
+                        if (!nextResponse || nextResponse.customId === 'no') {
                             status = 'loss';
                             break;
                         } else {
@@ -163,28 +150,14 @@ export default class Akinator {
             }
         }
 
-        let endOptions: InteractionReplyOptions = {
+        const components = disableComponents(this.generateYesNoButtons(status === 'timeout' ? null : status === 'win' ? 'yes' : 'no'));
+
+        await response.editReply({ components });
+
+        return message.channel.send({
             content: randomResponse(akiConfig.responses[status]),
-            files: [{ attachment: akiConfig.images.end, name: 'aki.png' }],
-            embeds: [],
-            components: []
-        };
-
-        if (status === 'win') {
-            const embed = this.embed()
-                .setThumbnail(akiConfig.images.end)
-                .setTitle(randomResponse(akiConfig.responses[status]))
-                .setDescription(`Your character was **${lastGuess.name}${lastGuess.description ? ` (${lastGuess.description})**` : ''}`)
-                .setImage(lastGuess.nsfw ? null : this.replaceImage(lastGuess.absolute_picture_path) ?? null);
-
-            endOptions = {
-                content: null,
-                embeds: [embed],
-                components: this.generateButtons(true)
-            };
-        }
-
-        return response.editReply(endOptions);
+            files: [{ attachment: akiConfig.images.end, name: 'aki.png' }]
+        });
     }
 
     private embed() {
@@ -198,7 +171,7 @@ export default class Akinator {
         const first = [];
         const second = [
             new MessageButton()
-                .setCustomID('Stop')
+                .setCustomId('Stop')
                 .setLabel('Stop')
                 .setStyle('DANGER')
                 .setDisabled(disabled)
@@ -207,7 +180,7 @@ export default class Akinator {
         for (const answer of (this.aki.answers as string[])) {
             first.push(
                 new MessageButton()
-                    .setCustomID(answer)
+                    .setCustomId(answer)
                     .setLabel(answer)
                     .setStyle('PRIMARY')
                     .setDisabled(disabled)
@@ -217,7 +190,7 @@ export default class Akinator {
         if (this.aki.currentStep > 1) {
             second.unshift(
                 new MessageButton()
-                    .setCustomID('Back')
+                    .setCustomId('Back')
                     .setLabel('Back')
                     .setStyle('SECONDARY')
                     .setDisabled(disabled)
@@ -227,6 +200,27 @@ export default class Akinator {
         return [
             new MessageActionRow().addComponents(...first),
             new MessageActionRow().addComponents(...second)
+        ];
+    }
+
+    private generateYesNoButtons(clicked?: 'yes' | 'no') {
+        const setSecondary = (style: 'SUCCESS' | 'DANGER') => {
+            const button = style === 'SUCCESS' ? 'yes' : 'no';
+            return clicked === button ? style : 'SECONDARY';
+        };
+
+        return [
+            new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('yes')
+                        .setLabel('Yes')
+                        .setStyle(clicked ? setSecondary('SUCCESS') : 'SUCCESS'),
+                    new MessageButton()
+                        .setCustomId('no')
+                        .setLabel('No')
+                        .setStyle(clicked ? setSecondary('DANGER') : 'DANGER')
+                )
         ];
     }
 

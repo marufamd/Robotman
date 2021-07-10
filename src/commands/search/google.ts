@@ -2,8 +2,7 @@ import { oneLine } from 'common-tags';
 import { Argument, Command } from 'discord-akairo';
 import { CommandInteraction, Constants, Message, TextChannel } from 'discord.js';
 import { google, randomResponse } from '../../util';
-
-const COLORS = ['#008744', '#0057e7', '#d62d20', '#ffa700'];
+import { colors } from '../../util/constants';
 
 export default class extends Command {
     public constructor() {
@@ -67,8 +66,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query, amount }: { query: string; amount: number }) {
-        const data = this.client.util.checkEmbed(await this.run(query, amount || 1, interaction));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(query, amount || 1, interaction));
     }
 
     private async run(query: string, amount: number, data: Message | CommandInteraction) {
@@ -85,15 +83,25 @@ export default class extends Command {
             response = {
                 embed: this.client.util
                     .embed()
-                    .setColor(randomResponse(COLORS))
+                    .setColor(
+                        randomResponse([
+                            colors.GOOGLE_BLUE,
+                            colors.GOOGLE_GREEN,
+                            colors.GOOGLE_RED,
+                            colors.GOOGLE_YELLOW
+                        ])
+                    )
                     .setAuthor(
                         `Top results for '${results.query}'`,
                         'https://i.imgur.com/DaNRfwC.png',
                         `https://www.google.com/search?q=${encodeURIComponent(query)}`
                     )
-                    .setDescription(results.results
-                        .map(r => `[${r.title}](${r.link})\n${oneLine`${r.description.trim()}`}`)
-                        .join('\n\n'))
+                    .setDescription(
+                        results
+                            .results
+                            .map(r => `[${r.title}](${r.link})\n${oneLine`${r.description.trim()}`}`)
+                            .join('\n\n')
+                    )
                     .setFooter(`About ${results.totalResults} results (${results.time} seconds)`)
             };
         }

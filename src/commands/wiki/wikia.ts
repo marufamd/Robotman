@@ -59,8 +59,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { wikia, query }: { wikia: string; query: string }) {
-        const data = this.client.util.checkEmbed(await this.run(wikia, query));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(wikia, query));
     }
 
     private async run(wikia: string, content: string) {
@@ -91,7 +90,7 @@ export default class extends Command {
             .setDescription(result.description)
             .setImage(result.image);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 
     private async getData(baseURL: string, id: number) {

@@ -52,9 +52,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
-        console.log(query);
-        const data = this.client.util.checkEmbed(await this.run(query));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(query));
     }
 
     private async run(query: string) {
@@ -92,6 +90,6 @@ export default class extends Command {
 
         if (page2?.length) embed.addField('Page 2', page2.join('\n'), true);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 }

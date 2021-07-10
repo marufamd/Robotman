@@ -62,8 +62,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { first, second }: { first: string; second: string }) {
-        const data = this.client.util.checkEmbed(await this.run(first, second));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(first, second));
     }
 
     private async run(first: string, second: string) {
@@ -106,7 +105,7 @@ export default class extends Command {
             .setImage(image)
             .setFooter('Pokemon Fusion Generator');
 
-        return { embed };
+        return { embeds: [embed] };
     }
 
     private getRandom(amount = 1) {

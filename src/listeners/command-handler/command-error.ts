@@ -39,6 +39,9 @@ export default class extends Listener {
                     inline: true
                 }
             ]
+        } as {
+            title: string;
+            fields: { name: string; value: string; inline: boolean }[];
         };
 
         if (command) {

@@ -1,8 +1,9 @@
 import {
+    ButtonInteraction,
     Message,
     MessageActionRow,
     MessageButton,
-    MessageComponentInteraction,
+    MessageButtonRow,
     User
 } from 'discord.js';
 import * as engine from 'tictactoe-minimax-ai';
@@ -10,10 +11,10 @@ import { randomResponse } from '../util';
 import { ticTacToe } from '../util/constants';
 
 export default class TicTacToe {
-    private readonly board: MessageActionRow[] = [];
+    private readonly board: MessageButtonRow[] = [];
     private readonly players: User[] = [];
 
-    public constructor(private readonly message: Message, private interaction: MessageComponentInteraction) {
+    public constructor(private readonly message: Message, private interaction: ButtonInteraction) {
         this.message = message;
         this.interaction = interaction;
     }
@@ -84,14 +85,14 @@ export default class TicTacToe {
     }
 
     private async makeMove(player: User, firstPlayer: User): Promise<void> {
-        const filter = (i: MessageComponentInteraction) => {
-            const button = this.findButton(i.customID);
+        const filter = (i: ButtonInteraction) => {
+            const button = this.findButton(i.customId);
             return button.label === '\u200b' && player.id === i.user.id;
         };
 
         const opponent = this.getOtherPlayer(player);
 
-        const move = await this.message.awaitMessageComponentInteraction(filter, 20000).catch(() => null);
+        const move = await this.message.awaitMessageComponent({ filter, time: 20000 }).catch(() => null);
 
         if (!move) {
             await this.interaction.editReply({
@@ -104,7 +105,7 @@ export default class TicTacToe {
 
         await move.update({
             content: ticTacToe.messages.turn(firstPlayer, this.getOtherPlayer(firstPlayer), opponent.bot ? player : opponent),
-            components: this.updateBoard(move.customID, player.id === firstPlayer.id)
+            components: this.updateBoard(move.customId, player.id === firstPlayer.id)
         });
 
         this.interaction = move;
@@ -123,7 +124,7 @@ export default class TicTacToe {
             for (let j = 0; j < 3; j++) {
                 buttons.push(
                     new MessageButton()
-                        .setCustomID(id.toString())
+                        .setCustomId(id.toString())
                         .setLabel('\u200b')
                         .setStyle('SECONDARY')
                 );
@@ -131,10 +132,7 @@ export default class TicTacToe {
                 id++;
             }
 
-            this.board.push(
-                new MessageActionRow()
-                    .addComponents(...buttons)
-            );
+            this.board.push(new MessageActionRow().addComponents(...buttons) as MessageButtonRow);
         }
     }
 
@@ -165,7 +163,7 @@ export default class TicTacToe {
     private findButton(id: string) {
         for (const row of this.board) {
             for (const button of row.components) {
-                if (button.customID === id) return button;
+                if (button.customId === id) return button;
             }
         }
     }

@@ -72,8 +72,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
-        const main = this.client.util.checkEmbed(await this.run(query));
-        return interaction.reply(main);
+        return interaction.reply(await this.run(query));
     }
 
     private async run(query: string) {
@@ -99,7 +98,7 @@ export default class extends Command {
         if (pageCount) embed.addField('Page Count', pageCount.toString(), true);
         if (releaseDate) embed.addField('Release Date', releaseDate, true);
 
-        return { embed: embed.inlineFields() };
+        return { embeds: [embed.inlineFields()] };
     }
 
     private async search(query: string): Promise<ComixologyData> {

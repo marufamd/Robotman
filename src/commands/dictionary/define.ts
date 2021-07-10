@@ -43,8 +43,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { word }: { word: string }) {
-        const data = this.client.util.checkEmbed(await this.run(word));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(word));
     }
 
     private async run(word: string) {
@@ -74,6 +73,6 @@ export default class extends Command {
             if (defined.date) embed.addField('First Known Use', defined.date);
         }
 
-        return { embed };
+        return { embeds: [embed] };
     }
 }

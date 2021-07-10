@@ -87,8 +87,7 @@ export default class extends Command {
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
-        const main = this.client.util.checkEmbed(await this.run(username.toLowerCase(), week));
-        return interaction.reply(main);
+        return interaction.reply(await this.run(username.toLowerCase(), week));
     }
 
     private async run(username: string, date: DateTime) {
@@ -114,6 +113,6 @@ export default class extends Command {
 
         if (prices) embed.addField('Total', `$${prices} USD`);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 }

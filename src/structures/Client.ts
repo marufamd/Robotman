@@ -2,13 +2,13 @@
 require('dotenv').config();
 
 import { AkairoClient, InhibitorHandler, ListenerHandler } from 'discord-akairo';
-import type {
+import {
     ApplicationCommandData,
     CommandInteraction,
-    InteractionReplyOptions,
     Message,
     MessageEmbed,
     MessageEmbedOptions,
+    Options,
     Snowflake
 } from 'discord.js';
 import { Job, RecurrenceRule, scheduleJob } from 'node-schedule';
@@ -30,6 +30,10 @@ declare module 'discord.js' {
     interface Message {
         client: RobotmanClient;
     }
+
+    interface MessageButtonRow extends MessageActionRow {
+        components: MessageButton[];
+    }
 }
 
 declare module 'discord-akairo' {
@@ -50,7 +54,6 @@ declare module 'discord-akairo' {
 
     interface ClientUtil {
         embed(data?: MessageEmbed | MessageEmbedOptions): RobotmanEmbed;
-        checkEmbed(data: string | InteractionReplyOptions | { embed: MessageEmbed | RobotmanEmbed }): string | InteractionReplyOptions;
         getDescription(command: Command): string;
         getExtended(command: Command, prefix: string): string;
         formatPrefix(message: Message): string;
@@ -124,7 +127,9 @@ export default class RobotmanClient extends AkairoClient {
 
     public constructor() {
         super({ ownerID: process.env.BOT_OWNER as Snowflake }, {
-            messageCacheMaxSize: 50,
+            makeCache: Options.cacheWithLimits({
+                MessageManager: 50
+            }),
             messageCacheLifetime: 600,
             messageSweepInterval: 600,
             allowedMentions: {

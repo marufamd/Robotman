@@ -126,7 +126,7 @@ export default class extends Command {
 
         if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
-        return message.channel.send({ embed });
+        return message.channel.send({ embeds: [embed] });
     }
 
     private embed(game: Hangman, text: string[]) {
@@ -142,7 +142,7 @@ export default class extends Command {
 
         if (game.incorrectGuesses.length) this.addGuesses(game, embed);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 
     private addGuesses(game: Hangman, embed: RobotmanEmbed) {
@@ -151,7 +151,12 @@ export default class extends Command {
 
     private async getResponse(message: Message, filter: CollectorFilter<[Message]>): Promise<string> {
         const collected = await message.channel
-            .awaitMessages(filter, { max: 1, time: MAX_TIME, errors: ['time'] })
+            .awaitMessages({
+                filter,
+                max: 1,
+                time: MAX_TIME,
+                errors: ['time']
+            })
             .catch(() => null);
 
         if (!collected) return null;

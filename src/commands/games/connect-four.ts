@@ -75,9 +75,11 @@ export default class extends Command {
                 components: this.generateButtons()
             });
 
-            const filter = (i: MessageComponentInteraction) => i.user.id === player.id && (game.addPiece(Number(i.customID), piece) || i.customID === 'stop');
+            const filter = (i: MessageComponentInteraction) => i.user.id === player.id && (game.addPiece(Number(i.customId), piece) || i.customId === 'stop');
 
-            const move = await msg.awaitMessageComponentInteraction(filter, WAIT_TIME * 60000).catch(() => null);
+            const move = await msg
+                .awaitMessageComponent({ filter, time: WAIT_TIME * 60000 })
+                .catch(() => null);
 
             if (!move) {
                 skipMove = true;
@@ -87,7 +89,7 @@ export default class extends Command {
 
             await move.deferUpdate();
 
-            if (move.customID === 'stop') {
+            if (move.customId === 'stop') {
                 embed.fields = [];
                 embed.setTitle(`${player.username} has forfeitted. ${otherPlayer.username} wins!`);
 
@@ -100,7 +102,7 @@ export default class extends Command {
 
             response = move;
 
-            engine.play(Number(move.customID) - 1);
+            engine.play(Number(move.customId) - 1);
 
             if (skipMove) skipMove = false;
         }
@@ -136,14 +138,14 @@ export default class extends Command {
 
                 if (count === 7) {
                     button = new MessageButton()
-                        .setCustomID('stop')
+                        .setCustomId('stop')
                         .setLabel('Forfeit')
                         .setStyle('DANGER')
                         .setDisabled(disabled);
                 } else {
                     const id = (++count).toString();
                     button = new MessageButton()
-                        .setCustomID(id)
+                        .setCustomId(id)
                         .setLabel(id)
                         .setStyle('PRIMARY')
                         .setDisabled(disabled);

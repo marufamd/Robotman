@@ -4,7 +4,7 @@ import type { Interaction } from 'discord.js';
 export default class extends Listener {
     public constructor() {
         super('interaction', {
-            event: 'interaction',
+            event: 'interactionCreate',
             emitter: 'client'
         });
     }

@@ -40,8 +40,7 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
-        const data = this.client.util.checkEmbed(await this.run(query));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(query));
     }
 
     private async run(query: string) {

@@ -8,7 +8,7 @@ const clean = (p: string): string => p.replace(/recsbot\/tastetest\/(.+)recs(?:m
 export default class extends Listener {
     public constructor() {
         super('message', {
-            event: 'message',
+            event: 'messageCreate',
             emitter: 'client'
         });
     }
@@ -40,7 +40,7 @@ export default class extends Listener {
                     embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);
                 }
 
-                return message.util.send({ embed });
+                return message.util.send({ embeds: [embed] });
             }
 
             if (/^writers? rec(ommendation)?s$/i.test(message.content)) {
@@ -64,11 +64,11 @@ export default class extends Listener {
                     embed.addField('\u200b', column.join('\n'), true);
                 }
 
-                return message.util.send({ embed });
+                return message.util.send({ embeds: [embed] });
             }
         }
 
-        if (message.channel.type !== 'news' || !message.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) return;
+        if (message.channel.type !== 'GUILD_NEWS' || !message.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) return;
 
         const channels = this.client.settings.get(message.guild.id, 'crosspost_channels', []);
         if (!channels.includes(message.channel.id)) return;

@@ -46,6 +46,6 @@ export default class extends Command {
                 inline: true
             });
 
-        return message.util.send({ embed });
+        return message.util.send({ embeds: [embed] });
     }
 }

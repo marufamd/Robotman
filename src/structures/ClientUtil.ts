@@ -1,5 +1,5 @@
 import { ClientUtil, Command } from 'discord-akairo';
-import { InteractionReplyOptions, Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import { Message, MessageEmbed, MessageEmbedOptions } from 'discord.js';
 import RobotmanEmbed from '../util/embed';
 import type RobotmanClient from './Client';
 
@@ -10,10 +10,6 @@ export default class extends ClientUtil {
 
     public embed(data?: MessageEmbed | MessageEmbedOptions): RobotmanEmbed {
         return new RobotmanEmbed(data);
-    }
-
-    public checkEmbed(data: string | InteractionReplyOptions | { embed: MessageEmbed | RobotmanEmbed }): string | InteractionReplyOptions {
-        return typeof data === 'object' && 'embed' in data ? { embeds: [data.embed] } : data;
     }
 
     public getExtended(command: Command, prefix: string): string {

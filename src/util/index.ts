@@ -1,9 +1,9 @@
 import {
+    ButtonInteraction,
     Guild,
     Message,
     MessageActionRow,
     MessageButton,
-    MessageComponentInteraction,
     SnowflakeUtil
 } from 'discord.js';
 import { DateTime } from 'luxon';
@@ -361,11 +361,11 @@ export async function choosePlayer(message: Message) {
     const row = new MessageActionRow()
         .addComponents(
             new MessageButton()
-                .setCustomID('human')
+                .setCustomId('human')
                 .setLabel('Human')
                 .setStyle('SUCCESS'),
             new MessageButton()
-                .setCustomID('cpu')
+                .setCustomId('cpu')
                 .setLabel('Computer')
                 .setStyle('DANGER')
         );
@@ -375,11 +375,11 @@ export async function choosePlayer(message: Message) {
         components: [row]
     });
 
-    const option: MessageComponentInteraction = await msg
-        .awaitMessageComponentInteraction(
-            i => i.user.id === message.author.id,
-            10000
-        )
+    const option: ButtonInteraction = await msg
+        .awaitMessageComponent({
+            filter: i => i.user.id === message.author.id,
+            time: 10000
+        })
         .catch(() => null);
 
     if (!option) {
@@ -393,7 +393,7 @@ export async function choosePlayer(message: Message) {
 
     await option.deferUpdate();
 
-    if (option.customID === 'cpu') {
+    if (option.customId === 'cpu') {
         return {
             message: msg,
             player: message.client.user,
@@ -404,11 +404,11 @@ export async function choosePlayer(message: Message) {
     const joinRow = new MessageActionRow()
         .addComponents(
             new MessageButton()
-                .setCustomID('join')
+                .setCustomId('join')
                 .setLabel('Join')
                 .setStyle('SUCCESS'),
             new MessageButton()
-                .setCustomID('cancel')
+                .setCustomId('cancel')
                 .setLabel('Cancel')
                 .setStyle('DANGER')
         );
@@ -418,11 +418,11 @@ export async function choosePlayer(message: Message) {
         components: [joinRow]
     });
 
-    const response: MessageComponentInteraction = await msg
-        .awaitMessageComponentInteraction(
-            i => (i.user.id === message.author.id && i.customID === 'cancel') || (i.user.id !== message.author.id && i.customID === 'join'),
-            300000
-        )
+    const response: ButtonInteraction = await msg
+        .awaitMessageComponent({
+            filter: i => (i.user.id === message.author.id && i.customId === 'cancel') || (i.user.id !== message.author.id && i.customId === 'join'),
+            time: 300000
+        })
         .catch(() => null);
 
     if (!response) {
@@ -434,7 +434,7 @@ export async function choosePlayer(message: Message) {
         return null;
     }
 
-    if (response.customID === 'cancel') {
+    if (response.customId === 'cancel') {
         await response.update({
             content: 'The game has been cancelled.',
             components: []
@@ -450,4 +450,14 @@ export async function choosePlayer(message: Message) {
         player: response.user,
         interaction: response
     };
+}
+
+export function disableComponents(rows: MessageActionRow[]): MessageActionRow[] {
+    for (const row of rows) {
+        for (const button of row.components) {
+            button.setDisabled(true);
+        }
+    }
+
+    return rows;
 }

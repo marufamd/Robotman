@@ -59,8 +59,7 @@ export default class extends Command {
         const resolved = this.resolveString(color);
         if (resolved === null) return interaction.reply({ content: 'Invalid Color.', ephemeral: true });
 
-        const data = this.client.util.checkEmbed(this.run(resolved));
-        return interaction.reply(data);
+        return interaction.reply(this.run(resolved));
     }
 
     private run(color: number) {
@@ -86,7 +85,7 @@ export default class extends Command {
             `)
             .setImage(url);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 
     private resolveString(phrase: string) {

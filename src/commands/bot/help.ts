@@ -87,6 +87,6 @@ export default class extends Command {
             }
         }
 
-        return message.util.send({ embed });
+        return message.util.send({ embeds: [embed] });
     }
 }

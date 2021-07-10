@@ -3,6 +3,35 @@ import { CommandInteraction, Constants, Message } from 'discord.js';
 import { colors } from '../../util/constants';
 import request from '../../util/request';
 
+interface OpenMovieDatabaseResponse {
+    Title: string;
+    Year: `${number}`;
+    Rated: string;
+    Released: string;
+    Runtime: string;
+    Genre: string;
+    Director: string;
+    Writer: string;
+    Actors: string;
+    Plot: string;
+    Language: string;
+    Country: string;
+    Awards: string;
+    Poster: string;
+    Production: string;
+    Ratings: Array<{
+        Source: string;
+        Value: string;
+    }>;
+    Metascore: string;
+    imdbRating: string;
+    imdbVotes: string;
+    imdbID: string;
+    Type: string;
+    totalSeasons: string;
+    Response: 'True' | 'False';
+}
+
 export default class extends Command {
     public constructor() {
         super('movie', {
@@ -40,12 +69,11 @@ export default class extends Command {
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
-        const data = this.client.util.checkEmbed(await this.run(query));
-        return interaction.reply(data);
+        return interaction.reply(await this.run(query));
     }
 
     private async run(query: string) {
-        const { body } = await request
+        const { body }: { body: OpenMovieDatabaseResponse } = await request
             .get('https://www.omdbapi.com/')
             .query({
                 apikey: process.env.OPEN_MOVIE_DB_KEY,
@@ -87,6 +115,6 @@ export default class extends Command {
             );
         }
 
-        return { embed };
+        return { embeds: [embed] };
     }
 }

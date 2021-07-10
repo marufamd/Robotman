@@ -89,7 +89,14 @@ export default class extends Command {
                     (canStop(resp) && resp.content.toLowerCase() === message.util.parsed.prefix + STOP_RESPONSE)
                 );
 
-            const collected = await message.channel.awaitMessages(filter, { max: 1, time: 20000, errors: ['time'] }).catch(() => null);
+            const collected = await message.channel
+                .awaitMessages({
+                    filter,
+                    max: 1,
+                    time: 20000,
+                    errors: ['time']
+                })
+                .catch(() => null);
 
             if (!collected) {
                 unanswered++;

@@ -30,7 +30,7 @@ export default class extends Command {
                 inline: true
             });
 
-        return msg.edit({ content: null, embed });
+        return msg.edit({ content: null, embeds: [embed] });
     }
 
     public interact(interaction: CommandInteraction) {

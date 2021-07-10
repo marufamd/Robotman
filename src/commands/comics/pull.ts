@@ -92,8 +92,7 @@ export default class extends Command {
         const parsed: Date = this.handler.resolver.type('parsedDate')(null, date) ?? new Date();
         const day = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
-        const main = this.client.util.checkEmbed(await this.run(publishers.get(publisher), day));
-        return interaction.reply(main);
+        return interaction.reply(await this.run(publishers.get(publisher), day));
     }
 
     private async run(publisher: PublisherData, date: DateTime) {
@@ -116,6 +115,6 @@ export default class extends Command {
             .setDescription(pull.length ? pull.map(p => p.name).join('\n') : 'No comics for this week (yet).')
             .setThumbnail(publisher.thumbnail);
 
-        return { embed };
+        return { embeds: [embed] };
     }
 }

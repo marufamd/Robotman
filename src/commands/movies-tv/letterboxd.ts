@@ -2,14 +2,8 @@ import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { closest, randomResponse, split, trim } from '../../util';
-import { formats } from '../../util/constants';
+import { colors, formats } from '../../util/constants';
 import letterboxd, { ReviewEntry } from '../../util/letterboxd';
-
-const COLORS = [
-    16087596,
-    5029107,
-    3334244
-];
 
 export default class extends Command {
     public constructor() {
@@ -48,7 +42,13 @@ export default class extends Command {
 
         const embed = this.client.util
             .embed()
-            .setColor(randomResponse(COLORS))
+            .setColor(
+                randomResponse([
+                    colors.LETTERBOXD_BLUE,
+                    colors.LETTERBOXD_GREEN,
+                    colors.LETTERBOXD_ORANGE
+                ])
+            )
             .setAuthor('Letterboxd', 'https://i.imgur.com/2nQftA2.png', 'https://letterboxd.com/');
 
         if (!film || film === 'all') {
@@ -90,7 +90,7 @@ export default class extends Command {
             if (rating.rating) embed.addField('Rating', rating.rating);
         }
 
-        return message.util.send({ embed });
+        return message.util.send({ embeds: [embed] });
     }
 
     private getFilm(rating: ReviewEntry) {
