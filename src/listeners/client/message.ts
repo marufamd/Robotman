@@ -1,7 +1,7 @@
 import { Listener } from 'discord-akairo';
 import { Message, Permissions } from 'discord.js';
 import { scrapeRedditWiki, split } from '../../util';
-import { colors, recChannels, tasteTestText } from '../../util/constants';
+import { colors, channels, tasteTestText } from '../../util/constants';
 
 const clean = (p: string): string => p.replace(/recsbot\/tastetest\/(.+)recs(?:mod)?/g, '$1');
 
@@ -14,7 +14,7 @@ export default class extends Listener {
     }
 
     public async exec(message: Message) {
-        if (recChannels.includes(message.channel.id)) {
+        if (channels.RECOMMENDATION.includes(message.channel.id)) {
             if (/^taste test$/i.test(message.content)) {
                 const { data } = await scrapeRedditWiki(`pages`, 'DCcomics');
                 const list = (data as string[]).filter(p => p.startsWith('recsbot/tastetest/'));
@@ -68,10 +68,9 @@ export default class extends Listener {
             }
         }
 
-        if (message.channel.type !== 'GUILD_NEWS' || !message.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES)) return;
-
-        const channels = this.client.settings.get(message.guild.id, 'crosspost_channels', []);
-        if (!channels.includes(message.channel.id)) return;
+        if (message.channel.type !== 'GUILD_NEWS' ||
+            !message.channel.permissionsFor(this.client.user).has(Permissions.FLAGS.MANAGE_MESSAGES) ||
+            !Object.values(channels.NEWS).includes(message.channel.id)) return;
 
         await message.crosspost().catch(e => this.client.log(e.stack, 'error'));
     }

@@ -306,4 +306,14 @@ personal recommendations and personal taste! Feel free to engage us on a discuss
 and please, have fun discovering what we love.
 `;
 
-export const recChannels = ['538424492544884738', '248985053441294337', '763091344590897182'];
+export const channels = {
+    RECOMMENDATION: [
+        '538424492544884738',
+        '248985053441294337',
+        '763091344590897182'
+    ],
+    NEWS: {
+        COMICS: '768918224170647566',
+        TV_MOVIES: '625755932663480320'
+    }
+};

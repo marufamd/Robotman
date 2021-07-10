@@ -1,9 +1,9 @@
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Command } from 'discord-akairo';
-import type { Message, Snowflake } from 'discord.js';
+import type { Snowflake, TextChannel } from 'discord.js';
 import { DateTime } from 'luxon';
-import { parseWebhook, split } from '../../util';
-import { colors, formats } from '../../util/constants';
+import { split } from '../../util';
+import { channels, colors, formats } from '../../util/constants';
 
 export default class extends Command {
     public constructor() {
@@ -15,17 +15,14 @@ export default class extends Command {
     }
 
     public async exec() {
-        const webhookURL = await this.client.config.get('webhook_url');
-        if (!webhookURL?.length) return;
-
         const day = DateTime.local();
 
-        const { id, token } = parseWebhook(webhookURL);
-        const webhook = await this.client.fetchWebhook(id as Snowflake, token);
         const date = day
             .set({ weekday: 2 })
             .plus({ weeks: day.weekday <= 2 ? 0 : 1 })
             .toFormat(formats.locg);
+
+        const channel = this.client.channels.cache.get(channels.NEWS.COMICS as Snowflake) as TextChannel;
 
         try {
             const pulls = await fetchReleases(date, {
@@ -52,20 +49,23 @@ export default class extends Command {
                 embeds.push(embed);
             }
 
-            const msg = await webhook.send(`**__Comics Release List for ${date}__**`) as Message;
+            const msg = await channel.send(`**__Comics Release List for ${date}__**`);
 
-            if (embeds.length > 10) {
-                const newEmbeds = split(embeds, 10);
-                for (const embedChunk of newEmbeds) await webhook.send({ embeds: embedChunk });
-            } else {
-                await webhook.send({ embeds });
+            for (const chunk of split(embeds, 10)) {
+                await channel.send({ embeds: chunk });
             }
 
-            void msg.pin();
+            await msg
+                .pin()
+                .catch(e => this.client.log(`Unable to pin release list message for ${date} in ${channel.toString()}\n${e.stack ?? e}`, 'error'));
 
-            this.client.log(`Release list for ${date} successfully sent to ${msg.channel.toString()}`, 'log');
+            this.client.log(`Release list for ${date} successfully sent to ${channel.toString()}`, 'log');
         } catch (e) {
-            this.client.log(`Error sending release list for ${date}\n${e.stack}`, 'error', { ping: true });
+            this.client.log(
+                `Error sending release list for ${date}\n${e.stack ?? e}`,
+                'error',
+                { ping: true }
+            );
         }
     }
 }

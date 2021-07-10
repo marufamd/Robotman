@@ -1,7 +1,7 @@
 import { Command } from 'discord-akairo';
 import { Message } from 'discord.js';
 import { scrapeRedditWiki } from '../../util';
-import { recChannels } from '../../util/constants';
+import { channels } from '../../util/constants';
 
 export default class extends Command {
     public constructor() {
@@ -22,7 +22,7 @@ export default class extends Command {
     }
 
     public async exec(message: Message, { list, match }: { list: string; match: string }) {
-        if (!recChannels.includes(message.channel.id)) return;
+        if (!channels.RECOMMENDATION.includes(message.channel.id)) return;
 
         if (!list?.length && match) list = match[1]?.toLowerCase();
 
