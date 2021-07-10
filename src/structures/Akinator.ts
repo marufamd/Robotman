@@ -33,6 +33,8 @@ export default class Akinator {
         let response: MessageComponentInteraction;
         const filter = (i: MessageComponentInteraction) => i.user.id === this.player;
 
+        let guessEmbed: MessageEmbed;
+
         while (activeGame) {
             if (back) {
                 back = false;
@@ -60,7 +62,9 @@ export default class Akinator {
                 msg = await msg.edit(options);
             }
 
-            response = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
+            response = await msg
+                .awaitMessageComponent({ filter, time: 60000 })
+                .catch(() => null);
 
             if (!response) {
                 status = 'timeout';
@@ -100,14 +104,14 @@ export default class Akinator {
                 const [guess] = guesses;
                 this.failed.add(guess.id);
 
-                const embed = this.embed()
-                    .setTitle(`Is your character ${guess.name}${guess.description ? ` (${guess.description})` : ''}`)
+                guessEmbed = this.embed()
+                    .setTitle(`Is your character ${guess.name}${guess.description ? ` (${guess.description})` : ''}?`)
                     .setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
                     .setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
 
                 await response.editReply({
                     content: null,
-                    embeds: [embed],
+                    embeds: [guessEmbed],
                     components: this.generateYesNoButtons()
                 });
 
@@ -135,14 +139,16 @@ export default class Akinator {
                             embeds: []
                         });
 
-                        const nextResponse: MessageComponentInteraction = await msg.awaitMessageComponent({ filter, time: 60000 }).catch(() => null);
+                        const nextResponse: MessageComponentInteraction = await msg
+                            .awaitMessageComponent({ filter, time: 60000 })
+                            .catch(() => null);
 
                         if (!nextResponse || nextResponse.customId === 'no') {
                             status = 'loss';
 
                             await nextResponse.reply({
                                 content: null,
-                                embeds: [embed]
+                                embeds: [guessEmbed]
                             });
 
                             response = nextResponse;
@@ -158,9 +164,14 @@ export default class Akinator {
             }
         }
 
+        guessEmbed.fields = [];
+
         const components = disableComponents(this.generateYesNoButtons(status === 'timeout' ? null : status === 'win' ? 'yes' : 'no'));
 
-        await response.editReply({ components });
+        await response.editReply({
+            components,
+            embeds: [guessEmbed]
+        });
 
         return message.channel.send({
             content: randomResponse(akiConfig.responses[status]),
