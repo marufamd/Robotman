@@ -8,7 +8,7 @@ import {
 } from 'discord.js';
 import { DateTime } from 'luxon';
 import { basename, dirname } from 'path';
-import { EPOCH, formats } from './constants';
+import { EPOCH, Formats } from './constants';
 import request from './request';
 
 interface WebhookCredentials {
@@ -47,14 +47,14 @@ export function escapeRegex(str: string): string {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function formatDate(date: Date, format: string = formats.log): string {
+export function formatDate(date: Date, format: string = Formats.LOG): string {
     return DateTime
         .fromJSDate(date)
         .setZone('utc')
         .toFormat(format);
 }
 
-export function difference(date: Date, format: string = formats.days): string {
+export function difference(date: Date, format: string = Formats.DAYS): string {
     return DateTime
         .local()
         .diff(DateTime.fromJSDate(date), 'days')

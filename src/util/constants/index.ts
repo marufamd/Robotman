@@ -7,18 +7,18 @@ import words from './words.json';
 
 export { colors, pokemon, timezones, words };
 
-export const formats = {
-    log: "MMMM d yyyy, 'at' tt",
-    uptime: "d'd', h'h', m'm', s's'",
-    locg: 'y-MM-dd',
-    day: 'EEEE',
-    clock: "h':'mm a",
-    regular: "MMMM d',' y",
-    days: 'd',
-    template: 'MMMM d'
+export const Formats = {
+    LOG: "MMMM d yyyy, 'at' tt",
+    UPTIME: "d'd', h'h', m'm', s's'",
+    LOCG: 'y-MM-dd',
+    DAY: 'EEEE',
+    CLOCK: "h':'mm a",
+    REGULAR: "MMMM d',' y",
+    DAYS: 'd',
+    TEMPLATE: 'MMMM d'
 };
 
-export const logTypes = {
+export const LogTypes = {
     log: {
         name: 'green',
         title: 'Log',

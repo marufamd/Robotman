@@ -3,7 +3,7 @@ import { Command } from 'discord-akairo';
 import { CommandInteraction, Constants, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { getPullDate } from '../../util';
-import { formats, Publisher, PublisherData, publishers, pull } from '../../util/constants';
+import { Formats, Publisher, PublisherData, publishers, pull } from '../../util/constants';
 
 const { previous, next } = pull.default;
 
@@ -96,7 +96,7 @@ export default class extends Command {
     }
 
     private async run(publisher: PublisherData, date: DateTime) {
-        const pull = await fetchReleases(date.toFormat(formats.locg), {
+        const pull = await fetchReleases(date.toFormat(Formats.LOCG), {
             publishers: [publisher.id],
             filter: [
                 FilterTypes.Regular,
@@ -106,7 +106,7 @@ export default class extends Command {
             sort: SortTypes.AlphaAsc
         });
 
-        const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(formats.locg);
+        const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(Formats.LOCG);
 
         const embed = this.client.util
             .embed()

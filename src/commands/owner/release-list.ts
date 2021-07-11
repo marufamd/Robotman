@@ -3,7 +3,7 @@ import { Command } from 'discord-akairo';
 import type { Snowflake, TextChannel } from 'discord.js';
 import { DateTime } from 'luxon';
 import { split } from '../../util';
-import { channels, colors, formats } from '../../util/constants';
+import { channels, colors, Formats } from '../../util/constants';
 
 export default class extends Command {
     public constructor() {
@@ -20,7 +20,7 @@ export default class extends Command {
         const date = day
             .set({ weekday: 2 })
             .plus({ weeks: day.weekday <= 2 ? 0 : 1 })
-            .toFormat(formats.locg);
+            .toFormat(Formats.LOCG);
 
         const channel = this.client.channels.cache.get(channels.NEWS.COMICS as Snowflake) as TextChannel;
 

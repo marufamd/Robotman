@@ -2,7 +2,7 @@ import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { closest, randomResponse, split, trim } from '../../util';
-import { colors, formats } from '../../util/constants';
+import { colors, Formats } from '../../util/constants';
 import letterboxd, { ReviewEntry } from '../../util/letterboxd';
 
 export default class extends Command {
@@ -79,7 +79,7 @@ export default class extends Command {
                 .setFooter(`Review by ${user}`)
                 .setTimestamp(rating.published);
 
-            if (!isNaN(rating.watched.getTime())) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(formats.regular));
+            if (!isNaN(rating.watched.getTime())) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(Formats.REGULAR));
 
             if (rating.review?.length) {
                 let desc = rating.review;

@@ -3,7 +3,7 @@ import { MessageEmbedOptions, WebhookClient, Snowflake, Util } from 'discord.js'
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
 import { parseWebhook, codeblock } from '.';
-import { formats, logTypes } from './constants';
+import { Formats, LogTypes } from './constants';
 
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
 const { id, token } = parseWebhook(WEBHOOK_URL);
@@ -24,7 +24,7 @@ export default class Logger {
     public static log(text: any, logType: ConsoleType = 'log', { logToWebhook = true, logToConsole = true, code = false, ping = false }: LogOptions = {}, extra: MessageEmbedOptions = {}): void {
         if (Array.isArray(text)) text = text.join('\n');
         if (typeof text === 'object') text = inspect(text);
-        if (!(logType.toLowerCase() in logTypes)) logType = 'log';
+        if (!(logType.toLowerCase() in LogTypes)) logType = 'log';
 
         if (logToConsole) Logger.write(text?.replaceAll(/(```(\w+)?|`|\*|__|~~)/g, ''), logType);
         if (logToWebhook && id && token) Logger.webhook(text, logType, ping, code, extra);
@@ -32,17 +32,17 @@ export default class Logger {
 
     private static write(text: string, logType: ConsoleType): void {
         console[logType](
-            colorette.gray(`[${DateTime.local().setZone('est').toFormat(formats.log)}] `),
-            colorette.bold(colorette[logTypes[logType].name as ColoretteType](text))
+            colorette.gray(`[${DateTime.local().setZone('est').toFormat(Formats.LOG)}] `),
+            colorette.bold(colorette[LogTypes[logType].name as ColoretteType](text))
         );
     }
 
     private static webhook(text: string, logType: ConsoleType, ping: boolean, code: boolean | string, extra: MessageEmbedOptions): void {
-        const mode = logTypes[logType];
+        const mode = LogTypes[logType];
         const embed: MessageEmbedOptions = {
             title: `${mode.title} ${NODE_ENV === 'development' ? '(Development)' : ''}`,
             color: mode.color,
-            footer: { text: DateTime.local().setZone('est').toFormat(formats.log) }
+            footer: { text: DateTime.local().setZone('est').toFormat(Formats.LOG) }
         };
 
         if (typeof extra === 'object') Object.assign(embed, extra);

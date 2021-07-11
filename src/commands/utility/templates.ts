@@ -5,7 +5,7 @@ import { DateTime } from 'luxon';
 import { stringify } from 'querystring';
 import TurndownService from 'turndown';
 import { codeblock, pad, pastee as paste } from '../../util';
-import { formats, shows } from '../../util/constants';
+import { Formats, shows } from '../../util/constants';
 import request from '../../util/request';
 
 export default class extends Command {
@@ -37,7 +37,7 @@ export default class extends Command {
         for (let i = 1; i < 8; i++) {
             const date = dtf
                 .set({ weekday: i })
-                .toFormat(formats.locg);
+                .toFormat(Formats.LOCG);
 
             if (i === 1) firstDay = date;
 
@@ -63,7 +63,7 @@ export default class extends Command {
 
                 ${part(episode.show.image.original)}
 
-                Time/Date: ${day.toFormat(formats.template)} ${this.convertTime(episode.airtime)} ET
+                Time/Date: ${day.toFormat(Formats.TEMPLATE)} ${this.convertTime(episode.airtime)} ET
 
                 Network/Channel: ${(episode.show.network ?? episode.show.webChannel).name}
                 ${episode.summary?.length ? `\n${this.makeSynopsis(episode.summary)}\n` : ''}
@@ -75,7 +75,7 @@ export default class extends Command {
                 `;
 
                 templates.push(template);
-                list.push(`* **${day.toFormat(formats.day)}:** ${part()}`);
+                list.push(`* **${day.toFormat(Formats.DAY)}:** ${part()}`);
             }
         }
 

@@ -3,7 +3,7 @@ import { Command } from 'discord-akairo';
 import { CommandInteraction, Constants, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 import { getPullDate } from '../../util';
-import { colors, formats, pull } from '../../util/constants';
+import { colors, Formats, pull } from '../../util/constants';
 
 const { previous, next } = pull.user;
 
@@ -91,7 +91,7 @@ export default class extends Command {
     }
 
     private async run(username: string, date: DateTime) {
-        const week = date.toFormat(formats.locg);
+        const week = date.toFormat(Formats.LOCG);
 
         const user: User = this.userCache.has(username)
             ? this.userCache.get(username)

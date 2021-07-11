@@ -2,7 +2,7 @@ import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { Duration } from 'luxon';
-import { formats } from '../../util/constants';
+import { Formats } from '../../util/constants';
 import usage from '../../util/cpu';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
@@ -30,7 +30,7 @@ export default class extends Command {
                 • **Dependencies:** ${Object.keys(dependencies).length}
                 • **Memory Usage:** ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB
                 • **CPU Usage:** ${await usage()}%
-                • **Uptime:** ${Duration.fromMillis(this.client.uptime).toFormat(formats.uptime)}
+                • **Uptime:** ${Duration.fromMillis(this.client.uptime).toFormat(Formats.UPTIME)}
                 `,
                 inline: true
             }, {
