@@ -15,7 +15,10 @@ function average(): CPUAverage {
     const cpus = os.cpus();
 
     for (const cpu of cpus) {
-        for (const type of Object.keys(cpu.times)) total += (cpu.times as Record<string, number>)[type];
+        for (const type of Object.keys(cpu.times)) {
+            total += (cpu.times as Record<string, number>)[type];
+        }
+
         idle += cpu.times.idle;
     }
 

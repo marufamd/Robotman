@@ -34,7 +34,7 @@ export default class extends Listener {
                 const embed = this.client.util.embed()
                     .setColor(colors.DC)
                     .setDescription(tasteTestText)
-                    .addField('Mods', mods.join('\n'), true);
+                    .addField('Mods', mods.join('\n'));
 
                 for (const column of columns) {
                     embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);
