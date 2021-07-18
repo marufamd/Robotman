@@ -11,7 +11,7 @@ import request from '../../util/request';
 export default class extends Command {
     public constructor() {
         super('templates', {
-            aliases: ['templates', 'shows'],
+            aliases: ['templates'],
             args: [
                 {
                     id: 'date',
