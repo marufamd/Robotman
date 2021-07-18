@@ -2,7 +2,6 @@ import { stripIndents } from 'common-tags';
 import { Command } from 'discord-akairo';
 import type { Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { stringify } from 'querystring';
 import TurndownService from 'turndown';
 import { codeblock, pad, pastee as paste } from '../../util';
 import { Formats, shows } from '../../util/constants';
@@ -114,17 +113,5 @@ export default class extends Command {
             .split('\n')
             .map(s => `> ${s}`)
             .join('\n');
-    }
-
-    private makeURL(query: string): string {
-        const obj = {
-            q: query,
-            restrict_sr: 'on',
-            include_over_18: 'on',
-            sort: 'new',
-            t: 'all'
-        };
-
-        return `https://www.reddit.com/r/DCcomics/search/?${stringify(obj)}`;
     }
 }
