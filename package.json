@@ -21,7 +21,7 @@
     "common-tags": "^1.8.0",
     "connect4-ai": "^0.1.3",
     "discord-akairo": "github:discord-akairo/discord-akairo",
-    "discord.js": "^13.0.0-dev.d6c43a5.1625875428",
+    "discord.js": "^13.0.0-dev.02f55f0.1626742085",
     "dotenv": "^8.2.0",
     "expr-eval": "^2.0.2",
     "form-data": "^3.0.1",

@@ -18,7 +18,13 @@ export default class extends Listener {
         if (this.client.commandHandler.runCooldowns(interaction, command)) return;
 
         try {
-            const args = Object.fromEntries(interaction.options.mapValues(o => o.value));
+            const args: Record<string, string | number | boolean> = {};
+
+            // eslint-disable-next-line @typescript-eslint/dot-notation
+            for (const option of interaction.options['_options']) {
+                args[option.name] = option.value;
+            }
+
             await command.interact(interaction, args);
         } catch (e) {
             this.client.commandHandler.emit('error', e, interaction, command);
