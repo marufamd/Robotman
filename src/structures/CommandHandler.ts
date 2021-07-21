@@ -27,16 +27,16 @@ export default class RobotmanCommandHandler extends CommandHandler {
 
         if (!this.cooldowns.get(id)[command.id]) {
             this.cooldowns.get(id)[command.id] = {
-                timer: this.client.setTimeout(() => {
+                timer: setTimeout(() => {
                     if (this.cooldowns.get(id)[command.id]) {
-                        this.client.clearTimeout(this.cooldowns.get(id)[command.id].timer);
+                        clearTimeout(this.cooldowns.get(id)[command.id].timer);
                     }
                     this.cooldowns.get(id)[command.id] = null;
 
                     if (!Object.keys(this.cooldowns.get(id)).length) {
                         this.cooldowns.delete(id);
                     }
-                }, time),
+                }, time).unref(),
                 end: endTime,
                 uses: 0
             };
