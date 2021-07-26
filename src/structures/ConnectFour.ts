@@ -46,7 +46,7 @@ export default class ConnectFour {
         const board = this.board;
         for (let x = 0; x < 7; x++) {
             for (let y = 0; y < 6; y++) {
-                if (board[x][y] !== pieces.default) return false;
+                if (board[x][y] === pieces.default) return false;
             }
         }
         return true;
