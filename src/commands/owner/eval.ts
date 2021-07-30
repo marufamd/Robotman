@@ -1,52 +1,47 @@
+import type { Command, CommandOptions, Commands } from '#util/commands';
+import * as util from '#util/misc';
+import { request as Request } from '#util/request';
+import { codeBlock } from '@discordjs/builders';
 import { Type } from '@sapphire/type';
-import { Command } from 'discord-akairo';
-import type { Message } from 'discord.js';
+import { isThenable } from '@sapphire/utilities';
+import { Client, Message, MessageOptions } from 'discord.js';
 import { DateTime as dateTime, Duration as duration } from 'luxon';
+import { performance } from 'node:perf_hooks';
+import { Sql } from 'postgres';
+import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
-import * as util from '../../util';
-import Request from '../../util/request';
 
-const parse = (obj: Record<string, any>): Record<string, any> => JSON.parse(JSON.stringify(obj));
-
-export default class extends Command {
+@injectable()
+export default class implements Command {
     public lastInput: any = null;
     public lastResult: any = null;
 
-    private readonly TOKEN_REGEX = /(\S*\.)?(client|config).token$/gi;
+    public constructor(
+        private readonly client: Client,
+        @inject('commands') private readonly commands: Commands,
+        @inject('sql') private readonly sql: Sql<any>
+    ) {}
 
-    public constructor() {
-        super('eval', {
-            aliases: ['eval', 'async'],
-            description: 'Evaluates code.',
-            ownerOnly: true,
-            args: [
-                {
-                    id: 'code',
-                    type: (message, phrase) => {
-                        if (!phrase) return null;
-                        const extract = this.handler.resolver.type('codeblock')(message, phrase);
-                        if (/while\s*\(\s*true\s*\)\s*/gi.test(extract)) return null;
-                        return extract;
-                    },
-                    match: 'rest',
-                    prompt: {
-                        start: 'What code would you like to evaluate?',
-                        retry: 'Please try again.'
-                    }
-                },
-                {
-                    id: 'depth',
-                    type: 'integer',
-                    match: 'option',
-                    flag: ['--inspect=', '-inspect=', '--depth=', 'inspect:'],
-                    default: 0
-                }
-            ]
-        });
-    }
-
-    public usage = {
-        usage: '<code> [--depth=<integer>]'
+    public options: CommandOptions = {
+        aliases: ['async'],
+        description: 'Evaluates code.',
+        usage: '<code> [--depth=<integer>]',
+        args: [
+            {
+                name: 'code',
+                type: 'codeBlock',
+                match: 'content',
+                prompt: 'What code would you like to evaluate?'
+            },
+            {
+                name: 'depth',
+                type: 'integer',
+                match: 'option',
+                flags: ['inspect', 'depth', 'd'],
+                default: 0
+            }
+        ],
+        owner: true
     };
 
     public async exec(message: Message, { code, depth }: { code: string; depth: number }) {
@@ -54,73 +49,82 @@ export default class extends Command {
         const DateTime = dateTime;
         const Duration = duration;
         const request = Request;
-        const { lastInput, lastResult, client } = this;
-        const { commandHandler: commands, application: { commands: interactions }, sql } = client;
+        const { lastInput, lastResult, client, commands, sql } = this;
         /* eslint-enable @typescript-eslint/no-unused-vars */
 
-        const msg = await message.util.send('Evaluating...');
+        this.lastInput = code;
 
-        const start = process.hrtime();
+        code = (/(await|async)/g.test(code) || message.alias === 'async') ? `(async () => {${code}})();` : code;
 
-        let str = '';
-        let type: Type | undefined = undefined;
-        let executionTime: string;
+        const msg = await message.send('Evaluating...');
+
+        let content = '';
+        let result = null;
+        let file = null;
+        let type: Type;
+
+        const start = performance.now();
 
         try {
-            const oldInput = code;
+            result = eval(code);
 
-            code = code.replaceAll(this.TOKEN_REGEX, 'util.randomToken()');
-            code = /(await|async)/g.test(code) || message.util.parsed.alias === 'async' ? `(async () => {${code}})();` : code;
+            type = new Type(result);
 
-            let evaled = eval(code);
-            type = new Type(evaled);
+            if (isThenable(result)) result = await result;
 
-            executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
-
-            const has = (type: string) => Reflect.has(evaled, type) && typeof evaled[type] === 'function';
-
-            if (evaled instanceof Promise || (typeof evaled === 'object' && has('then') && has('catch'))) evaled = await evaled;
-
-            if (evaled !== null && typeof evaled === 'object') evaled = inspect(evaled, { depth });
-
-            if (evaled == null) evaled = String(evaled);
-
-            if (typeof evaled === 'string' && !evaled.length) evaled = '\u200b';
-
-            evaled = util.redact(this.clean(evaled.toString?.() ?? inspect(parse(evaled))));
-
-            this.lastInput = oldInput;
-            this.lastResult = evaled;
-
-            if (evaled.length > 1800) {
-                evaled = `Too long to display (${evaled.length} chars). Output was uploaded to hastebin: ${await util.paste(evaled)}\n`;
-            } else {
-                evaled = util.codeblock(evaled, 'js');
-            }
-
-            str += `**Output**\n${evaled}`;
+            content += `**Output**\n`;
         } catch (e) {
-            if (!type) type = new Type(e);
-            executionTime = (process.hrtime(start)[1] / 1000000).toFixed(3);
+            result = e;
 
-            e = util.redact(this.clean(e.toString()));
+            type = new Type(result);
 
-            if (e.length > 1800) {
-                e = `Too long to display (${e.length} chars). Error was uploaded to hastebin: ${await util.paste(e, 'js')}\n`;
-            } else {
-                e = util.codeblock(e, 'js');
-            }
-
-            str += `**Error**\n${e}`;
+            content += `**Error**\n`;
         }
 
-        str += `\n**Type**\n${util.codeblock(type, 'ts')}`;
-        str += `\nExecuted in ${executionTime}ms`;
+        const executionTime = (performance.now() - start).toFixed(3);
 
-        return msg.edit(str);
+        this.lastResult = result;
+
+        if (result !== null && typeof result === 'object') result = inspect(result, { depth });
+
+        const displayed = this.displayResult(result);
+
+        if (displayed.length > 1800) {
+            file = Buffer.from(displayed);
+            content += `Output was uploaded as a file. (${displayed.length} chars)\n`;
+        } else {
+            content += codeBlock('js', displayed);
+        }
+
+        content += `\n**Type**\n${codeBlock('ts', type.toString())}`;
+        content += `\nExecuted in ${executionTime}ms`;
+
+        const options: MessageOptions = { content, files: [] };
+
+        if (file) {
+            options.files.push({
+                name: 'output.js',
+                attachment: file
+            });
+        }
+
+        return msg.edit(options);
     }
 
-    private clean(str: string) {
-        return str.replace(/`/g, '`\u200b');
+    private displayResult(result: any) {
+        let str = result;
+
+        if (result == null) str = String(result);
+
+        if (typeof result === 'string' && !result.length) str = '\u200b';
+
+        str = str.toString?.() ??
+            inspect(
+                JSON.parse(
+                    JSON.stringify(str)
+                )
+            );
+
+        return util.redact(str.replace(/`/g, '`\u200b'));
     }
 }

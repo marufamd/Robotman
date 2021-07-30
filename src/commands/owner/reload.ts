@@ -1,61 +1,66 @@
-import {
-    Argument,
-    Category,
-    Command,
-    Inhibitor,
-    Listener
-} from 'discord-akairo';
+import { assignOptions, Command, CommandOptions, Commands } from '#util/commands';
+import { ALIAS_REPLACEMENT_REGEX } from '#util/constants';
 import type { Message } from 'discord.js';
+import { container, inject, injectable } from 'tsyringe';
 
-export default class extends Command {
-    public constructor() {
-        super('reload', {
-            aliases: ['reload'],
-            description: 'Reloads a module or category.',
-            ownerOnly: true,
-            args: [
-                {
-                    id: 'mod',
-                    type: Argument.union('commandAlias', 'commandCategory', 'listener', 'inhibitor')
-                },
-                {
-                    id: 'all',
-                    type: ['commands', 'listeners', 'inhibitors'],
-                    match: 'option',
-                    flag: ['-all=', '-a=', 'all:']
+@injectable()
+export default class implements Command {
+    public constructor(@inject('commands') private readonly commands: Commands) {}
+
+    public options: CommandOptions = {
+        description: 'Reloads a command.',
+        extended: 'You can use the --all flag to reload all commands.',
+        usage: '[command>] [--all]',
+        example: 'ping',
+        args: [
+            {
+                name: 'command',
+                type: (_, arg) => {
+                    if (!arg) return null;
+                    return this.commands
+                        .find(
+                            c => c.options.aliases.includes(arg.toLowerCase()) ||
+                                c.options.aliases
+                                    .map(a => a.replace(ALIAS_REPLACEMENT_REGEX, ''))
+                                    .includes(arg.toLowerCase())
+                        ) ?? null;
                 }
-            ]
-        });
-    }
-
-    public data = {
-        usage: '<module or category>',
-        examples: [
-            'ping',
-            'user-info',
-            'all:commands'
+            },
+            {
+                name: 'all',
+                match: 'flag',
+                flags: ['all', 'a']
+            }
         ]
     };
 
-    public exec(message: Message, { mod, all }: { mod: Command | Category<string, any> | Inhibitor | Listener; all: 'commands' | 'listeners' | 'inhibitors' }) {
-        let response;
-
+    public async exec(message: Message, { command, all }: { command: Command; all: boolean }) {
         if (all) {
-            const handler = `${all.slice(0, -1)}Handler` as 'commandHandler' | 'inhibitorHandler' | 'listenerHandler';
-            if (!(handler in this.client)) return message.util.send('Invalid handler.');
-            this.client[handler].reloadAll();
-            response = `Reloaded all ${all}.`;
-        } else {
-            if (!mod) return message.util.send('Invalid module or category.');
-            if (mod instanceof Category) {
-                mod.reloadAll();
-                response = `Reloaded category \`${mod.id}\`.`;
-            } else {
-                mod.reload();
-                response = `Reloaded module \`${mod.id}\`.`;
+            for (const [, cmd] of [...this.commands]) {
+                await this.reload(cmd);
             }
+
+            return message.send(`Reloaded ${this.commands.size} commands.`);
         }
 
-        return message.util.send(response);
+        if (command) {
+            await this.reload(command);
+
+            return message.send(`Reloaded the command \`${command.options.name}\`.`);
+        }
+
+        return message.send('Please provide a command to reload, or use the \`--all\` flag.');
+    }
+
+    private async reload(command: Command) {
+        this.commands.delete(command.options.name);
+
+        delete require.cache[require.resolve(command.path)];
+
+        const newCommand = container.resolve<Command>((await import(command.path)).default);
+
+        assignOptions(newCommand, command.path);
+
+        this.commands.set(newCommand.options.name, newCommand);
     }
 }

@@ -1,166 +1,182 @@
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, Emojis, Hangman, Words } from '#util/constants';
+import { HangmanGame } from '#util/games';
+import { getUser, isInteraction, pluralize, raceResponse, randomResponse } from '#util/misc';
 import { stripIndents } from 'common-tags';
-import { Command, PrefixSupplier } from 'discord-akairo';
-import type { CollectorFilter, Message } from 'discord.js';
-import Hangman from '../../structures/Hangman';
-import { plural, randomResponse } from '../../util';
-import { colors, emojis, words } from '../../util/constants';
-import type RobotmanEmbed from '../../util/embed';
+import { ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton } from 'discord.js';
 
-const MAX_TIME = 60000;
-
-export default class extends Command {
-    public constructor() {
-        super('hangman', {
-            aliases: ['hangman'],
-            description: stripIndents`
-            Starts a Hangman game.
-            Available Words: ${words.length}
-            `,
-            editable: false,
-            lock: 'channel'
-        });
-    }
+export default class implements Command {
+    public options: CommandOptions = {
+        description: `Starts a Hangman game.`,
+        extended: `There are currently ${Words.length} available words.`,
+        lock: true,
+        disableEdits: true
+    };
 
     public async exec(message: Message) {
-        const prefix = (this.handler.prefix as PrefixSupplier)(message);
+        return this.run(message);
+    }
 
-        const game = new Hangman(randomResponse(words));
+    public async interact(interaction: CommandInteraction) {
+        return this.run(interaction);
+    }
+
+    private async run(data: Message | CommandInteraction) {
+        const game = new HangmanGame(randomResponse(Words));
+
         let loss: boolean | 'timeout' = false;
+
         let guessWin = false;
 
         while (game.incorrect < 7 && game.formattedWord !== game.splitWord.join(' ')) {
-            const embed = this.embed(
-                game,
-                [
-                    `Type a letter into the chat to make a guess.`,
-                    `To try and guess the full word, type \`${prefix}guess <word>\``,
-                    `To stop the game, type \`${prefix}hangmanstop\``
-                ]
-            );
-
-            const msg = await message.channel.send(embed);
-
-            const filter = (resp: Message) => {
-                resp.content = resp.content.toLowerCase();
-                return resp.author.id === message.author.id &&
-                    /[A-Z]/gi.test(resp.content) &&
-                    (
-                        (resp.content.length === 1 && !game.guesses.includes(resp.content)) ||
-                        `${prefix}hangmanstop` === resp.content ||
-                        resp.content.startsWith(`${prefix}guess`)
-                    );
-            };
-
-            const response = await this.getResponse(message, filter);
-
-            if (!response) {
-                loss = 'timeout';
-                await msg.delete();
-                break;
-            }
-
-            if (response === `${prefix}hangmanstop`) return message.channel.send('The game has been stopped.');
-
-            if (response.startsWith(`${prefix}guess`)) {
-                const split = response.split(/ +/);
-                let final: string;
-
-                if (split.length < 2) {
-                    const embed = this.embed(
+            const msg = await data.channel.send({
+                embeds: [
+                    this.embed(
                         game,
-                        [`Type out what you think the word is. If you guess incorrectly, you will lose the game.`]
-                    );
-                    const m = await message.channel.send(embed);
+                        'Type a letter into the chat to make a guess.'
+                    )
+                ],
+                components: [
+                    new MessageActionRow()
+                        .addComponents(
+                            new MessageButton()
+                                .setCustomId('guess')
+                                .setStyle('PRIMARY')
+                                .setLabel('Guess Word'),
+                            new MessageButton()
+                                .setCustomId('stop')
+                                .setStyle('DANGER')
+                                .setLabel('Stop')
+                        )
+                ]
+            });
 
-                    const guess = await this.getResponse(message, g => g.author.id === message.author.id);
+            const response = await raceResponse(msg, Hangman.WAIT_TIME, {
+                messageFilter: m => m.author.id === getUser(data).id && /[A-Z]/i.test(m.content) && m.content.length === 1 && !game.guesses.includes(m.content.toLowerCase()),
+                buttonFilter: i => i.user.id === getUser(data).id
+            });
 
-                    if (!guess) {
-                        loss = 'timeout';
-                        await msg.delete();
-                        await m.delete();
-                        break;
-                    }
-
-                    final = guess.split(/ +/)[0];
-                    await m.delete();
-                } else {
-                    final = split[1];
+            if (response instanceof ButtonInteraction) {
+                if (response.customId === 'stop') {
+                    return response.reply('The game has been stopped');
                 }
 
-                if (final !== game.word) {
-                    loss = true;
-                    await msg.delete();
+                await msg.delete();
+
+                const m = await data.channel.send({
+                    embeds: [
+                        this.embed(
+                            game,
+                            'Type out what you think the word is. If you guess incorrectly, you will lose the game.'
+                        )
+                    ],
+                    components: [
+                        new MessageActionRow()
+                            .addComponents(
+                                new MessageButton()
+                                    .setCustomId('cancel')
+                                    .setStyle('SECONDARY')
+                                    .setLabel('Cancel Guess')
+                            )
+                    ]
+                });
+
+                const collected = await raceResponse(m, Hangman.WAIT_TIME, {
+                    messageFilter: m => m.author.id === getUser(data).id && /[A-Z]/gi.test(m.content),
+                    buttonFilter: i => i.user.id === getUser(data).id
+                });
+
+                if (collected instanceof ButtonInteraction) {
+                    await m.delete();
+
+                    continue;
+                }
+
+                if (collected === null) {
+                    loss = 'timeout';
+
+                    await m.delete();
 
                     break;
                 }
 
-                guessWin = true;
+                const [final] = collected.content.split(/ +/);
+
+                await m.delete();
+
+                if (final !== game.word) {
+                    loss = true;
+                } else {
+                    guessWin = true;
+                }
+
+                break;
+            }
+
+            if (response === null) {
+                loss = 'timeout';
+
                 await msg.delete();
 
                 break;
             }
 
-            if (!game.splitWord.includes(response)) game.incorrect++;
+            if (!game.splitWord.includes(response.content)) {
+                game.incorrect++;
+            }
 
-            game.guesses.push(response);
+            game.guesses.push(response.content);
+
             await msg.delete();
         }
 
-        const embed = this.client.util.embed();
+        const embed = new Embed();
 
         if (game.formattedWord === game.splitWord.join(' ') || guessWin) {
             embed
                 .setTitle(guessWin ? 'You guessed the word!' : 'You won!')
-                .setColor(colors.GREEN)
+                .setColor(Colors.GREEN)
                 .addField('Word', game.word);
         } else if (game.incorrect >= 7 || loss) {
             embed
                 .setTitle(loss === 'timeout' ? 'Time\'s up!' : 'You lost!')
-                .setColor(colors.RED)
+                .setColor(Colors.RED)
                 .addField('The word was', game.word);
         }
 
         embed
             .setDescription(game.board)
-            .setFooter(`To start another game, type ${prefix}${message.util.parsed.alias}`);
+            .setFooter(`To start another game, type ${isInteraction(data) ? '/' : process.env.BOT_PREFIX}${this.options.name}`);
 
-        if (game.incorrectGuesses.length) this.addGuesses(game, embed);
+        if (game.incorrectGuesses.length) {
+            this.addGuesses(game, embed);
+        }
 
-        return message.channel.send({ embeds: [embed] });
+        return data.channel.send({ embeds: [embed] });
     }
 
-    private embed(game: Hangman, text: string[]) {
-        text.push(game.board);
-
-        const embed = this.client.util
-            .embed()
+    private embed(game: HangmanGame, text: string) {
+        const embed = new Embed()
             .setTitle('Hangman')
-            .setDescription(text.join('\n'))
+            .setDescription(
+                stripIndents`
+                ${text}
+                ${game.board}
+                `
+            )
             .addField('Word', game.formattedWord, true)
-            .addField('Time', emojis.timer, true)
-            .setFooter(`You have ${MAX_TIME / 60000} ${plural('minute', MAX_TIME / 60000)} to make a guess`);
+            .addField('Time', Emojis.TIMER, true)
+            .setFooter(`You have ${pluralize('minute', Hangman.WAIT_TIME / 60000)} to make a guess`);
 
-        if (game.incorrectGuesses.length) this.addGuesses(game, embed);
+        if (game.incorrectGuesses.length) {
+            this.addGuesses(game, embed);
+        }
 
-        return { embeds: [embed] };
+        return embed;
     }
 
-    private addGuesses(game: Hangman, embed: RobotmanEmbed) {
+    private addGuesses(game: HangmanGame, embed: Embed) {
         embed.addField(`Guesses (${game.incorrectGuesses.length}/7)`, game.incorrectGuesses.join(' '));
-    }
-
-    private async getResponse(message: Message, filter: CollectorFilter<[Message]>): Promise<string> {
-        const collected = await message.channel
-            .awaitMessages({
-                filter,
-                max: 1,
-                time: MAX_TIME,
-                errors: ['time']
-            })
-            .catch(() => null);
-
-        if (!collected) return null;
-
-        return collected.first().content.toLowerCase();
     }
 }

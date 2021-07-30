@@ -1,45 +1,41 @@
-import { Command } from 'discord-akairo';
-import { CommandInteraction, Constants, Message } from 'discord.js';
-import { plural, trim } from '../../util';
-import { colors } from '../../util/constants';
-import request from '../../util/request';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, NO_RESULTS_FOUND } from '#util/constants';
+import { pluralize, trim } from '#util/misc';
+import { request } from '#util/request';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
-const stars = (num: number) => '★'.repeat(num);
-
-export default class extends Command {
-    public constructor() {
-        super('book', {
-            aliases: ['book', 'novel'],
-            description: 'Shows information about a book.',
-            args: [
-                {
-                    id: 'query',
-                    match: 'content',
-                    prompt: {
-                        start: 'What book would you like to search for?'
-                    }
-                }
-            ],
-            typing: true,
-            cooldown: 5e3
-        });
-    }
-
-    public interactionOptions = {
-        name: 'book',
-        description: 'Shows information about a book.',
-        options: [
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['novel'],
+        description: 'Displays information about a book.',
+        usage: '<book>',
+        example: [
+            'daredevil'
+        ],
+        args: [
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
-                description: 'The book to search for.',
-                required: true
+                type: 'string',
+                match: 'content',
+                prompt: 'What would you like to search for?'
             }
-        ]
+        ],
+        cooldown: 5,
+        typing: true
     };
 
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'query',
+            description: 'The book to search for.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.run(query));
+        return message.send(await this.run(query));
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
@@ -57,26 +53,54 @@ export default class extends Command {
                 printType: 'books'
             });
 
-        if (body.totalItems === 0 || !body.items?.length) return { content: 'No results found.', ephemeral: true };
+        if (body.totalItems === 0 || !body.items?.length) return NO_RESULTS_FOUND;
 
         const { volumeInfo: book } = body.items[0];
 
-        const embed = this.client.util
-            .embed()
-            .setColor(colors.GOOGLE_BOOKS)
+        const embed = new Embed()
+            .setColor(Colors.GOOGLE_BOOKS)
             .setAuthor('Google Books', 'https://i.imgur.com/Xe6BhJA.png', 'https://books.google.com/')
             .setTitle(book.title)
             .setURL(book.previewLink)
             .setDescription(book.description?.length ? trim(book.description, 2048) : null)
             .setThumbnail(book.imageLinks?.extraLarge ?? book.imageLinks.large ?? book.imageLinks.medium ?? book.imageLinks.small ?? book.imageLinks.thumbnail ?? null);
 
-        if (book.authors?.length) embed.addField(plural('Author', book.authors.length), book.authors.join('\n'), true);
-        if (book.publishedDate) embed.addField('Published', book.publishedDate, true);
-        if (book.publisher?.length) embed.addField('Publisher', book.publisher, true);
-        if ('averageRating' in book) embed.addField('Average Rating', stars(parseInt(book.averageRating)) ?? 'None', true);
-        if ('pageCount' in book) embed.addField('Page Count', book.pageCount.toString(), true);
-        if (book.categories?.length) embed.addField('Categories', book.categories.join(', '), true);
+        if (book.authors?.length) {
+            embed.addField(
+                pluralize('Author', book.authors.length, false),
+                book.authors.join('\n'),
+                true
+            );
+        }
 
-        return { embeds: [embed.inlineFields()] };
+        if (book.publishedDate) {
+            embed.addField('Published', book.publishedDate, true);
+        }
+
+        if (book.publisher?.length) {
+            embed.addField('Publisher', book.publisher, true);
+        }
+
+        if ('averageRating' in book) {
+            embed.addField(
+                'Average Rating',
+                book.averageRating ? '★'.repeat(parseInt(book.averageRating)) : 'None',
+                true
+            );
+        }
+
+        if ('pageCount' in book) {
+            embed.addField('Page Count', book.pageCount.toString(), true);
+        }
+
+        if (book.categories?.length) {
+            embed.addField('Categories', book.categories.join(', '), true);
+        }
+
+        return {
+            embeds: [
+                embed.inlineFields()
+            ]
+        };
     }
 }

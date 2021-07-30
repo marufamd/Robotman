@@ -1,23 +1,15 @@
-import { Command } from 'discord-akairo';
+import type { Command, CommandOptions } from '#util/commands';
+import { dadJoke } from '#util/wrappers';
 import { CommandInteraction, Message } from 'discord.js';
-import { dadJoke } from '../../util';
 
-export default class extends Command {
-    public constructor() {
-        super('dadjoke', {
-            aliases: ['dad-joke'],
-            description: 'Sends a dad joke.',
-            cooldown: 3e5
-        });
-    }
-
-    public interactionOptions = {
-        name: 'dadjoke',
-        description: 'Sends a dad joke.'
+export default class implements Command {
+    public options: CommandOptions = {
+        description: 'Sends a dad joke.',
+        cooldown: 3
     };
 
     public async exec(message: Message) {
-        return message.util.send(await dadJoke());
+        return message.send(await dadJoke());
     }
 
     public async interact(interaction: CommandInteraction) {

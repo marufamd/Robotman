@@ -1,51 +1,56 @@
-import { Command } from 'discord-akairo';
-import type { Message } from 'discord.js';
+import type { Command, CommandOptions } from '#util/commands';
+import { DateFormats } from '#util/constants';
+import { toTitleCase } from '@sapphire/utilities';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
-import { closest, title } from '../../util';
-import { Formats, timezones } from '../../util/constants';
 
-export default class extends Command {
-    public constructor() {
-        super('time', {
-            aliases: ['time', 'time-zone', 'convert-time', 'current-time'],
-            description: 'Shows the current time in a specified timezone.',
-            args: [
-                {
-                    id: 'timezone',
-                    type: (_, phrase) => {
-                        if (!phrase) return null;
-                        const target = closest(phrase.toLowerCase().split(' ').join('_'), timezones.map(t => t.toLowerCase()));
-                        return timezones.find(t => t.toLowerCase() === target);
-                    },
-                    match: 'content',
-                    prompt: {
-                        start: 'What timezone would you like to view the current time in?'
-                    }
-                }
-            ]
-        });
-    }
-
-    public data = {
-        usage: '<timezone>',
-        extended: ['To view a list of timezones, do `{p}timezones index`'],
-        examples: [
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['time-zone', 'convert-time'],
+        description: 'Displays the current time in a specified timezone.',
+        usage: '<time zone>',
+        example: [
             'utc',
             'los angeles',
             'America/New York',
             'gmt'
+        ],
+        args: [
+            {
+                name: 'zone',
+                type: 'timezone',
+                match: 'content',
+                prompt: 'What timezone would you like to view the current time in?'
+            }
         ]
     };
 
-    public exec(message: Message, { timezone }: { timezone: string }) {
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'zone',
+            description: 'The timezone to display the current time in.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
+    public exec(message: Message, { zone }: { zone: string }) {
+        return message.send(this.run(zone));
+    }
+
+    public interact(interaction: CommandInteraction, { zone }: { zone: string }) {
+        return interaction.reply(this.run(zone));
+    }
+
+    private run(zone: string) {
         const formatted = DateTime
             .local()
-            .setZone(timezone)
-            .toFormat(Formats.CLOCK);
+            .setZone(zone)
+            .toFormat(DateFormats.CLOCK);
 
-        let formatText = (timezone.length <= 3) ? timezone.toUpperCase() : title(timezone.replaceAll(/(_|\/)/gi, ' '));
-        formatText = timezone.includes('/') ? formatText.replace(' ', '/') : formatText;
+        let formatText = (zone.length <= 3) ? zone.toUpperCase() : toTitleCase(zone.replaceAll(/(_|\/)/gi, ' '));
+        formatText = zone.includes('/') ? formatText.replace(' ', '/') : formatText;
 
-        return message.util.send(`The current time for **${formatText.replaceAll('_', ' ')}** is **${formatted}**`);
+        return `🕐 The current time for **${formatText.replaceAll('_', ' ')}** is **${formatted}**`;
     }
 }

@@ -1,70 +1,59 @@
-import { Command } from 'discord-akairo';
-import { CommandInteraction, Constants, Message } from 'discord.js';
+import type { Command, CommandOptions } from '#util/commands';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Parser } from 'expr-eval';
-import { paste } from '../../util';
 
-export default class extends Command {
-    public constructor() {
-        super('math', {
-            aliases: ['math', 'calculate', 'calculator', 'solve', 'convert'],
-            args: [
-                {
-                    id: 'expression',
-                    type: (_, phrase) => {
-                        if (!phrase) return null;
-                        return phrase
-                            .replaceAll(/(x|times)/gi, '*')
-                            .replaceAll(/(÷|divided(\sby)?|:)/gi, '/')
-                            .replaceAll(/plus/gi, '+')
-                            .replaceAll(/minus/gi, '-')
-                            .replaceAll(/to the power of/gi, '^')
-                            .replaceAll('π', 'pi');
-                    },
-                    match: 'content',
-                    prompt: {
-                        start: 'What expression would you like to evaluate?'
-                    }
-                }
-            ]
-        });
-    }
-
-    public data = {
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['calculate', 'calculator'],
+        description: 'Evaluates a mathematical expression.',
         usage: '<expression>',
-        examples: [
+        example: [
             '1 + 2',
-            '12 / (2.3 + 0.7)',
-            'sin(45 deg) ^ 2',
-            '12.7 cm to inch',
-            '10 weeks to days'
-        ]
-    };
-
-    public interactionOptions = {
-        name: 'math',
-        description: 'Evaluates a mathematical expression',
-        options: [
+            '12 / (2.3 + 0.7)'
+        ],
+        args: [
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'expression',
-                description: 'The expression to evaluate.',
-                required: true
+                type: (_, arg) => {
+                    if (!arg) return null;
+                    return arg
+                        .replaceAll(/(x|times)/gi, '*')
+                        .replaceAll(/(÷|divided(\sby)?|:)/gi, '/')
+                        .replaceAll(/plus/gi, '+')
+                        .replaceAll(/minus/gi, '-')
+                        .replaceAll(/to the power of/gi, '^')
+                        .replaceAll('π', 'pi');
+                },
+                match: 'content',
+                prompt: 'What expression would you like to evaluate?'
             }
         ]
     };
 
-    public async exec(message: Message, { expression }: { expression: string }) {
-        return message.util.send(await this.run(expression));
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'expression',
+            description: 'The expression to evaluate.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
+    public exec(message: Message, { expression }: { expression: string }) {
+        return message.send(this.run(expression));
     }
 
     public async interact(interaction: CommandInteraction, { expression }: { expression: string }) {
-        return interaction.reply(await this.run(expression));
+        await interaction.defer();
+        return interaction.editReply(this.run(expression));
     }
 
-    public async run(expression: string) {
+    private run(expression: string) {
         try {
             const answer = Parser.evaluate(expression).toString();
-            return answer.length > 1015 ? `Output was uploaded to hastebin. ${await paste(answer, '')}` : `\`\`\`${answer}\`\`\``;
+            return answer.length > 1015
+                ? { content: `Output was uploaded as a file.`, files: [{ attachment: Buffer.from(answer), name: 'result.txt' }] }
+                : `\`\`\`${answer}\`\`\``;
         } catch {
             return { content: `\`${expression}\` is not a valid expression.`, ephemeral: true };
         }

@@ -27,7 +27,7 @@ interface RequestResponse {
 
 type StaticRequest = (url: string, options?: Partial<RequestOptions>) => Request;
 
-export default class Request implements Promise<RequestResponse> {
+class Request implements Promise<RequestResponse> {
     public static acl: StaticRequest;
     public static bind: StaticRequest;
     public static checkout: StaticRequest;
@@ -221,3 +221,5 @@ for (const method of METHODS) {
         }
     });
 }
+
+export { Request as request };

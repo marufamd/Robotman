@@ -1,47 +1,46 @@
-import { Command } from 'discord-akairo';
-import { Constants, CommandInteraction, Message } from 'discord.js';
-import { formatQuery, trim } from '../../util';
-import { wikiParams } from '../../util/constants';
-import request from '../../util/request';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, Links, NO_RESULTS_FOUND } from '#util/constants';
+import { formatQuery, getWikiParams, trim } from '#util/misc';
+import { request } from '#util/request';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
-const BAD_WORDS_URL = 'https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt';
+const PROFANITY_URL = 'https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt';
 
-export default class extends Command {
-    private badWords: string[] = null;
+export default class implements Command {
+    private blacklist: string[] = [];
 
-    public constructor() {
-        super('wiki', {
-            aliases: ['wiki', 'wikipedia'],
-            description: 'Searches Wikipedia.',
-            args: [
-                {
-                    id: 'query',
-                    match: 'content',
-                    prompt: {
-                        start: 'What would you like to search for?'
-                    }
-                }
-            ],
-            typing: true,
-            cooldown: 5e3
-        });
-    }
-
-    public interactionOptions = {
-        name: 'wiki',
+    public options: CommandOptions = {
+        aliases: ['wikipedia'],
         description: 'Searches Wikipedia.',
-        options: [
+        usage: '<query>',
+        example: [
+            'daredevil',
+            'batman',
+            'marvel'
+        ],
+        args: [
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
-                description: 'The query to search for.',
-                required: true
+                match: 'content',
+                prompt: 'What would you like to search for?'
             }
-        ]
+        ],
+        cooldown: 4,
+        typing: true
     };
 
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'query',
+            description: 'The query to search for.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.run(query));
+        return message.send(await this.run(query));
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
@@ -49,15 +48,15 @@ export default class extends Command {
     }
 
     private async run(query: string) {
-        const wordlist = await this.getBadWords();
+        const wordlist = await this.getBlacklist();
         if (query.split(/ +/).some(a => wordlist.includes(a))) return { content: 'You cannot search for that term.', ephemeral: true };
 
         const page = await this.search(formatQuery(query));
-        if (!page) return { content: 'No results found.', ephemeral: true };
 
-        const embed = this.client.util
-            .embed()
-            .setColor('#F8F8F8')
+        if (!page) return NO_RESULTS_FOUND;
+
+        const embed = new Embed()
+            .setColor(Colors.WIKIPEDIA)
             .setTitle(page.title)
             .setDescription(page.description)
             .setURL(page.url)
@@ -70,15 +69,20 @@ export default class extends Command {
 
     private async search(query: string) {
         const { body } = await request
-            .get('https://en.wikipedia.org/w/api.php')
-            .query(wikiParams(query));
+            .get(`${Links.WIKIPEDIA}/w/api.php`)
+            .query(getWikiParams(query));
 
-        const page = body.query.pages[0];
+        const [page] = body.query.pages;
+
         if (page.missing || !page.extract) return null;
+
         let description = page.extract;
 
         if (/(may )?(also )?refer to/gi.test(description)) {
-            const links = page.links.map((l: { title: string }) => `[${l.title}](${this.getLink(l.title)})`).join('\n');
+            const links = page.links
+                .map((l: { title: string }) => `[${l.title}](${this.getLink(l.title)})`)
+                .join('\n');
+
             description = `${trim(description.trimEnd(), 1015)}\n${trim(links, 1015)}`;
         } else {
             description = trim(description.split('\n')[0].trimEnd(), 1015);
@@ -93,13 +97,18 @@ export default class extends Command {
     }
 
     private getLink(page: string) {
-        return `https://en.wikipedia.org/wiki/${encodeURIComponent(page.replaceAll(' ', '_'))}`;
+        return `${Links.WIKIPEDIA}/wiki/${encodeURIComponent(page.replaceAll(' ', '_'))}`;
     }
 
-    private async getBadWords() {
-        if (this.badWords) return this.badWords;
-        const { text } = await request.get(BAD_WORDS_URL);
-        this.badWords = text.split('\n');
-        return this.badWords;
+    private async getBlacklist() {
+        if (this.blacklist.length) {
+            return this.blacklist;
+        }
+
+        const { text } = await request.get(PROFANITY_URL);
+
+        this.blacklist = text.split('\n');
+
+        return this.blacklist;
     }
 }

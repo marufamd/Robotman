@@ -1,52 +1,59 @@
-import { Command } from 'discord-akairo';
-import { Message, MessageActionRow, MessageButton, MessageComponentInteraction } from 'discord.js';
-import ConnectFour from '../../structures/ConnectFour';
-import { choosePlayer, plural } from '../../util';
-import { colors, connectFour, emojis } from '../../util/constants';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, ConnectFour, Emojis } from '#util/constants';
+import { ConnectFourGame } from '#util/games';
+import { choosePlayer, getUser, pluralize } from '#util/misc';
 import { Connect4AI } from 'connect4-ai';
+import { CommandInteraction, Message, MessageActionRow, MessageButton, MessageComponentInteraction } from 'discord.js';
 
-const { WAIT_TIME, indicators } = connectFour;
+const { WAIT_TIME, INDICATORS } = ConnectFour;
 
-export default class extends Command {
-    public constructor() {
-        super('connect-four', {
-            aliases: ['connect-four', 'connect', 'c4', 'c-four', 'connect-4'],
-            description: 'Starts a Connect Four game. Requires two players.',
-            editable: false
-        });
-    }
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['connect', 'c4'],
+        description: 'Starts a Connect Four game.',
+        extended: 'You can choose to play against another user or the bot.',
+        disableEdits: true
+    };
 
     public async exec(message: Message) {
-        const data = await choosePlayer(message);
-        if (!data) return;
+        return this.run(message);
+    }
 
-        const msg = data.message;
+    public async interact(interaction: CommandInteraction) {
+        return this.run(interaction);
+    }
 
-        const game = new ConnectFour()
-            .addPlayer(message.author)
-            .addPlayer(data.player);
+    private async run(data: Message | CommandInteraction) {
+        const playerData = await choosePlayer(data);
+
+        if (!playerData) return;
+
+        const game = new ConnectFourGame()
+            .addPlayers(getUser(data), playerData.player)
+            .makeBoard();
 
         const engine = new Connect4AI();
 
+        const rand = Math.floor(Math.random() * 2) + 1;
+
         const turns = {
             red: {
-                player: game.players[0],
-                emoji: indicators.red
+                player: rand === 1 ? game.players[0] : game.players[1],
+                emoji: INDICATORS.RED
             },
             yellow: {
-                player: game.players[1],
-                emoji: indicators.yellow
+                player: rand === 1 ? game.players[1] : game.players[0],
+                emoji: INDICATORS.YELLOW
             }
         };
 
         const title = `**${game.players[0].tag}** vs. **${game.players[1].tag}**`;
 
-        let response = data.interaction;
+        let response = playerData.interaction;
 
         let turn = true;
         let skipMove = false;
-
-        game.makeBoard();
 
         while (!game.win && !game.boardFull) {
             const piece = turn ? 'red' : 'yellow';
@@ -61,13 +68,12 @@ export default class extends Command {
                 continue;
             }
 
-            const embed = this.client.util
-                .embed()
-                .setColor(colors.CONNECT_FOUR)
+            const embed = new Embed()
+                .setColor(Colors.CONNECT_FOUR)
                 .setTitle(`\\${emoji} ${player.username}, it's your turn!`)
                 .setDescription(game.currentBoard)
-                .addField('Time', emojis.timer, true)
-                .setFooter(`You have ${WAIT_TIME} ${plural('minute', WAIT_TIME)} to make a move, or your move will be made for you.`);
+                .addField('Time', Emojis.TIMER, true)
+                .setFooter(`You have ${pluralize('minute', WAIT_TIME)} to make a move, or your move will be made for you.`);
 
             await response.editReply({
                 content: skipMove ? `${title}\n\n${otherPlayer} has failed to make a move, so I have played for them.` : title,
@@ -77,7 +83,7 @@ export default class extends Command {
 
             const filter = (i: MessageComponentInteraction) => i.user.id === player.id && (game.addPiece(Number(i.customId), piece) || i.customId === 'stop');
 
-            const move = await msg
+            const move = await playerData.message
                 .awaitMessageComponent({ filter, time: WAIT_TIME * 60000 })
                 .catch(() => null);
 
@@ -104,12 +110,13 @@ export default class extends Command {
 
             engine.play(Number(move.customId) - 1);
 
-            if (skipMove) skipMove = false;
+            if (skipMove) {
+                skipMove = false;
+            }
         }
 
-        const embed = this.client.util
-            .embed()
-            .setColor(colors.CONNECT_FOUR)
+        const embed = new Embed()
+            .setColor(Colors.CONNECT_FOUR)
             .setDescription(game.currentBoard);
 
         if (game.win) {
@@ -134,7 +141,7 @@ export default class extends Command {
             const row = [];
 
             for (let j = 0; j < 4; j++) {
-                let button: MessageButton;
+                let button;
 
                 if (count === 7) {
                     button = new MessageButton()
@@ -154,10 +161,7 @@ export default class extends Command {
                 row.push(button);
             }
 
-            rows.push(
-                new MessageActionRow()
-                    .addComponents(...row)
-            );
+            rows.push(new MessageActionRow().addComponents(...row));
         }
 
         return rows;

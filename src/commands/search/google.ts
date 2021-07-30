@@ -1,60 +1,55 @@
+import { ArgumentUtil } from '#util/arguments';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, NO_RESULTS_FOUND } from '#util/constants';
+import { randomResponse } from '#util/misc';
+import { google } from '#util/wrappers';
 import { oneLine } from 'common-tags';
-import { Argument, Command } from 'discord-akairo';
-import { CommandInteraction, Constants, Message, TextChannel } from 'discord.js';
-import { google, randomResponse } from '../../util';
-import { colors } from '../../util/constants';
+import { ApplicationCommandOptionData, CommandInteraction, Message, TextChannel } from 'discord.js';
 
-export default class extends Command {
-    public constructor() {
-        super('google', {
-            aliases: ['google', 'search', 'google-search'],
-            description: 'Searches Google.',
-            regex: /^(?:ok(?:ay)?|hey) google,?\s(.+)/i,
-            args: [
-                {
-                    id: 'query',
-                    type: 'string',
-                    match: 'rest',
-                    prompt: {
-                        start: 'What would you like to search for?'
-                    }
-                },
-                {
-                    id: 'amount',
-                    type: Argument.range('number', 1, 5, true),
-                    match: 'option',
-                    flag: ['--amount=', '-amount=', '--results=', '-results=', 'amount:'],
-                    default: 1
-                }
-            ],
-            typing: true,
-            cooldown: 8e3
-        });
-    }
-
-    public data = {
-        usage: '<query>',
-        extended: ['You can put `--first` in the command to only send the first result'],
-        examples: ['comicbooks']
-    };
-
-    public interactionOptions = {
-        name: 'google',
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['search', 'google-search'],
         description: 'Searches Google.',
-        options: [
+        extended: 'You can say a variation of `okay google, <query>` to call the command',
+        regex: /^(?:ok(?:ay)?|hey) google,?\s(.+)/i,
+        usage: '<query>',
+        example: [
+            'comicbooks',
+            'daredevil'
+        ],
+        args: [
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
-                description: 'The query to search for.',
-                required: true
+                type: 'string',
+                match: 'content',
+                prompt: 'What would you like to search for?'
             },
             {
-                type: Constants.ApplicationCommandOptionTypes.INTEGER,
                 name: 'amount',
-                description: 'The amount of results to return (Max 5).'
+                type: ArgumentUtil.range('number', 1, 5),
+                match: 'option',
+                flags: ['amount', 'results', 'a'],
+                default: 1
             }
-        ]
+        ],
+        cooldown: 4,
+        typing: true
     };
+
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'query',
+            description: 'The query to search for.',
+            type: 'STRING',
+            required: true
+        },
+        {
+            name: 'amount',
+            description: 'The amount of results to return (Max 5).',
+            type: 'STRING'
+        }
+    ];
 
     public async exec(message: Message, { query, amount, match }: { query: string; amount: number; match: any }) {
         if (!query && match) {
@@ -62,7 +57,7 @@ export default class extends Command {
             amount = 1;
         }
 
-        return message.util.send(await this.run(query, amount, message));
+        return message.send(await this.run(query, amount, message));
     }
 
     public async interact(interaction: CommandInteraction, { query, amount }: { query: string; amount: number }) {
@@ -72,23 +67,25 @@ export default class extends Command {
     private async run(query: string, amount: number, data: Message | CommandInteraction) {
         if (amount > 5) amount = 5;
 
-        let response;
-        const results = await this.search(query, amount, !(data.channel as TextChannel)?.nsfw ?? true);
+        const results = await this.search(query, amount, !(data.channel as TextChannel).nsfw);
 
         if (!results) {
-            response = { content: 'No results found.', ephemeral: true };
-        } else if (amount === 1) {
-            response = `Top result for **${results.query}**\n${results.results[0].link}`;
-        } else {
-            response = {
-                embed: this.client.util
-                    .embed()
+            return NO_RESULTS_FOUND;
+        }
+
+        if (amount === 1) {
+            return `Top result for **${results.query}**\n${results.results[0].link}`;
+        }
+
+        return {
+            embeds: [
+                new Embed()
                     .setColor(
                         randomResponse([
-                            colors.GOOGLE_BLUE,
-                            colors.GOOGLE_GREEN,
-                            colors.GOOGLE_RED,
-                            colors.GOOGLE_YELLOW
+                            Colors.GOOGLE_BLUE,
+                            Colors.GOOGLE_GREEN,
+                            Colors.GOOGLE_RED,
+                            Colors.GOOGLE_YELLOW
                         ])
                     )
                     .setAuthor(
@@ -99,14 +96,12 @@ export default class extends Command {
                     .setDescription(
                         results
                             .results
-                            .map(r => `[${r.title}](${r.link})\n${oneLine`${r.description.trim()}`}`)
+                            .map(r => `[${r.title}](${r.link})\n${oneLine(r.description.trim())}`)
                             .join('\n\n')
                     )
                     .setFooter(`About ${results.totalResults} results (${results.time} seconds)`)
-            };
-        }
-
-        return response;
+            ]
+        };
     }
 
     private async search(query: string, amount = 1, safe = false) {

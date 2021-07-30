@@ -1,46 +1,36 @@
-import { Command } from 'discord-akairo';
-import { CommandInteraction, Constants, Message } from 'discord.js';
-import { formatQuery, trim } from '../../util';
-import { colors, wikiParams } from '../../util/constants';
-import request from '../../util/request';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, Links, NO_RESULTS_FOUND } from '#util/constants';
+import { formatQuery, getWikiParams, trim } from '#util/misc';
+import { request } from '#util/request';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
-const BASE_URL = 'https://bulbapedia.bulbagarden.net';
-
-export default class extends Command {
-    public constructor() {
-        super('pokemon', {
-            aliases: ['pokemon', 'bulbapedia', 'poke'],
-            description: 'Searches Bulbapedia for a Pokemon.',
-            args: [
-                {
-                    id: 'query',
-                    type: 'string',
-                    match: 'content',
-                    prompt: {
-                        start: 'What Pokemon would you like to search for?'
-                    }
-                }
-            ],
-            cooldown: 4e3,
-            typing: true
-        });
-    }
-
-    public interactionOptions = {
-        name: 'pokemon',
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['bulbapedia', 'poke'],
         description: 'Searches Bulbapedia for a Pokemon.',
-        options: [
-            {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
-                name: 'query',
-                description: 'The Pokemon to search for.',
-                required: true
-            }
-        ]
+        usage: '<pokemon>',
+        example: [
+            'pikachu',
+            'charmander',
+            'greninja'
+        ],
+        args: [],
+        cooldown: 4,
+        typing: true
     };
 
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'query',
+            description: 'The Pokemon to search for.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.run(query));
+        return message.send(await this.run(query));
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
@@ -51,17 +41,22 @@ export default class extends Command {
         let query = formatQuery(pokemon).replaceAll(/(m(r(s|)|s)|jr)/gi, `$&.`);
 
         const num = parseInt(pokemon.replaceAll('#', ''));
+
         if (!isNaN(num)) {
             const isDex = await this.getDexNum(num);
             if (isDex) query = isDex;
         }
 
         const poke = await this.search(query);
-        if (!poke) return { content: 'No results found.', ephemeral: true };
+        if (!poke) return NO_RESULTS_FOUND;
 
-        const embed = this.client.util.embed()
-            .setColor(colors.BULBAPEDIA)
-            .setAuthor('Bulbapedia', 'https://cdn.bulbagarden.net/upload/thumb/d/d4/Bulbapedia_bulb.png/100px-Bulbapedia_bulb.png', `${BASE_URL}/wiki/Main_Page`)
+        const embed = new Embed()
+            .setColor(Colors.BULBAPEDIA)
+            .setAuthor(
+                'Bulbapedia',
+                'https://cdn.bulbagarden.net/upload/thumb/d/d4/Bulbapedia_bulb.png/100px-Bulbapedia_bulb.png',
+                `${Links.BULBAPEDIA}/wiki/Main_Page`
+            )
             .setTitle(poke.title)
             .setURL(poke.link)
             .setDescription(poke.description);
@@ -73,8 +68,8 @@ export default class extends Command {
 
     private async search(query: string) {
         const { body } = await request
-            .get(`${BASE_URL}/w/api.php`)
-            .query(wikiParams(query));
+            .get(`${Links.BULBAPEDIA}/w/api.php`)
+            .query(getWikiParams(query));
 
         const poke = body.query.pages[0];
         if (poke.missing) return null;
@@ -113,6 +108,6 @@ export default class extends Command {
     }
 
     private getLink(str: string) {
-        return `${BASE_URL}/wiki/${encodeURIComponent(str.replaceAll(' ', '_'))}`;
+        return `${Links.BULBAPEDIA}/wiki/${encodeURIComponent(str.replaceAll(' ', '_'))}`;
     }
 }

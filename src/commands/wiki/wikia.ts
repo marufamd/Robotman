@@ -1,61 +1,52 @@
-import { Command } from 'discord-akairo';
-import { Constants, CommandInteraction, Message } from 'discord.js';
-import { formatQuery } from '../../util';
-import { colors } from '../../util/constants';
-import request from '../../util/request';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, NO_RESULTS_FOUND } from '#util/constants';
+import { formatQuery } from '#util/misc';
+import { request } from '#util/request';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
-export default class extends Command {
-    public constructor() {
-        super('wikia', {
-            aliases: ['wikia', 'fandom'],
-            description: 'Searches a specifed wikia site.',
-            args: [
-                {
-                    id: 'wikia',
-                    type: 'string',
-                    prompt: {
-                        start: 'Which wikia would you like to search in?'
-                    }
-                },
-                {
-                    id: 'query',
-                    match: 'rest',
-                    prompt: {
-                        start: 'What would you like to search for?'
-                    }
-                }
-            ],
-            typing: true,
-            cooldown: 5e3
-        });
-    }
-
-    public data = {
-        usage: '<fandom> <query>',
-        examples: ['marvel daredevil']
-    };
-
-    public interactionOptions = {
-        name: 'wikia',
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['fandom'],
         description: 'Searches a specifed wikia site.',
-        options: [
+        usage: '<subdomain> <query>',
+        example: [
+            'marvel daredevil',
+            'dc batman'
+        ],
+        args: [
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'wikia',
-                description: 'The wikia to search in.',
-                required: true
+                type: 'string',
+                prompt: 'Which wikia would you like to search in?'
             },
             {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
                 name: 'query',
-                description: 'The query to search for.',
-                required: true
+                match: 'rest',
+                prompt: 'What would you like to search for?'
             }
-        ]
+        ],
+        cooldown: 4,
+        typing: true
     };
 
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'wikia',
+            description: 'The wikia to search in.',
+            type: 'STRING',
+            required: true
+        },
+        {
+            name: 'query',
+            description: 'The query to search for.',
+            type: 'STRING',
+            required: true
+        }
+    ];
+
     public async exec(message: Message, { wikia, query }: { wikia: string; query: string }) {
-        return message.util.send(await this.run(wikia, query));
+        return message.send(await this.run(wikia, query));
     }
 
     public async interact(interaction: CommandInteraction, { wikia, query }: { wikia: string; query: string }) {
@@ -63,10 +54,10 @@ export default class extends Command {
     }
 
     private async run(wikia: string, content: string) {
-        const baseURL = `https://${wikia}.fandom.com`;
+        const BASE_URL = `https://${wikia}.fandom.com`;
 
         const { body: { query } } = await request
-            .get(`${baseURL}/api.php`)
+            .get(`${BASE_URL}/api.php`)
             .query({
                 action: 'query',
                 titles: formatQuery(content),
@@ -75,16 +66,21 @@ export default class extends Command {
                 redirects: true
             });
 
-        if (!query?.pages?.length || query.pages[0].missing) return { content: 'No results found.', ephemeral: true };
+        if (!query?.pages?.length || query.pages[0].missing) return NO_RESULTS_FOUND;
+
         const { pageid } = query.pages[0];
 
-        const result = await this.getData(baseURL, pageid);
-        if (!result) return { content: 'No results found.', ephemeral: true };
+        const result = await this.getData(BASE_URL, pageid);
 
-        const embed = this.client.util
-            .embed()
-            .setColor(colors.FANDOM)
-            .setAuthor('FANDOM', 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Fandom_heart-logo.svg/128px-Fandom_heart-logo.svg.png', 'https://www.fandom.com/')
+        if (!result) return NO_RESULTS_FOUND;
+
+        const embed = new Embed()
+            .setColor(Colors.FANDOM)
+            .setAuthor(
+                'FANDOM',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Fandom_heart-logo.svg/128px-Fandom_heart-logo.svg.png',
+                'https://www.fandom.com/'
+            )
             .setTitle(result.title)
             .setURL(result.url)
             .setDescription(result.description)

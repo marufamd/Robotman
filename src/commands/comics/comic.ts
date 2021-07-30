@@ -1,74 +1,43 @@
-import cheerio from 'cheerio';
-import { Command } from 'discord-akairo';
-import { CommandInteraction, Constants, Message } from 'discord.js';
-import { google, title, trim } from '../../util';
-import { colors } from '../../util/constants';
-import request from '../../util/request';
+import { Embed } from '#util/builders';
+import type { Command, CommandOptions } from '#util/commands';
+import { Colors, NO_RESULTS_FOUND } from '#util/constants';
+import { trim } from '#util/misc';
+import { comixology } from '#util/wrappers';
+import { toTitleCase } from '@sapphire/utilities';
+import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
-interface ComixologyData {
-    publisher: {
-        name: string;
-        image: string;
-    };
-    name: string;
-    description: string;
-    cover: string;
-    url: string;
-    credits: {
-        written: string[];
-        art: string[];
-        pencils: string[];
-        inks: string[];
-        colors: string[];
-        cover: string[];
-    };
-    pageCount: number;
-    releaseDate: string;
-}
-
-export default class extends Command {
-    public constructor() {
-        super('comic', {
-            aliases: ['comic', 'comixology', 'issue', 'trade'],
-            description: 'Searches ComiXology for an issue/trade.',
-            args: [
-                {
-                    id: 'query',
-                    match: 'content',
-                    prompt: {
-                        start: 'What would you like to search for?'
-                    }
-                }
-            ],
-            typing: true,
-            cooldown: 10e3
-        });
-    }
-
-    public data = {
+export default class implements Command {
+    public options: CommandOptions = {
+        aliases: ['comixology', 'issue', 'trade'],
+        description: 'Searches ComiXology for an issue/trade.',
+        extended: 'More specific queries will give a more accurate result (e.g. including the launch year of the book, the writer, etc)',
         usage: '<query>',
-        extended: ['More specific queries will give a more accurate result (e.g. including the launch year of the book, the writer, etc)'],
-        examples: [
+        example: [
             'daredevil 1 zdarsky',
             'batman 50'
-        ]
+        ],
+        args: [
+            {
+                name: 'query',
+                match: 'content',
+                prompt: 'What would you like to search for?'
+            }
+        ],
+        cooldown: 10,
+        typing: true
     };
 
-    public interactionOptions = {
-        name: 'comic',
-        description: 'Searches ComiXology for an issue/trade.',
-        options: [
-            {
-                type: Constants.ApplicationCommandOptionTypes.STRING,
-                name: 'query',
-                description: 'The issue/trade to search for.',
-                required: true
-            }
-        ]
-    };
+    public interactionOptions: ApplicationCommandOptionData[] = [
+        {
+            name: 'query',
+            description: 'The issue/trade to search for.',
+            type: 'STRING',
+            required: true
+        }
+    ];
 
     public async exec(message: Message, { query }: { query: string }) {
-        return message.util.send(await this.run(query));
+        return message.send(await this.run(query));
     }
 
     public async interact(interaction: CommandInteraction, { query }: { query: string }) {
@@ -76,12 +45,11 @@ export default class extends Command {
     }
 
     private async run(query: string) {
-        const comic = await this.search(query);
-        if (!comic) return { content: 'No results found', ephemeral: true };
+        const comic = await comixology(query);
+        if (!comic) return NO_RESULTS_FOUND;
 
-        const embed = this.client.util
-            .embed()
-            .setColor(colors.COMIXOLOGY)
+        const embed = new Embed()
+            .setColor(Colors.COMIXOLOGY)
             .setAuthor(comic.publisher.name, comic.publisher.image)
             .setTitle(comic.name)
             .setURL(comic.url)
@@ -90,54 +58,23 @@ export default class extends Command {
             .setFooter('ComiXology', 'https://i.imgur.com/w8RoAMX.png');
 
         for (const [name, credits] of Object.entries(comic.credits)) {
-            if (credits.length) embed.addField(`${title(name)} By`, credits.join('\n'), true);
+            if (credits.length) {
+                embed.addField(`${toTitleCase(name)} By`, credits.join('\n'), true);
+            }
         }
 
-        const { releaseDate, pageCount } = comic;
+        if (comic.pageCount) {
+            embed.addField('Page Count', comic.pageCount.toString(), true);
+        }
 
-        if (pageCount) embed.addField('Page Count', pageCount.toString(), true);
-        if (releaseDate) embed.addField('Release Date', releaseDate, true);
-
-        return { embeds: [embed.inlineFields()] };
-    }
-
-    private async search(query: string): Promise<ComixologyData> {
-        const res = await google(`site:https://comixology.com/ ${query}`);
-        if (!res) return null;
-
-        const found = res.items.find((i: Record<string, string>): boolean => i.link.includes('digital-comic'));
-        if (!found) return null;
-
-        const link = found.link.replace('https://m.', 'https://www.');
-        const { text } = await request.get(link);
-
-        const $ = cheerio.load(text);
-        if (!$('img.icon').length) return null;
-
-        const credits = $('div.credits')[0];
-
-        const findData = (type: string): string[] => $(credits).find(`h2[title='${type}']`).map((_: number, el: cheerio.Element) => $(el).find('a').text().trim()).get();
-
-        const written = findData('Written by');
-        const art = findData('Art by');
-        const pencils = findData('Pencils');
-        const inks = findData('Inks');
-        const colors = findData('Colored by');
-        const cover = findData('Cover by');
-
-        const otherDetails = $('div.aboutText');
-        const pageCount = Number(otherDetails.get(0).children[0].data);
-        const releaseDate = otherDetails.get(1).children[0].data;
+        if (comic.releaseDate) {
+            embed.addField('Release Date', comic.releaseDate, true);
+        }
 
         return {
-            publisher: { name: $('h3.name').text(), image: $('img.icon').eq(1).attr('src') },
-            name: $('h1.title').text(),
-            description: $('.item-description').text(),
-            cover: encodeURI($('img.cover').first().attr('src')).replace('%', ''),
-            url: link,
-            credits: { written, art, pencils, inks, colors, cover },
-            pageCount,
-            releaseDate
+            embeds: [
+                embed.inlineFields()
+            ]
         };
     }
 }
