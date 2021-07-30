@@ -7,7 +7,6 @@ import { isThenable } from '@sapphire/utilities';
 import { Client, Message, MessageOptions } from 'discord.js';
 import { DateTime as dateTime, Duration as duration } from 'luxon';
 import { performance } from 'node:perf_hooks';
-import { Sql } from 'postgres';
 import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
 
@@ -18,8 +17,7 @@ export default class implements Command {
 
     public constructor(
         private readonly client: Client,
-        @inject('commands') private readonly commands: Commands,
-        @inject('sql') private readonly sql: Sql<any>
+        @inject('commands') private readonly commands: Commands
     ) {}
 
     public options: CommandOptions = {
@@ -49,7 +47,7 @@ export default class implements Command {
         const DateTime = dateTime;
         const Duration = duration;
         const request = Request;
-        const { lastInput, lastResult, client, commands, sql } = this;
+        const { lastInput, lastResult, client, commands } = this;
         /* eslint-enable @typescript-eslint/no-unused-vars */
 
         this.lastInput = code;
