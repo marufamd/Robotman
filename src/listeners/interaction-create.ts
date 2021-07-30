@@ -1,5 +1,7 @@
-import { Listener, handleSlashCommand, Commands } from '#util/commands';
-import { Client, CommandInteraction, Constants, Permissions, TextChannel } from 'discord.js';
+import type { Listener } from '#util/commands';
+import { Commands, handleSlashCommand } from '#util/commands';
+import type { CommandInteraction, TextChannel } from 'discord.js';
+import { Client, Constants, Permissions } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()

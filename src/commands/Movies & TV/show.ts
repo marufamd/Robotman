@@ -2,7 +2,7 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors, Links } from '#util/constants';
 import { request } from '#util/request';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import TurndownService from 'turndown';
 
 export default class implements Command {

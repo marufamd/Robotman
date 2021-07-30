@@ -1,4 +1,5 @@
-import { Message, MessageOptions, MessagePayload, Snowflake } from 'discord.js';
+import type { MessageOptions, MessagePayload, Snowflake } from 'discord.js';
+import { Message } from 'discord.js';
 
 export const messageMap = new Map<Snowflake, Message>();
 

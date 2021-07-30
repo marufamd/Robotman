@@ -2,7 +2,8 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
 import { cpuUsage } from '#util/misc';
-import { Client, CommandInteraction, Message } from 'discord.js';
+import type { CommandInteraction, Message } from 'discord.js';
+import { Client } from 'discord.js';
 import { Duration } from 'luxon';
 import { injectable } from 'tsyringe';
 

@@ -4,7 +4,8 @@ require('dotenv').config();
 import 'reflect-metadata';
 import '#util/extensions';
 
-import { assignOptions, Command, Listener } from '#util/commands';
+import type { Command, Listener } from '#util/commands';
+import { assignOptions } from '#util/commands';
 import { PRODUCTION, ScheduleTime } from '#util/constants';
 import { log } from '#util/logger';
 import {

@@ -3,7 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { request } from '#util/request';
 import { stripIndents } from 'common-tags';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 interface OpenMovieDatabaseResponse {
     Title: string;

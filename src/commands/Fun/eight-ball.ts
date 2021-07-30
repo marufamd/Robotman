@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { randomResponse } from '#util/misc';
-import { ApplicationCommandOptionData, CommandInteraction, Message, MessageAttachment } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import { MessageAttachment } from 'discord.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 

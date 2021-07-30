@@ -1,6 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { log } from '#util/logger';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 

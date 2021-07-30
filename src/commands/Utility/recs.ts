@@ -1,7 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { Channels } from '#util/constants';
 import { redditWiki } from '#util/wrappers';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

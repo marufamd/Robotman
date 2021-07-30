@@ -1,5 +1,5 @@
 import type { Command, CommandOptions } from '#util/commands';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Parser } from 'expr-eval';
 
 export default class implements Command {

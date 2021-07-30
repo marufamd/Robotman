@@ -1,13 +1,15 @@
 import { Colors, DateFormats } from '#util/constants';
 import { regExpEsc, toTitleCase } from '@sapphire/utilities';
+import type {
+    CollectorFilter,
+    Message,
+    User
+} from 'discord.js';
 import {
     ButtonInteraction,
-    CollectorFilter,
     CommandInteraction,
-    Message,
     MessageActionRow,
-    MessageButton,
-    User
+    MessageButton
 } from 'discord.js';
 import { DateTime } from 'luxon';
 import os from 'node:os';

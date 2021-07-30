@@ -3,7 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { formatQuery } from '#util/misc';
 import { request } from '#util/request';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

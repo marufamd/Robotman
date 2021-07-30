@@ -4,7 +4,8 @@ import { Colors, ConnectFour, Emojis } from '#util/constants';
 import { ConnectFourGame } from '#util/games';
 import { choosePlayer, getUser, pluralize } from '#util/misc';
 import { Connect4AI } from 'connect4-ai';
-import { CommandInteraction, Message, MessageActionRow, MessageButton, MessageComponentInteraction } from 'discord.js';
+import type { CommandInteraction, Message, MessageComponentInteraction } from 'discord.js';
+import { MessageActionRow, MessageButton } from 'discord.js';
 
 const { WAIT_TIME, INDICATORS } = ConnectFour;
 

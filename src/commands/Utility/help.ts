@@ -1,9 +1,11 @@
 import { Embed } from '#util/builders';
-import type { Command, CommandOptions, Commands } from '#util/commands';
+import { Commands } from '#util/commands';
+import type { Command, CommandOptions } from '#util/commands';
 import { ALIAS_REPLACEMENT_REGEX } from '#util/constants';
 import { isOwner } from '#util/misc';
 import { toTitleCase } from '@sapphire/utilities';
-import { Message, Permissions } from 'discord.js';
+import type { Message } from 'discord.js';
+import { Permissions } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()
@@ -70,7 +72,7 @@ export default class implements Command {
             const groups: Record<string, string[]> = {};
 
             for (const [, cmd] of [...this.commands]) {
-                if (['Owner', 'Moderator'].includes(cmd.options.group) || command.options.sub) continue;
+                if (['Owner', 'Moderator'].includes(cmd.options.group) || cmd.options.sub) continue;
 
                 if (!(cmd.options.group in groups)) {
                     groups[cmd.options.group] = [];

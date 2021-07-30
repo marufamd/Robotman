@@ -4,7 +4,8 @@ import { Channels, Colors, DateFormats } from '#util/constants';
 import { log } from '#util/logger';
 import { chunk } from '@sapphire/utilities';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
-import type { Client, TextChannel } from 'discord.js';
+import { Client } from 'discord.js';
+import type { TextChannel } from 'discord.js';
 import { DateTime } from 'luxon';
 import { injectable } from 'tsyringe';
 

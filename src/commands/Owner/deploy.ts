@@ -1,7 +1,9 @@
-import type { Command, CommandOptions, Commands } from '#util/commands';
+import { Commands } from '#util/commands';
+import type { Command, CommandOptions } from '#util/commands';
 import { Emojis } from '#util/constants';
 import { codeBlock } from '@discordjs/builders';
-import { Client, Message } from 'discord.js';
+import type { Message } from 'discord.js';
+import { Client } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
 
 @injectable()

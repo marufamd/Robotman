@@ -1,7 +1,8 @@
 import { DateFormats, LogTypes } from '#util/constants';
 import { codeBlock } from '@discordjs/builders';
 import * as colorette from 'colorette';
-import { MessageEmbedOptions, Util, WebhookClient } from 'discord.js';
+import type { MessageEmbedOptions } from 'discord.js';
+import { Util, WebhookClient } from 'discord.js';
 import { DateTime } from 'luxon';
 import { inspect } from 'util';
 

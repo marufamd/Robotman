@@ -1,7 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
 import { toTitleCase } from '@sapphire/utilities';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 
 export default class implements Command {

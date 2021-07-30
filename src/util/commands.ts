@@ -1,13 +1,15 @@
-import {
+import type {
     ArgumentGenerator,
-    ArgumentOption,
+    ArgumentOption
+} from '#util/arguments';
+import {
     parseArguments
 } from '#util/arguments';
 import { ALIAS_REPLACEMENT_REGEX, Links, PRODUCTION } from '#util/constants';
 import { log } from '#util/logger';
 import { getUser, isInteraction, isOwner, pluralize } from '#util/misc';
 import { regExpEsc } from '@sapphire/utilities';
-import {
+import type {
     ApplicationCommandOptionData,
     ClientEvents,
     Collection,
@@ -15,9 +17,11 @@ import {
     CommandInteractionOption,
     Message,
     MessageEmbedOptions,
-    Permissions,
     Snowflake,
     User
+} from 'discord.js';
+import {
+    Permissions
 } from 'discord.js';
 import { Args, Lexer, longShortStrategy, Parser } from 'lexure';
 import { basename, dirname } from 'node:path';

@@ -3,7 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { chunk } from '@sapphire/utilities';
 import { BASE_URL, CollectionTypes, fetchSearchResults } from 'comicgeeks';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 const MAX_SEARCH_RESULTS = 8;
 

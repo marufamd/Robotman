@@ -2,9 +2,10 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors, DateFormats } from '#util/constants';
 import { closest, randomResponse, trim } from '#util/misc';
-import { letterboxd, ReviewEntry } from '#util/wrappers';
+import type { ReviewEntry } from '#util/wrappers';
+import { letterboxd } from '#util/wrappers';
 import { chunk } from '@sapphire/utilities';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 
 export default class implements Command {

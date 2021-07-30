@@ -2,7 +2,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { TicTacToe } from '#util/constants';
 import { TicTacToeGame } from '#util/games';
 import { choosePlayer, getUser, randomResponse } from '#util/misc';
-import { CommandInteraction, Message } from 'discord.js';
+import type { CommandInteraction, Message } from 'discord.js';
 import * as TicTacToeEngine from 'tictactoe-minimax-ai';
 
 export default class implements Command {

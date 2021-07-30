@@ -1,8 +1,10 @@
 // Credit: This is a TypeScript version of the node-superfetch wrapper module https://github.com/dragonfire535/node-superfetch
 
 import FormData from 'form-data';
-import { Agent, METHODS } from 'http';
-import fetch, { BodyInit, Headers, HeadersInit } from 'node-fetch';
+import type { Agent } from 'http';
+import { METHODS } from 'http';
+import type { BodyInit, Headers, HeadersInit } from 'node-fetch';
+import fetch from 'node-fetch';
 
 interface RequestOptions {
     url: string;

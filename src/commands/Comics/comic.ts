@@ -4,7 +4,7 @@ import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { trim } from '#util/misc';
 import { comixology } from '#util/wrappers';
 import { toTitleCase } from '@sapphire/utilities';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

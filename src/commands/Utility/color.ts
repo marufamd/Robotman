@@ -3,7 +3,7 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { makeHex } from '#util/misc';
 import { stripIndents } from 'common-tags';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Canvas } from 'skia-canvas';
 
 export default class implements Command {

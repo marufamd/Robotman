@@ -1,8 +1,10 @@
-import { handleMessageCommand, Listener, parseCommand } from '#util/commands';
+import type { Listener } from '#util/commands';
+import { handleMessageCommand, parseCommand } from '#util/commands';
 import { Channels, PRODUCTION } from '#util/constants';
 import { log } from '#util/logger';
 import { handleRecommendations } from '#util/recommendations';
-import { Constants, Message, PermissionResolvable, Permissions, TextChannel } from 'discord.js';
+import type { Message, PermissionResolvable, TextChannel } from 'discord.js';
+import { Constants, Permissions } from 'discord.js';
 
 export default class implements Listener {
     public event = Constants.Events.MESSAGE_CREATE;

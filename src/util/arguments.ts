@@ -2,7 +2,8 @@ import type { Command } from '#util/commands';
 import { PromptOptions, Timezones } from '#util/constants';
 import { closest, parseRGB, resolveColor } from '#util/misc';
 import type { Message } from 'discord.js';
-import { Args, fail, finish, joinTokens, loop1Async, step } from 'lexure';
+import type { Args } from 'lexure';
+import { fail, finish, joinTokens, loop1Async, step } from 'lexure';
 import { DateTime } from 'luxon';
 
 const fnOrAny = (fn: any | ((message: Message) => string), message: Message) => typeof fn === 'function' ? fn(message) : fn;

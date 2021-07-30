@@ -1,7 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { NO_RESULTS_FOUND } from '#util/constants';
 import { youtube } from '#util/wrappers';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

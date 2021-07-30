@@ -4,7 +4,8 @@ import { Colors, Emojis, Hangman, Words } from '#util/constants';
 import { HangmanGame } from '#util/games';
 import { getUser, isInteraction, pluralize, raceResponse, randomResponse } from '#util/misc';
 import { stripIndents } from 'common-tags';
-import { ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton } from 'discord.js';
+import type { CommandInteraction, Message } from 'discord.js';
+import { ButtonInteraction, MessageActionRow, MessageButton } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

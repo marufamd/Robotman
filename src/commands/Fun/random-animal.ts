@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { request } from '#util/request';
-import { ApplicationCommandOptionData, CommandInteraction, Message, MessageAttachment } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import { MessageAttachment } from 'discord.js';
 import { extname } from 'node:path';
 
 export default class implements Command {

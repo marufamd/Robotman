@@ -4,7 +4,7 @@ import { Pokemon } from '#util/constants';
 import { randomResponse } from '#util/misc';
 import { request } from '#util/request';
 import { toTitleCase } from '@sapphire/utilities';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Agent } from 'https';
 
 const agent = new Agent({ rejectUnauthorized: false });

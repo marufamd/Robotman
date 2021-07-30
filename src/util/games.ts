@@ -1,11 +1,13 @@
 import { ConnectFour, Hangman, TicTacToe } from '#util/constants';
 import { codeBlock } from '@discordjs/builders';
 import { stripIndents } from 'common-tags';
-import {
+import type {
     ButtonInteraction,
-    Message,
+    Message, User
+} from 'discord.js';
+import {
     MessageActionRow,
-    MessageButton, User
+    MessageButton
 } from 'discord.js';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 

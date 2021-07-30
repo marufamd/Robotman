@@ -1,10 +1,12 @@
-import type { Command, CommandOptions, Commands } from '#util/commands';
+import { Commands } from '#util/commands';
+import type { Command, CommandOptions } from '#util/commands';
 import * as util from '#util/misc';
 import { request as Request } from '#util/request';
 import { codeBlock } from '@discordjs/builders';
 import { Type } from '@sapphire/type';
 import { isThenable } from '@sapphire/utilities';
-import { Client, Message, MessageOptions } from 'discord.js';
+import type { Message, MessageOptions } from 'discord.js';
+import { Client } from 'discord.js';
 import { DateTime as dateTime, Duration as duration } from 'luxon';
 import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';

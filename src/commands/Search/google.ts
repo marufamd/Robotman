@@ -5,7 +5,7 @@ import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { randomResponse } from '#util/misc';
 import { google } from '#util/wrappers';
 import { oneLine } from 'common-tags';
-import { ApplicationCommandOptionData, CommandInteraction, Message, TextChannel } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message, TextChannel } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

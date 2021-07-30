@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { BASE_URL, fetchPulls, fetchUser, SortTypes, User } from 'comicgeeks';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { User } from 'comicgeeks';
+import { BASE_URL, fetchPulls, fetchUser, SortTypes } from 'comicgeeks';
 import { DateTime } from 'luxon';
 import { getPullDate } from '#util/misc';
 import { Colors, DateFormats, Pull } from '#util/constants';

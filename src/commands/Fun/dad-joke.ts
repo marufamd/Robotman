@@ -1,6 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { dadJoke } from '#util/wrappers';
-import { CommandInteraction, Message } from 'discord.js';
+import type { CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
     public options: CommandOptions = {

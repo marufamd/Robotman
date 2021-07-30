@@ -1,8 +1,9 @@
-import { Client, Constants, TextChannel } from 'discord.js';
+import type { TextChannel } from 'discord.js';
+import { Client, Constants } from 'discord.js';
 import { existsSync, promises as fs } from 'fs';
 import { join } from 'path';
 import { injectable } from 'tsyringe';
-import { Listener } from '#util/commands';
+import type { Listener } from '#util/commands';
 import { log } from '#util/logger';
 
 @injectable()

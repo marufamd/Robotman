@@ -1,4 +1,5 @@
-import { assignOptions, Command, CommandOptions, Commands } from '#util/commands';
+import type { Command, CommandOptions } from '#util/commands';
+import { assignOptions, Commands } from '#util/commands';
 import { ALIAS_REPLACEMENT_REGEX } from '#util/constants';
 import type { Message } from 'discord.js';
 import { container, inject, injectable } from 'tsyringe';

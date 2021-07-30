@@ -1,6 +1,7 @@
-import { Listener } from '#util/commands';
+import type { Listener } from '#util/commands';
 import { log } from '#util/logger';
-import { Constants, RateLimitData } from 'discord.js';
+import type { RateLimitData } from 'discord.js';
+import { Constants } from 'discord.js';
 
 export default class implements Listener {
     public event = Constants.Events.RATE_LIMIT;

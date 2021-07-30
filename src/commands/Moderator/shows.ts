@@ -4,7 +4,8 @@ import { pad } from '#util/misc';
 import { request } from '#util/request';
 import { paste } from '#util/wrappers';
 import { stripIndents } from 'common-tags';
-import { Message, MessageActionRow, MessageButton } from 'discord.js';
+import type { Message } from 'discord.js';
+import { MessageActionRow, MessageButton } from 'discord.js';
 import { DateTime } from 'luxon';
 import TurndownService from 'turndown';
 

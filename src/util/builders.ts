@@ -1,6 +1,7 @@
 import { Colors } from '#util/constants';
 import { trim } from '#util/misc';
-import { MessageEmbed, MessageEmbedOptions } from 'discord.js';
+import type { MessageEmbedOptions } from 'discord.js';
+import { MessageEmbed } from 'discord.js';
 
 export class Embed extends MessageEmbed {
     public constructor(data?: MessageEmbed | MessageEmbedOptions) {

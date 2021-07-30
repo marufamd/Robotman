@@ -2,8 +2,10 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Akinator, Colors, Emojis } from '#util/constants';
 import { getUser, isInteraction, randomResponse } from '#util/misc';
-import { Aki, Guess } from 'aki-api';
-import { ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton, MessageEditOptions } from 'discord.js';
+import type { Guess } from 'aki-api';
+import { Aki } from 'aki-api';
+import type { ButtonInteraction, CommandInteraction, Message, MessageEditOptions } from 'discord.js';
+import { MessageActionRow, MessageButton } from 'discord.js';
 
 const enum GameStatus {
     WIN = 'WIN',

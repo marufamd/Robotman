@@ -1,10 +1,11 @@
 import { resolveArgument } from '#util/arguments';
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
-import { DateFormats, PublisherData, Publishers, Pull } from '#util/constants';
+import type { PublisherData } from '#util/constants';
+import { DateFormats, Publishers, Pull } from '#util/constants';
 import { getPullDate } from '#util/misc';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
-import { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 
 const { PREVIOUS, NEXT } = Pull.DEFAULT;

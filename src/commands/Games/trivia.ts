@@ -3,7 +3,8 @@ import { Trivia } from '#util/constants';
 import { TriviaGame } from '#util/games';
 import { getUser, isOwner, raceResponse } from '#util/misc';
 import { bold, codeBlock } from '@discordjs/builders';
-import { ApplicationCommandOptionData, ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton } from 'discord.js';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import { ButtonInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { setTimeout as wait } from 'node:timers/promises';
 
 const {
