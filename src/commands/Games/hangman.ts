@@ -2,7 +2,7 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors, Emojis, Hangman, Words } from '#util/constants';
 import { HangmanGame } from '#util/games';
-import { getUser, isInteraction, pluralize, raceResponse, randomResponse } from '#util/misc';
+import { disableComponents, getUser, isInteraction, pluralize, raceResponse, randomResponse } from '#util/misc';
 import { stripIndents } from 'common-tags';
 import type { CommandInteraction, Message } from 'discord.js';
 import { ButtonInteraction, MessageActionRow, MessageButton } from 'discord.js';
@@ -31,8 +31,10 @@ export default class implements Command {
 
         let guessWin = false;
 
+        let msg: Message;
+
         while (game.incorrect < 7 && game.formattedWord !== game.splitWord.join(' ')) {
-            const msg = await data.channel.send({
+            msg = await data.channel.send({
                 embeds: [
                     this.embed(
                         game,
@@ -61,7 +63,12 @@ export default class implements Command {
 
             if (response instanceof ButtonInteraction) {
                 if (response.customId === 'stop') {
-                    return response.reply('The game has been stopped');
+                    await response.deferUpdate();
+
+                    return msg.edit({
+                        content: 'The game has been stopped',
+                        components: disableComponents(msg.components)
+                    });
                 }
 
                 await msg.delete();
@@ -155,7 +162,10 @@ export default class implements Command {
             this.addGuesses(game, embed);
         }
 
-        return data.channel.send({ embeds: [embed] });
+        return data.channel.send({
+            embeds: [embed],
+            components: disableComponents(msg.components)
+        });
     }
 
     private embed(game: HangmanGame, text: string) {

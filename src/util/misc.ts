@@ -289,6 +289,16 @@ export async function raceResponse(
     return collected.first();
 }
 
+export function disableComponents(rows: MessageActionRow[]): MessageActionRow[] {
+    for (const row of rows) {
+        for (const button of row.components) {
+            button.setDisabled(true);
+        }
+    }
+
+    return rows;
+}
+
 export function isInteraction(data: Message | CommandInteraction): data is CommandInteraction {
     return data instanceof CommandInteraction;
 }
