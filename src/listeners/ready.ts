@@ -13,7 +13,7 @@ export default class implements Listener {
     public constructor(private readonly client: Client) {}
 
     public async handle() {
-        const rebootPath = join(__dirname, '..', '..', 'reboot.json');
+        const rebootPath = join(__dirname, '..', 'reboot.json');
 
         if (existsSync(rebootPath)) {
             const reboot = JSON.parse(await fs.readFile(rebootPath, 'utf8'));
