@@ -15,7 +15,8 @@ export default class implements Command {
     public constructor(private readonly client: Client) {}
 
     public options: CommandOptions = {
-        description: 'Displays bot statistics.'
+        description: 'Displays bot statistics.',
+        typing: true
     };
 
     public async exec(message: Message) {

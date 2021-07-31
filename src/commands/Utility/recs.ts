@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
-import { Channels } from '#util/constants';
+import { Channels, Recommendations } from '#util/constants';
 import { redditWiki } from '#util/wrappers';
+import { stripIndents } from 'common-tags';
 import type { Message } from 'discord.js';
 
 export default class implements Command {
@@ -27,20 +28,31 @@ export default class implements Command {
 
         const isWriter = list.includes(' ');
 
-        const body = isWriter
-            ? await redditWiki(`recsbot/writersrecs/${list.replace(/[^a-z]+/g, '')}recs`, 'DCcomics')
-            : (
-                await redditWiki(`recsbot/tastetest/${list}recs`, 'DCcomics') ??
-                await redditWiki(`recsbot/tastetest/${list}recsmod`, 'DCcomics')
-            );
+        let body: Record<string, any>;
+        let prefix: string;
+
+        if (isWriter) {
+            body = await redditWiki(`recsbot/writersrecs/${list.replace(/[^a-z]+/g, '')}recs`, 'DCcomics');
+        } else {
+            body = await redditWiki(`recsbot/tastetest/${list}recs`, 'DCcomics');
+
+            if (!body) {
+                body = await redditWiki(`recsbot/tastetest/${list}recsmod`, 'DCcomics');
+                prefix = Recommendations.TEXT.MOD;
+            } else {
+                prefix = Recommendations.TEXT.BOOSTER;
+            }
+        }
 
         if (!body || body.kind !== 'wikipage') return;
 
         const text = isWriter
             ? body.data.content_md
-            : body.data.content_md
-                .split('\r\n\r\n')
-                .join('\n');
+            : stripIndents`
+            ${prefix}
+
+            ${body.data.content_md.split('\r\n\r\n').join('\n')}
+            `;
 
         return message.send(
             text
