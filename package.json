@@ -38,7 +38,7 @@
     "reflect-metadata": "^0.1.13",
     "skia-canvas": "^0.9.23",
     "tictactoe-minimax-ai": "^1.2.1",
-    "tslib": "^1.14.1",
+    "tslib": "^2.3.0",
     "tsyringe": "^4.6.0",
     "turndown": "^7.1.1"
   },
