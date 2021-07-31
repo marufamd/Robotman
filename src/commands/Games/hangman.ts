@@ -20,6 +20,7 @@ export default class implements Command {
     }
 
     public async interact(interaction: CommandInteraction) {
+        await interaction.reply('Starting...');
         return this.run(interaction);
     }
 

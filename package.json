@@ -7,7 +7,7 @@
     "#util/*": "./dist/util/*.js"
   },
   "scripts": {
-    "build": "rimraf ./dist && npx tsc",
+    "build": "npx rimraf ./dist && npx tsc",
     "test": "npm run build && node .",
     "start": "pm2 start dist/index.js --name \"robotman\"",
     "restart": "pm2 restart robotman",
