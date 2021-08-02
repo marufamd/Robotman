@@ -4,6 +4,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { randomResponse } from '#util/misc';
 import { google } from '#util/wrappers';
+import { reply } from '@skyra/editable-commands';
 import { oneLine } from 'common-tags';
 import type { ApplicationCommandOptionData, CommandInteraction, Message, TextChannel } from 'discord.js';
 
@@ -54,7 +55,7 @@ export default class implements Command {
 			amount = 1;
 		}
 
-		return message.send(await this.run(query, amount, message));
+		return reply(message, await this.run(query, amount, message));
 	}
 
 	public async interact(interaction: CommandInteraction, { query, amount }: { query: string; amount: number }) {

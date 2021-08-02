@@ -1,9 +1,10 @@
 import { resolveArgument } from '#util/arguments';
 import { Embed } from '#util/builders';
-import type { Command, CommandOptions } from '#util/commands';
+import type { Command, CommandOptions, MessageContext } from '#util/commands';
 import type { PublisherData } from '#util/constants';
 import { DateFormats, Publishers, Pull } from '#util/constants';
 import { getPullDate } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
@@ -56,10 +57,10 @@ export default class implements Command {
 		}
 	];
 
-	public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }) {
+	public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }, context: MessageContext) {
 		let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
 
-		const alias = message.alias.replace(/pull(last|next)/gi, 'pull-$1');
+		const alias = context.alias.replace(/pull(last|next)/gi, 'pull-$1');
 
 		if (NEXT.includes(alias)) {
 			week = week.plus({ weeks: 1 });
@@ -67,7 +68,7 @@ export default class implements Command {
 			week = week.minus({ weeks: 1 });
 		}
 
-		return message.send(await this.run(publisher, week));
+		return reply(message, await this.run(publisher, week));
 	}
 
 	public async interact(interaction: CommandInteraction, { publisher, date }: { publisher: string; date: string }) {

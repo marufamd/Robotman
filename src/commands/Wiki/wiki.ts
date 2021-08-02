@@ -3,6 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, Links, NO_RESULTS_FOUND } from '#util/constants';
 import { formatQuery, getWikiParams, trim } from '#util/misc';
 import { request } from '#util/request';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 const PROFANITY_URL = 'https://raw.githubusercontent.com/RobertJGabriel/Google-profanity-words/master/list.txt';
@@ -36,7 +37,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { query }: { query: string }) {
-		return message.send(await this.run(query));
+		return reply(message, await this.run(query));
 	}
 
 	public async interact(interaction: CommandInteraction, { query }: { query: string }) {

@@ -2,7 +2,6 @@
 require('dotenv').config();
 
 import 'reflect-metadata';
-import '#util/extensions';
 
 import type { Command, Listener } from '#util/commands';
 import { assignOptions } from '#util/commands';
@@ -16,9 +15,11 @@ import { container } from 'tsyringe';
 
 const client = new Client({
 	makeCache: Options.cacheWithLimits({
-		MessageManager: 50
+		MessageManager: {
+			maxSize: 50,
+			sweepInterval: 600
+		}
 	}),
-	messageCacheLifetime: 600,
 	allowedMentions: {
 		parse: ['users']
 	},

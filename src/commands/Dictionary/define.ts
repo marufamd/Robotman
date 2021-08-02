@@ -3,6 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, Links, NO_RESULTS_FOUND } from '#util/constants';
 import { capitalize, trim } from '#util/misc';
 import { define } from '#util/wrappers';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
@@ -32,7 +33,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { word }: { word: string }) {
-		return message.send(await this.run(word));
+		return reply(message, await this.run(word));
 	}
 
 	public async interact(interaction: CommandInteraction, { word }: { word: string }) {

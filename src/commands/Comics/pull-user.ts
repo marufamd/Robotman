@@ -1,4 +1,4 @@
-import type { Command, CommandOptions } from '#util/commands';
+import type { Command, CommandOptions, MessageContext } from '#util/commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import type { User } from 'comicgeeks';
 import { BASE_URL, fetchPulls, fetchUser, SortTypes } from 'comicgeeks';
@@ -7,6 +7,7 @@ import { getPullDate } from '#util/misc';
 import { Colors, DateFormats, Pull } from '#util/constants';
 import { Embed } from '#util/builders';
 import { resolveArgument } from '#util/arguments';
+import { reply } from '@skyra/editable-commands';
 
 const { PREVIOUS, NEXT } = Pull.USER;
 
@@ -56,10 +57,10 @@ export default class implements Command {
 		}
 	];
 
-	public async exec(message: Message, { username, date }: { username: string; date: Date }) {
+	public async exec(message: Message, { username, date }: { username: string; date: Date }, context: MessageContext) {
 		let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
 
-		const alias = message.alias.replace(/pull(last|next)user/gi, 'pull-$1-user');
+		const alias = context.alias.replace(/pull(last|next)user/gi, 'pull-$1-user');
 
 		if (NEXT.includes(alias)) {
 			week = week.plus({ days: 7 });
@@ -67,7 +68,7 @@ export default class implements Command {
 			week = week.minus({ days: 7 });
 		}
 
-		return message.send(await this.run(username, week));
+		return reply(message, await this.run(username, week));
 	}
 
 	public async interact(interaction: CommandInteraction, { username, date }: { username: string; date: string }) {

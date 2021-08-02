@@ -1,5 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { dadJoke } from '#util/wrappers';
+import { reply } from '@skyra/editable-commands';
 import type { CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
@@ -9,7 +10,7 @@ export default class implements Command {
 	};
 
 	public async exec(message: Message) {
-		return message.send(await dadJoke());
+		return reply(message, await dadJoke());
 	}
 
 	public async interact(interaction: CommandInteraction) {

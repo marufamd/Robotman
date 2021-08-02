@@ -7,6 +7,7 @@ import { toTitleCase } from '@sapphire/utilities';
 import type { Message } from 'discord.js';
 import { Permissions } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
+import { reply } from '@skyra/editable-commands';
 
 @injectable()
 export default class implements Command {
@@ -89,7 +90,7 @@ export default class implements Command {
 			embed.inlineFields();
 		}
 
-		return message.send({ embeds: [embed] });
+		return reply(message, { embeds: [embed] });
 	}
 
 	private format(item: string | string[]) {

@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { assignOptions, Commands } from '#util/commands';
 import { ALIAS_REPLACEMENT_REGEX } from '#util/constants';
+import { reply } from '@skyra/editable-commands';
 import type { Message } from 'discord.js';
 import { container, inject, injectable } from 'tsyringe';
 
@@ -41,16 +42,16 @@ export default class implements Command {
 				await this.reload(cmd);
 			}
 
-			return message.send(`Reloaded ${this.commands.size} commands.`);
+			return reply(message, `Reloaded ${this.commands.size} commands.`);
 		}
 
 		if (command) {
 			await this.reload(command);
 
-			return message.send(`Reloaded the command \`${command.options.name}\`.`);
+			return reply(message, `Reloaded the command \`${command.options.name}\`.`);
 		}
 
-		return message.send('Please provide a command to reload, or use the `--all` flag.');
+		return reply(message, 'Please provide a command to reload, or use the `--all` flag.');
 	}
 
 	private async reload(command: Command) {

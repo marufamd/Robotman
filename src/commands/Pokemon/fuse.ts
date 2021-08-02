@@ -4,6 +4,7 @@ import { Pokemon } from '#util/constants';
 import { randomResponse } from '#util/misc';
 import { request } from '#util/request';
 import { toTitleCase } from '@sapphire/utilities';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Agent } from 'https';
 
@@ -44,7 +45,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { first, second }: { first: string; second: string }) {
-		return message.send(await this.run(first, second));
+		return reply(message, await this.run(first, second));
 	}
 
 	public async interact(interaction: CommandInteraction, { first, second }: { first: string; second: string }) {

@@ -5,6 +5,7 @@ import { closest, randomResponse, trim } from '#util/misc';
 import type { ReviewEntry } from '#util/wrappers';
 import { letterboxd } from '#util/wrappers';
 import { chunk } from '@sapphire/utilities';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 
@@ -44,7 +45,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { username, film }: { username: string; film: string }) {
-		return message.send(await this.run(username, film));
+		return reply(message, await this.run(username, film));
 	}
 
 	public async interact(interaction: CommandInteraction, { username, film }: { username: string; film: string }) {

@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { Channels, Recommendations } from '#util/constants';
 import { redditWiki } from '#util/wrappers';
+import { reply } from '@skyra/editable-commands';
 import { stripIndents } from 'common-tags';
 import type { Message } from 'discord.js';
 
@@ -56,6 +57,6 @@ export default class implements Command {
             ${body.data.content_md.split('\r\n\r\n').join('\n')}
             `;
 
-		return message.send(text.replaceAll('amp;', '').replaceAll('&lt;', '<').replaceAll('&gt;', '>'));
+		return reply(message, text.replaceAll('amp;', '').replaceAll('&lt;', '<').replaceAll('&gt;', '>'));
 	}
 }

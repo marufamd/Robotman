@@ -26,6 +26,10 @@ export type Commands = Collection<string, Command>;
 const cooldowns = new Map<string, Map<string, number>>();
 const locks = new Map<string, Set<Snowflake>>();
 
+export interface MessageContext {
+	alias: string;
+}
+
 export interface Command {
 	path?: string;
 
@@ -35,7 +39,7 @@ export interface Command {
 
 	args?: ArgumentGenerator;
 
-	exec?(message?: Message, args?: Record<string, any>): any;
+	exec?(message?: Message, args?: Record<string, any>, context?: MessageContext): any;
 	interact?(interaction: CommandInteraction, args?: Record<string, any>): any;
 }
 
@@ -95,7 +99,7 @@ export function assignOptions(command: Command, path: string) {
 	}
 }
 
-export function parseCommand(message: Message): { command: Command; args: Args } {
+export function parseCommand(message: Message): { command: Command; args: Args; context: MessageContext } {
 	const commands = container.resolve<Commands>('commands');
 
 	const prefixRegix = new RegExp(`^(<@!?${message.client.user.id}>|${regExpEsc(process.env.BOT_PREFIX)})\\s*`);
@@ -107,7 +111,7 @@ export function parseCommand(message: Message): { command: Command; args: Args }
 
 	const res = lexer.lexCommand((s) => prefixRegix.exec(s)?.[0]?.length ?? null);
 
-	if (!res) return { command: null, args: null };
+	if (!res) return { command: null, args: null, context: null };
 
 	const [cmd, tokens] = res;
 
@@ -117,22 +121,26 @@ export function parseCommand(message: Message): { command: Command; args: Args }
 			c.options.aliases.map((a) => a.replace(ALIAS_REPLACEMENT_REGEX, '')).includes(cmd.value.toLowerCase())
 	);
 
-	if (command.options.owner && !isOwner(message.author)) return { command: null, args: null };
+	if (command.options.owner && !isOwner(message.author)) {
+		return { command: null, args: null, context: null };
+	}
+
 	if (command.options.mod && !message.member?.permissions.has(Permissions.FLAGS.MANAGE_GUILD) && !isOwner(message.author)) {
-		return { command: null, args: null };
+		return { command: null, args: null, context: null };
 	}
 
 	const parser = new Parser(tokens()).setUnorderedStrategy(longShortStrategy());
 
-	message.alias = cmd.value.toLowerCase();
-
 	return {
 		command,
-		args: new Args(parser.parse())
+		args: new Args(parser.parse()),
+		context: {
+			alias: cmd.value.toLowerCase()
+		}
 	};
 }
 
-export async function handleMessageCommand(message: Message, command: Command, args: Args): Promise<void> {
+export async function handleMessageCommand(message: Message, command: Command, args: Args, context: MessageContext): Promise<void> {
 	if (message.editedTimestamp && command?.options?.disableEdits) return;
 
 	let params: Record<string, any> = {};
@@ -172,7 +180,7 @@ export async function handleMessageCommand(message: Message, command: Command, a
 
 			if (!subCommand) return;
 
-			return handleMessageCommand(message, subCommand, args);
+			return handleMessageCommand(message, subCommand, args, context);
 		}
 	}
 
@@ -186,7 +194,7 @@ export async function handleMessageCommand(message: Message, command: Command, a
 
 	try {
 		commandLocks.add(message.channel.id);
-		await command.exec(message, params);
+		await command.exec(message, params, context);
 	} catch (e) {
 		handleError(message, command, e);
 	} finally {

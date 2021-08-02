@@ -1,5 +1,6 @@
-import type { Command, CommandOptions } from '#util/commands';
+import type { Command, CommandOptions, MessageContext } from '#util/commands';
 import { request } from '#util/request';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { extname } from 'node:path';
 
@@ -26,10 +27,10 @@ export default class implements Command {
 		}
 	];
 
-	public async exec(message: Message) {
-		if (message.alias === 'random') return;
-		return message.send({
-			files: [message.alias.replace(/random-?/i, '') === 'cat' ? await this.cat() : await this.dog()]
+	public async exec(message: Message, _: Record<string, any>, context: MessageContext) {
+		if (context.alias === 'random') return;
+		return reply(message, {
+			files: [context.alias.replace(/random-?/i, '') === 'cat' ? await this.cat() : await this.dog()]
 		});
 	}
 

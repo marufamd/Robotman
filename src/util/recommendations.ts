@@ -2,6 +2,7 @@ import { Embed } from '#util/builders';
 import { Channels, Colors, Recommendations } from '#util/constants';
 import { redditWiki } from '#util/wrappers';
 import { chunk } from '@sapphire/utilities';
+import { reply } from '@skyra/editable-commands';
 import type { Message } from 'discord.js';
 
 export function handleRecommendations(message: Message) {
@@ -36,7 +37,7 @@ async function tasteTest(message: Message) {
 		embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);
 	}
 
-	await message.send({ embeds: [embed] });
+	await reply(message, { embeds: [embed] });
 
 	return true;
 }
@@ -61,7 +62,7 @@ async function writersRecs(message: Message) {
 		embed.addField('\u200b', column.join('\n'), true);
 	}
 
-	await message.send({ embeds: [embed] });
+	await reply(message, { embeds: [embed] });
 
 	return true;
 }

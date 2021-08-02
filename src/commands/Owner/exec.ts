@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { log } from '#util/logger';
 import { codeBlock } from '@discordjs/builders';
+import { reply } from '@skyra/editable-commands';
 import { exec as execSync } from 'child_process';
 import type { Message, MessageOptions } from 'discord.js';
 import { performance } from 'node:perf_hooks';
@@ -28,7 +29,7 @@ export default class implements Command {
 	public async exec(message: Message, { command, match }: { command: string; match: RegExpMatchArray }) {
 		if (!command && match) command = match[1];
 
-		const msg = await message.send('Executing...');
+		const msg = await reply(message, 'Executing...');
 
 		let str = '';
 		const start = performance.now();

@@ -2,6 +2,7 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { request } from '#util/request';
+import { reply } from '@skyra/editable-commands';
 import { stripIndents } from 'common-tags';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
@@ -61,7 +62,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { query }: { query: string }) {
-		return message.send(await this.run(query));
+		return reply(message, await this.run(query));
 	}
 
 	public async interact(interaction: CommandInteraction, { query }: { query: string }) {

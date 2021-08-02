@@ -1,4 +1,5 @@
 import type { Command, CommandOptions } from '#util/commands';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Parser } from 'expr-eval';
 
@@ -37,7 +38,7 @@ export default class implements Command {
 	];
 
 	public exec(message: Message, { expression }: { expression: string }) {
-		return message.send(this.run(expression));
+		return reply(message, this.run(expression));
 	}
 
 	public async interact(interaction: CommandInteraction, { expression }: { expression: string }) {

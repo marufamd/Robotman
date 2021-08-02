@@ -27,8 +27,8 @@ export default class implements Listener {
 
 		if (PRODUCTION && (await handleRecommendations(message))) return;
 
-		const { command, args } = parseCommand(message);
+		const { command, args, context } = parseCommand(message);
 
-		await handleMessageCommand(message, command, args);
+		await handleMessageCommand(message, command, args, context);
 	}
 }

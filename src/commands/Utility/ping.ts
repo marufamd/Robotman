@@ -1,5 +1,6 @@
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
+import { reply } from '@skyra/editable-commands';
 import type { CommandInteraction, Message } from 'discord.js';
 import { Client } from 'discord.js';
 import { injectable } from 'tsyringe';
@@ -14,7 +15,7 @@ export default class implements Command {
 	};
 
 	public async exec(message: Message) {
-		const msg = await message.send('Getting Ping...');
+		const msg = await reply(message, 'Getting Ping...');
 
 		const embed = this.embed().addField(
 			'Roundtrip',

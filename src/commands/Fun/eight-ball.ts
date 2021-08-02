@@ -1,5 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { randomResponse } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
@@ -29,7 +30,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message) {
-		return message.send(await this.run());
+		return reply(message, await this.run());
 	}
 
 	public async interact(interaction: CommandInteraction) {

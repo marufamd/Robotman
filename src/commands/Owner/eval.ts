@@ -1,5 +1,5 @@
+import type { Command, CommandOptions, MessageContext } from '#util/commands';
 import { Commands } from '#util/commands';
-import type { Command, CommandOptions } from '#util/commands';
 import * as util from '#util/misc';
 import { request as Request } from '#util/request';
 import { codeBlock } from '@discordjs/builders';
@@ -11,6 +11,7 @@ import { DateTime as dateTime, Duration as duration } from 'luxon';
 import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
+import { reply } from '@skyra/editable-commands';
 
 @injectable()
 export default class implements Command {
@@ -41,7 +42,7 @@ export default class implements Command {
 		owner: true
 	};
 
-	public async exec(message: Message, { code, depth }: { code: string; depth: number }) {
+	public async exec(message: Message, { code, depth }: { code: string; depth: number }, context: MessageContext) {
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		const DateTime = dateTime;
 		const Duration = duration;
@@ -51,9 +52,9 @@ export default class implements Command {
 
 		this.lastInput = code;
 
-		code = /(await|async)/g.test(code) || message.alias === 'async' ? `(async () => {${code}})();` : code;
+		code = /(await|async)/g.test(code) || context.alias === 'async' ? `(async () => {${code}})();` : code;
 
-		const msg = await message.send('Evaluating...');
+		const msg = await reply(message, 'Evaluating...');
 
 		let content = '';
 		let result = null;

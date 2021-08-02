@@ -3,6 +3,7 @@ import { DateFormats, Links, Shows } from '#util/constants';
 import { pad } from '#util/misc';
 import { request } from '#util/request';
 import { paste } from '#util/wrappers';
+import { reply } from '@skyra/editable-commands';
 import { stripIndents } from 'common-tags';
 import type { Message } from 'discord.js';
 import { MessageActionRow, MessageButton } from 'discord.js';
@@ -72,7 +73,7 @@ export default class implements Command {
 
 		const link = await paste(templates.join(`\n`), str, 'markdown');
 
-		return message.send({
+		return reply(message, {
 			content: str,
 			components: [new MessageActionRow().addComponents(new MessageButton().setLabel('Comment Templates').setStyle('LINK').setURL(link))]
 		});

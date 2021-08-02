@@ -3,6 +3,7 @@ import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { formatQuery } from '#util/misc';
 import { request } from '#util/request';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
@@ -43,7 +44,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { wikia, query }: { wikia: string; query: string }) {
-		return message.send(await this.run(wikia, query));
+		return reply(message, await this.run(wikia, query));
 	}
 
 	public async interact(interaction: CommandInteraction, { wikia, query }: { wikia: string; query: string }) {

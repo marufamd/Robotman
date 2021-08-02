@@ -2,6 +2,7 @@ import { resolveArgument } from '#util/arguments';
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { makeHex } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import { stripIndents } from 'common-tags';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Canvas } from 'skia-canvas';
@@ -34,7 +35,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { color }: { color: number }) {
-		return message.send(await this.run(color));
+		return reply(message, await this.run(color));
 	}
 
 	public async interact(interaction: CommandInteraction, { color }: { color: string }) {

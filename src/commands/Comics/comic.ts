@@ -4,6 +4,7 @@ import { Colors, NO_RESULTS_FOUND } from '#util/constants';
 import { trim } from '#util/misc';
 import { comixology } from '#util/wrappers';
 import { toTitleCase } from '@sapphire/utilities';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 export default class implements Command {
@@ -34,7 +35,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { query }: { query: string }) {
-		return message.send(await this.run(query));
+		return reply(message, await this.run(query));
 	}
 
 	public async interact(interaction: CommandInteraction, { query }: { query: string }) {

@@ -2,6 +2,7 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
 import { cpuUsage } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import type { CommandInteraction, Message } from 'discord.js';
 import { Client } from 'discord.js';
 import { Duration } from 'luxon';
@@ -20,7 +21,7 @@ export default class implements Command {
 	};
 
 	public async exec(message: Message) {
-		return message.send(await this.run());
+		return reply(message, await this.run());
 	}
 
 	public async interact(interaction: CommandInteraction) {

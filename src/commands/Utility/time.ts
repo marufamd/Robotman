@@ -1,6 +1,7 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
 import { toTitleCase } from '@sapphire/utilities';
+import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { DateTime } from 'luxon';
 
@@ -30,7 +31,7 @@ export default class implements Command {
 	];
 
 	public exec(message: Message, { zone }: { zone: string }) {
-		return message.send(this.run(zone));
+		return reply(message, this.run(zone));
 	}
 
 	public interact(interaction: CommandInteraction, { zone }: { zone: string }) {

@@ -1,6 +1,7 @@
 import type { Command } from '#util/commands';
 import { PromptOptions, Timezones } from '#util/constants';
 import { closest, parseRGB, resolveColor } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import type { Message } from 'discord.js';
 import type { Args } from 'lexure';
 import { fail, finish, joinTokens, loop1Async, step } from 'lexure';
@@ -289,7 +290,7 @@ async function getMissingArgument(message: Message, arg: ArgumentOption) {
 			res = await getPromptedArgument(message, arg);
 			if (res == null) return null;
 		} else if (arg.otherwise != null) {
-			await message.send(fnOrAny(arg.otherwise, message));
+			await reply(message, fnOrAny(arg.otherwise, message));
 
 			return null;
 		} else {

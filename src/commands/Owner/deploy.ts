@@ -5,6 +5,7 @@ import { codeBlock } from '@discordjs/builders';
 import type { Message } from 'discord.js';
 import { Client } from 'discord.js';
 import { inject, injectable } from 'tsyringe';
+import { reply } from '@skyra/editable-commands';
 
 @injectable()
 export default class implements Command {
@@ -23,7 +24,7 @@ export default class implements Command {
 	};
 
 	public async exec(message: Message, { del }: { del: boolean }) {
-		const msg = await message.send(`${Emojis.LOADING} ${del ? 'Deleting' : 'Deploying'} slash commands...`);
+		const msg = await reply(message, `${Emojis.LOADING} ${del ? 'Deleting' : 'Deploying'} slash commands...`);
 
 		try {
 			if (del) {
