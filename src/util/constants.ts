@@ -1,5 +1,5 @@
 import { oneLine } from 'common-tags';
-import type { MessageButtonStyleResolvable, Snowflake, User } from 'discord.js';
+import type { Snowflake, User } from 'discord.js';
 import Colors from './json/colors.json';
 import Pokemon from './json/pokemon.json';
 import Timezones from './json/timezones.json';
@@ -14,7 +14,7 @@ export const Akinator = {
 		END: 'https://i.imgur.com/m3nIXvs.png',
 		RANDOM: ['https://i.imgur.com/2xGxFEr.png', 'https://i.imgur.com/8P54YME.png']
 	},
-	replace: {
+	REPLACE: {
 		's/724826__99926454.jpg': 'tttQgxw.jpg',
 		'o/790322__776944019.jpg': 'jCb7p4V.png'
 	},
@@ -83,7 +83,7 @@ export const DateFormats = {
 	REGULAR: "MMMM d',' y",
 	DAYS: 'd',
 	TEMPLATE: 'MMMM d'
-};
+} as const;
 
 export const Emojis = {
 	SUCCESS: `✅`,
@@ -91,7 +91,7 @@ export const Emojis = {
 	DELETE: '🗑️',
 	TIMER: '<a:Timer:654794151841366058>',
 	LOADING: '<a:slashloading:869272562272714763>'
-};
+} as const;
 
 export const Hangman = {
 	WAIT_TIME: 60000,
@@ -103,7 +103,7 @@ export const Hangman = {
 		PANTS: '🩳',
 		SHOE: '👞'
 	}
-};
+} as const;
 
 export const Links = {
 	BULBAPEDIA: 'https://bulbapedia.bulbagarden.net',
@@ -207,9 +207,9 @@ export const ScheduleTime = {
 	DAY: 0,
 	HOUR: 1,
 	MINUTE: 0
-};
+} as const;
 
-export const Shows = new Set([
+export const Shows = new Set<number>([
 	13, // The Flash
 	689, // Young Justice
 	706, // Teen Titans Go!
@@ -263,18 +263,15 @@ export const TicTacToe = {
 		X: 'DANGER'
 	},
 	MESSAGES: {
-		match: (player1, player2) => `**${player1.tag}** vs. **${player2.tag}**`,
-		turn: (player1, player2, current) => `${TicTacToe.MESSAGES.match(player1, player2)}\n\n${current.username}'s turn. You have 20 seconds.`,
-		forfeit: (loser, winner) =>
-			`${TicTacToe.MESSAGES.match(winner, loser)}\n\n**${loser.username}** has failed to make a move. **${winner.username}** wins!`,
-		draw: (player1, player2) => `${TicTacToe.MESSAGES.match(player1, player2)}\n\nThe game is a draw!`,
-		win: (winner, loser) => `${TicTacToe.MESSAGES.match(winner, loser)}\n\n**${winner.username}** wins!`
+		MATCH: (player1: User, player2: User): string => `**${player1.tag}** vs. **${player2.tag}**`,
+		TURN: (player1: User, player2: User, current: User): string =>
+			`${TicTacToe.MESSAGES.MATCH(player1, player2)}\n\n${current.username}'s turn. You have 20 seconds.`,
+		FORFEIT: (loser: User, winner: User): string =>
+			`${TicTacToe.MESSAGES.MATCH(winner, loser)}\n\n**${loser.username}** has failed to make a move. **${winner.username}** wins!`,
+		DRAW: (player1: User, player2: User): string => `${TicTacToe.MESSAGES.MATCH(player1, player2)}\n\nThe game is a draw!`,
+		WIN: (winner: User, loser: User): string => `${TicTacToe.MESSAGES.MATCH(winner, loser)}\n\n**${winner.username}** wins!`
 	}
-} as {
-	EMOJIS: Record<string, string>;
-	STYLES: Record<string, MessageButtonStyleResolvable>;
-	MESSAGES: Record<string, (player1?: User, player2?: User, current?: User) => string>;
-};
+} as const;
 
 export const Trivia = {
 	CATEGORIES: {

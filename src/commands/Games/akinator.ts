@@ -236,7 +236,7 @@ export default class implements Command {
 		const base = 'https://photos.clarinea.fr/BL_25_en/600/partenaire';
 		const imgur = 'https://i.imgur.com';
 
-		for (const [from, to] of Object.entries(Akinator.replace)) {
+		for (const [from, to] of Object.entries(Akinator.REPLACE)) {
 			link = link.replace(`${base}/${from}`, `${imgur}/${to}`);
 		}
 

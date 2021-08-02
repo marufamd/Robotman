@@ -31,7 +31,7 @@ export default class implements Command {
 		const secondPlayer = game.getOtherPlayer(firstPlayer);
 
 		await game.interaction.editReply({
-			content: TicTacToe.MESSAGES.turn(firstPlayer, secondPlayer, firstPlayer.bot ? secondPlayer : firstPlayer),
+			content: TicTacToe.MESSAGES.TURN(firstPlayer, secondPlayer, firstPlayer.bot ? secondPlayer : firstPlayer),
 			components: game.board
 		});
 
@@ -45,7 +45,7 @@ export default class implements Command {
 				const cpuMove = TicTacToeEngine.bestMove(game.arrayBoard, { computer: 'o', opponent: 'x' }).toString();
 
 				await game.interaction.editReply({
-					content: TicTacToe.MESSAGES.turn(firstPlayer, game.getOtherPlayer(firstPlayer), game.getOtherPlayer(currentPlayer)),
+					content: TicTacToe.MESSAGES.TURN(firstPlayer, game.getOtherPlayer(firstPlayer), game.getOtherPlayer(currentPlayer)),
 					components: game.updateBoard(cpuMove, currentPlayer.id === firstPlayer.id)
 				});
 			} else {
@@ -60,13 +60,13 @@ export default class implements Command {
 
 		switch (status) {
 			case 'win':
-				endMessage = TicTacToe.MESSAGES.win(secondPlayer, firstPlayer);
+				endMessage = TicTacToe.MESSAGES.WIN(secondPlayer, firstPlayer);
 				break;
 			case 'loss':
-				endMessage = TicTacToe.MESSAGES.win(firstPlayer, secondPlayer);
+				endMessage = TicTacToe.MESSAGES.WIN(firstPlayer, secondPlayer);
 				break;
 			case 'tie':
-				endMessage = TicTacToe.MESSAGES.draw(firstPlayer, secondPlayer);
+				endMessage = TicTacToe.MESSAGES.DRAW(firstPlayer, secondPlayer);
 				break;
 		}
 

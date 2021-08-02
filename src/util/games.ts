@@ -188,7 +188,7 @@ export class TicTacToeGame {
 
 		if (!move) {
 			await this.interaction.editReply({
-				content: TicTacToe.MESSAGES.forfeit(player, opponent),
+				content: TicTacToe.MESSAGES.FORFEIT(player, opponent),
 				components: this.disableEmptyButtons()
 			});
 
@@ -196,7 +196,7 @@ export class TicTacToeGame {
 		}
 
 		await move.update({
-			content: TicTacToe.MESSAGES.turn(firstPlayer, this.getOtherPlayer(firstPlayer), opponent.bot ? player : opponent),
+			content: TicTacToe.MESSAGES.TURN(firstPlayer, this.getOtherPlayer(firstPlayer), opponent.bot ? player : opponent),
 			components: this.updateBoard(move.customId, player.id === firstPlayer.id)
 		});
 
