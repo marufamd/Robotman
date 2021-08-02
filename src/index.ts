@@ -19,7 +19,6 @@ const client = new Client({
 		MessageManager: 50
 	}),
 	messageCacheLifetime: 600,
-	messageSweepInterval: 600,
 	allowedMentions: {
 		parse: ['users']
 	},

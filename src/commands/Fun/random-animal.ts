@@ -1,7 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { request } from '#util/request';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { MessageAttachment } from 'discord.js';
 import { extname } from 'node:path';
 
 export default class implements Command {
@@ -45,13 +44,15 @@ export default class implements Command {
 		const {
 			body: { file }
 		} = await request.get('https://aws.random.cat/meow');
-		return new MessageAttachment(file, `cat${extname(file)}`);
+
+		return { name: `cat${extname(file)}`, attachment: file };
 	}
 
 	private async dog() {
 		const {
 			body: { url }
 		} = await request.get('https://random.dog/woof.json');
-		return new MessageAttachment(url, `dog${extname(url)}`);
+
+		return { name: `dog${extname(url)}`, attachment: url };
 	}
 }

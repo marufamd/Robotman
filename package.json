@@ -19,7 +19,7 @@
     "@discordjs/builders": "^0.2.0",
     "@sapphire/type": "^2.0.11",
     "@sapphire/utilities": "^2.0.1",
-    "aki-api": "^5.2.1",
+    "aki-api": "^6.0.5",
     "cheerio": "^1.0.0-rc.10",
     "colorette": "^1.2.1",
     "comicgeeks": "^1.0.2",

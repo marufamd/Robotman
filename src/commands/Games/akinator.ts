@@ -2,8 +2,8 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Akinator, Colors, Emojis } from '#util/constants';
 import { getUser, isInteraction, randomResponse } from '#util/misc';
-import type { Guess } from 'aki-api';
 import { Aki } from 'aki-api';
+import type { guess } from 'aki-api/typings/functions';
 import type { ButtonInteraction, CommandInteraction, Message, MessageEditOptions } from 'discord.js';
 import { MessageActionRow, MessageButton } from 'discord.js';
 
@@ -12,6 +12,8 @@ const enum GameStatus {
 	LOSS = 'LOSS',
 	TIMEOUT = 'TIMEOUT'
 }
+
+type Answer = 0 | 1 | 2 | 3 | 4;
 
 export default class implements Command {
 	public options: CommandOptions = {
@@ -32,8 +34,8 @@ export default class implements Command {
 	private async run(data: Message | CommandInteraction) {
 		const player = getUser(data);
 
-		const aki = new Aki('en', true);
-		const failed = new Set<`${number}`>();
+		const aki = new Aki({ region: 'en', childMode: true });
+		const failed = new Set<string>();
 
 		let msg = (await (isInteraction(data) ? data.reply.bind(data) : data.channel.send.bind(data.channel))('Starting...')) as Message;
 
@@ -43,7 +45,7 @@ export default class implements Command {
 		let stop = false;
 		let back = false;
 
-		let answer: number;
+		let answer: Answer;
 		let status = GameStatus.WIN;
 
 		let response: ButtonInteraction;
@@ -63,7 +65,7 @@ export default class implements Command {
 			const embed = this.embed()
 				.setAuthor(`Question #${aki.currentStep}`)
 				.setTitle(aki.question)
-				.setFooter(`Confidence Level: ${Math.round(parseInt(aki.progress as `${number}`, 10))}% | You have 1 minute to answer`);
+				.setFooter(`Confidence Level: ${Math.round(parseInt(aki.progress.toString(), 10))}% | You have 1 minute to answer`);
 
 			const options: MessageEditOptions = {
 				content: null,
@@ -99,14 +101,14 @@ export default class implements Command {
 					await aki.back();
 					continue;
 				default:
-					answer = (aki.answers as string[]).indexOf(response.customId);
+					answer = (aki.answers as string[]).indexOf(response.customId) as Answer;
 					break;
 			}
 
 			if (aki.progress >= 90 || stop) {
 				await aki.win();
 
-				const guesses = (aki.answers as Guess[]).filter((g) => !failed.has(g.id));
+				const guesses = (aki.answers as guess[]).filter((g) => !failed.has(g.id));
 
 				if (!guesses.length) {
 					status = GameStatus.TIMEOUT;
@@ -121,7 +123,7 @@ export default class implements Command {
 				guessEmbed = this.embed()
 					.setTitle(`Is your character ${guess.name}${guess.description ? ` (${guess.description})` : ''}?`)
 					.setImage(guess.nsfw ? null : this.replaceImage(guess.absolute_picture_path) ?? null)
-					.setFooter(`Confidence Level: ${Math.round(guess.proba * 100)}% | You have 1 minute to answer`);
+					.setFooter(`Confidence Level: ${Math.round(Number(guess.proba) * 100)}% | You have 1 minute to answer`);
 
 				await response.editReply({
 					content: null,
@@ -158,7 +160,7 @@ export default class implements Command {
 						if (!nextResponse || nextResponse.customId === 'no') {
 							status = GameStatus.LOSS;
 
-							await nextResponse.reply({
+							await nextResponse.update({
 								content: null,
 								embeds: [guessEmbed]
 							});
@@ -234,7 +236,10 @@ export default class implements Command {
 		const base = 'https://photos.clarinea.fr/BL_25_en/600/partenaire';
 		const imgur = 'https://i.imgur.com';
 
-		for (const [from, to] of Object.entries(Akinator.replace)) link = link.replace(`${base}/${from}`, `${imgur}/${to}`);
+		for (const [from, to] of Object.entries(Akinator.replace)) {
+			link = link.replace(`${base}/${from}`, `${imgur}/${to}`);
+		}
+
 		return link;
 	}
 }

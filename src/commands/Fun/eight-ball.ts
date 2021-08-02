@@ -1,7 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { randomResponse } from '#util/misc';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { MessageAttachment } from 'discord.js';
 import { readdir, readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
@@ -46,7 +45,7 @@ export default class implements Command {
 		const file = await readFile(join(imageDir, random));
 
 		return {
-			files: [new MessageAttachment(file, random)]
+			files: [{ name: random, attachment: file }]
 		};
 	}
 }
