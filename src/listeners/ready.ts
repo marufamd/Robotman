@@ -8,32 +8,34 @@ import { log } from '#util/logger';
 
 @injectable()
 export default class implements Listener {
-    public event = Constants.Events.CLIENT_READY;
+	public event = Constants.Events.CLIENT_READY;
 
-    public constructor(private readonly client: Client) {}
+	public constructor(private readonly client: Client) {}
 
-    public async handle() {
-        const rebootPath = join(__dirname, '..', 'reboot.json');
+	public async handle() {
+		const rebootPath = join(__dirname, '..', 'reboot.json');
 
-        if (existsSync(rebootPath)) {
-            const reboot = JSON.parse(await fs.readFile(rebootPath, 'utf8'));
+		if (existsSync(rebootPath)) {
+			const reboot = JSON.parse(await fs.readFile(rebootPath, 'utf8'));
 
-            const m = await (this.client.channels.cache.get(reboot.channel) as TextChannel).messages.fetch(reboot.message);
-            const msg = await m.edit('Rebooted!');
-            await msg.edit(`Rebooted! Took ${msg.editedTimestamp - msg.createdTimestamp}ms`);
+			const m = await (this.client.channels.cache.get(reboot.channel) as TextChannel).messages.fetch(reboot.message);
+			const msg = await m.edit('Rebooted!');
+			await msg.edit(`Rebooted! Took ${msg.editedTimestamp - msg.createdTimestamp}ms`);
 
-            await fs.unlink(rebootPath);
-        }
+			await fs.unlink(rebootPath);
+		}
 
-        if (!this.client.application?.owner) await this.client.application?.fetch();
+		if (!this.client.application?.owner) await this.client.application?.fetch();
 
-        log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);
+		log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);
 
-        void this.client.user.setPresence({
-            activities: [{
-                name: `${process.env.BOT_PREFIX}help`,
-                type: 'LISTENING'
-            }]
-        });
-    }
+		void this.client.user.setPresence({
+			activities: [
+				{
+					name: `${process.env.BOT_PREFIX}help`,
+					type: 'LISTENING'
+				}
+			]
+		});
+	}
 }

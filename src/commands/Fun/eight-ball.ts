@@ -6,49 +6,47 @@ import { readdir, readFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
 export default class implements Command {
-    public options: CommandOptions = {
-        aliases: ['8-ball', '8', 'eight'],
-        description: 'Asks the Magic 8-Ball a question.',
-        usage: '<question>',
-        example: 'Will the weather be good today?',
-        args: [
-            {
-                name: 'question',
-                match: 'content',
-                prompt: 'What would you like to ask the Magic 8-Ball?'
-            }
-        ]
-    };
+	public options: CommandOptions = {
+		aliases: ['8-ball', '8', 'eight'],
+		description: 'Asks the Magic 8-Ball a question.',
+		usage: '<question>',
+		example: 'Will the weather be good today?',
+		args: [
+			{
+				name: 'question',
+				match: 'content',
+				prompt: 'What would you like to ask the Magic 8-Ball?'
+			}
+		]
+	};
 
-    public interactionOptions: ApplicationCommandOptionData[] = [
-        {
-            name: 'question',
-            description: 'The question to ask the Magic 8-Ball.',
-            type: 'STRING',
-            required: true
-        }
-    ];
+	public interactionOptions: ApplicationCommandOptionData[] = [
+		{
+			name: 'question',
+			description: 'The question to ask the Magic 8-Ball.',
+			type: 'STRING',
+			required: true
+		}
+	];
 
-    public async exec(message: Message) {
-        return message.send(await this.run());
-    }
+	public async exec(message: Message) {
+		return message.send(await this.run());
+	}
 
-    public async interact(interaction: CommandInteraction) {
-        await interaction.defer();
-        return interaction.editReply(await this.run());
-    }
+	public async interact(interaction: CommandInteraction) {
+		await interaction.defer();
+		return interaction.editReply(await this.run());
+	}
 
-    private async run() {
-        const imageDir = join(__dirname, '..', '..', '..', 'images', 'eight-balls');
-        const answers = (await readdir(imageDir)).filter(f => extname(f) === '.png');
+	private async run() {
+		const imageDir = join(__dirname, '..', '..', '..', 'images', 'eight-balls');
+		const answers = (await readdir(imageDir)).filter((f) => extname(f) === '.png');
 
-        const random = randomResponse(answers);
-        const file = await readFile(join(imageDir, random));
+		const random = randomResponse(answers);
+		const file = await readFile(join(imageDir, random));
 
-        return {
-            files: [
-                new MessageAttachment(file, random)
-            ]
-        };
-    }
+		return {
+			files: [new MessageAttachment(file, random)]
+		};
+	}
 }

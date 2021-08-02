@@ -8,32 +8,22 @@ import type { Command, Listener } from '#util/commands';
 import { assignOptions } from '#util/commands';
 import { PRODUCTION, ScheduleTime } from '#util/constants';
 import { log } from '#util/logger';
-import {
-    Client,
-    Collection,
-    Constants,
-    Intents,
-    Options
-} from 'discord.js';
+import { Client, Collection, Constants, Intents, Options } from 'discord.js';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { join } from 'node:path';
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
 
 const client = new Client({
-    makeCache: Options.cacheWithLimits({
-        MessageManager: 50
-    }),
-    messageCacheLifetime: 600,
-    messageSweepInterval: 600,
-    allowedMentions: {
-        parse: ['users']
-    },
-    intents: [
-        Intents.FLAGS.GUILDS,
-        Intents.FLAGS.GUILD_MEMBERS,
-        Intents.FLAGS.GUILD_MESSAGES
-    ]
+	makeCache: Options.cacheWithLimits({
+		MessageManager: 50
+	}),
+	messageCacheLifetime: 600,
+	messageSweepInterval: 600,
+	allowedMentions: {
+		parse: ['users']
+	},
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES]
 });
 
 const commands = new Collection<string, Command>();
@@ -42,46 +32,45 @@ container.register(Client, { useValue: client });
 container.register('commands', { useValue: commands });
 
 async function init() {
-    log('Initializing...');
+	log('Initializing...');
 
-    client
-        .on(Constants.Events.ERROR, e => log(e.stack, 'error', { ping: true }))
-        .on(Constants.Events.WARN, info => log(info, 'warn'))
-        .on(Constants.Events.SHARD_RECONNECTING, () => log('Attempting to reconnect...', 'info'))
-        .on(Constants.Events.SHARD_RESUME, () => log('Reconnected'));
+	client
+		.on(Constants.Events.ERROR, (e) => log(e.stack, 'error', { ping: true }))
+		.on(Constants.Events.WARN, (info) => log(info, 'warn'))
+		.on(Constants.Events.SHARD_RECONNECTING, () => log('Attempting to reconnect...', 'info'))
+		.on(Constants.Events.SHARD_RESUME, () => log('Reconnected'));
 
-    const commandFiles = readdirp(join(__dirname, 'commands'), { fileFilter: '*.js' });
-    const listenerFiles = readdirp(join(__dirname, 'listeners'), { fileFilter: '*.js' });
+	const commandFiles = readdirp(join(__dirname, 'commands'), { fileFilter: '*.js' });
+	const listenerFiles = readdirp(join(__dirname, 'listeners'), { fileFilter: '*.js' });
 
-    for await (const commandFile of commandFiles) {
-        const command = container.resolve<Command>((await import(commandFile.fullPath)).default);
+	for await (const commandFile of commandFiles) {
+		const command = container.resolve<Command>((await import(commandFile.fullPath)).default);
 
-        assignOptions(command, commandFile.fullPath);
+		assignOptions(command, commandFile.fullPath);
 
-        commands.set(command.options.name, command);
-    }
+		commands.set(command.options.name, command);
+	}
 
-    for await (const listenerFile of listenerFiles) {
-        const listener = container.resolve<Listener>((await import(listenerFile.fullPath)).default);
+	for await (const listenerFile of listenerFiles) {
+		const listener = container.resolve<Listener>((await import(listenerFile.fullPath)).default);
 
-        client[listener.event === 'ready' ? 'once' : 'on'](listener.event, listener.handle.bind(listener));
-    }
+		client[listener.event === 'ready' ? 'once' : 'on'](listener.event, listener.handle.bind(listener));
+	}
 
-    log(`Loaded ${commands.size} commands`);
+	log(`Loaded ${commands.size} commands`);
 
-    if (PRODUCTION && commands.has('release-list')) {
-        scheduleJob(
-            new RecurrenceRule(null, null, null, ScheduleTime.DAY, ScheduleTime.HOUR, ScheduleTime.MINUTE),
-            () => commands.get('release-list').exec()
-        );
-    }
+	if (PRODUCTION && commands.has('release-list')) {
+		scheduleJob(new RecurrenceRule(null, null, null, ScheduleTime.DAY, ScheduleTime.HOUR, ScheduleTime.MINUTE), () =>
+			commands.get('release-list').exec()
+		);
+	}
 
-    await client.login();
+	await client.login();
 }
 
-void init().catch(e => log(e, 'error'));
+void init().catch((e) => log(e, 'error'));
 
 process.on('unhandledRejection', (e: any) => {
-    if (/The server did not return the correct signature/g.test(e.message)) return;
-    log(`Unhandled Promise Rejection: ${e.stack}`, 'error', { ping: true });
+	if (/The server did not return the correct signature/g.test(e.message)) return;
+	log(`Unhandled Promise Rejection: ${e.stack}`, 'error', { ping: true });
 });

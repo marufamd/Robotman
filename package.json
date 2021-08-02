@@ -53,10 +53,13 @@
     "@types/skia-canvas": "^0.9.1",
     "@types/turndown": "^5.0.0",
     "@types/ws": "^7.4.0",
-    "@typescript-eslint/eslint-plugin": "^4.12.0",
-    "@typescript-eslint/parser": "^4.12.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
     "eslint": "^7.17.0",
-    "eslint-config-marine": "^8.1.0",
+    "eslint-config-marine": "^9.0.6",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
     "typescript": "^4.3.2"
   }

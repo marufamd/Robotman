@@ -1,86 +1,86 @@
 {
-    "dc": {
-        "id": 1,
-        "name": "DC Comics",
-        "color": 31472,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/DC_Comics_logo.svg/1024px-DC_Comics_logo.svg.png"
-    },
-    "marvel": {
-        "id": 2,
-        "name": "Marvel Comics",
-        "color": 15538723,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Marvel_Logo.svg/1200px-Marvel_Logo.svg.png"
-    },
-    "darkhorse": {
-        "id": 5,
-        "name": "Dark Horse Comics",
-        "color": 0,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Dark_Horse_Comics_logo.svg/1200px-Dark_Horse_Comics_logo.svg.png"
-    },
-    "idw": {
-        "id": 6,
-        "name": "IDW Publishing",
-        "color": 204861,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/IDW_Publishing_logo.svg/1200px-IDW_Publishing_logo.svg.png"
-    },
-    "image": {
-        "id": 7,
-        "name": "Image Comics",
-        "color": 15395562,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Image_Comics_logo.svg/452px-Image_Comics_logo.svg.png"
-    },
-    "dynamite": {
-        "id": 12,
-        "name": "Dynamite",
-        "color": 16767316,
-        "thumbnail": "https://i.imgur.com/UNcHnf4.jpg"
-    },
-    "boom": {
-        "id": 13,
-        "name": "BOOM! Studios",
-        "color": 16777201,
-        "thumbnail": "https://i.imgur.com/686ZNQd.png"
-    },
-    "zenescope": {
-        "id": 17,
-        "name": "Zenescope",
-        "color": 0,
-        "thumbnail": "https://i.imgur.com/QLnCQan.png"
-    },
-    "archie": {
-        "id": 21,
-        "name": "Archie Comics",
-        "color": 16116003,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/commons/6/62/Archiecomicslogo.png"
-    },
-    "valiant": {
-        "id": 34,
-        "name": "Valiant",
-        "color": 15678244,
-        "thumbnail": "http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg"
-    },
-    "milestone": {
-        "id": 59,
-        "name": "Milestone Comics",
-        "color": 0,
-        "thumbnail": "https://i.imgur.com/8WVi3pV.png"
-    },
-    "vault": {
-        "id": 261,
-        "name": "Vault Comics",
-        "color": 0,
-        "thumbnail": "https://i.imgur.com/kaFHKQp.png"
-    },
-    "aftershock": {
-        "id": 159,
-        "name": "Aftershock Comics",
-        "color": 12391451,
-        "thumbnail": "https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png"
-    },
-    "ahoy": {
-        "id": 524,
-        "name": "Ahoy Comics",
-        "color": 14370876,
-        "thumbnail": "https://upload.wikimedia.org/wikipedia/en/thumb/7/71/AhoyComicsLogo.png/220px-AhoyComicsLogo.png"
-    }
+	"dc": {
+		"id": 1,
+		"name": "DC Comics",
+		"color": 31472,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/DC_Comics_logo.svg/1024px-DC_Comics_logo.svg.png"
+	},
+	"marvel": {
+		"id": 2,
+		"name": "Marvel Comics",
+		"color": 15538723,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Marvel_Logo.svg/1200px-Marvel_Logo.svg.png"
+	},
+	"darkhorse": {
+		"id": 5,
+		"name": "Dark Horse Comics",
+		"color": 0,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/en/thumb/f/f8/Dark_Horse_Comics_logo.svg/1200px-Dark_Horse_Comics_logo.svg.png"
+	},
+	"idw": {
+		"id": 6,
+		"name": "IDW Publishing",
+		"color": 204861,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/IDW_Publishing_logo.svg/1200px-IDW_Publishing_logo.svg.png"
+	},
+	"image": {
+		"id": 7,
+		"name": "Image Comics",
+		"color": 15395562,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Image_Comics_logo.svg/452px-Image_Comics_logo.svg.png"
+	},
+	"dynamite": {
+		"id": 12,
+		"name": "Dynamite",
+		"color": 16767316,
+		"thumbnail": "https://i.imgur.com/UNcHnf4.jpg"
+	},
+	"boom": {
+		"id": 13,
+		"name": "BOOM! Studios",
+		"color": 16777201,
+		"thumbnail": "https://i.imgur.com/686ZNQd.png"
+	},
+	"zenescope": {
+		"id": 17,
+		"name": "Zenescope",
+		"color": 0,
+		"thumbnail": "https://i.imgur.com/QLnCQan.png"
+	},
+	"archie": {
+		"id": 21,
+		"name": "Archie Comics",
+		"color": 16116003,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/commons/6/62/Archiecomicslogo.png"
+	},
+	"valiant": {
+		"id": 34,
+		"name": "Valiant",
+		"color": 15678244,
+		"thumbnail": "http://valiantuniverse.com/wp-content/uploads/2012/04/Valiant-logo-main-master.jpg"
+	},
+	"milestone": {
+		"id": 59,
+		"name": "Milestone Comics",
+		"color": 0,
+		"thumbnail": "https://i.imgur.com/8WVi3pV.png"
+	},
+	"vault": {
+		"id": 261,
+		"name": "Vault Comics",
+		"color": 0,
+		"thumbnail": "https://i.imgur.com/kaFHKQp.png"
+	},
+	"aftershock": {
+		"id": 159,
+		"name": "Aftershock Comics",
+		"color": 12391451,
+		"thumbnail": "https://insidepulse.com/wp-content/uploads/2019/06/AfterShock-Comics-logo.png"
+	},
+	"ahoy": {
+		"id": 524,
+		"name": "Ahoy Comics",
+		"color": 14370876,
+		"thumbnail": "https://upload.wikimedia.org/wikipedia/en/thumb/7/71/AhoyComicsLogo.png/220px-AhoyComicsLogo.png"
+	}
 }

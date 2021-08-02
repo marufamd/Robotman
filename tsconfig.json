@@ -22,7 +22,8 @@
         "resolveJsonModule": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "importHelpers": true
+        "importHelpers": true,
+        "incremental": true,
     },
     "include": [
         "./src"
