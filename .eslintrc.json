@@ -1,0 +1,40 @@
+{
+    "extends": "marine/prettier/node",
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "createDefaultProgram": true,
+        "ecmaVersion": 2020,
+        "project": "tsconfig.json"
+    },
+    "plugins": [
+        "@typescript-eslint/eslint-plugin"
+    ],
+    "rules": {
+        "no-redeclare": "off",
+        "generator-star-spacing": "off",
+        "linebreak-style": "off",
+        "eol-last": "off",
+        "one-var": "off",
+        "newline-per-chained-call": "off",
+        "no-eq-null": "off",
+        "quote-props": "off",
+        "no-case-declarations": "off",
+        "no-eval": "off",
+        "radix": "off",
+        "no-negated-condition": "off",
+        "func-name-matching": "off",
+        "no-duplicate-imports": "off",
+        "curly": "error",
+        "@typescript-eslint/no-unused-vars": "error",
+        "@typescript-eslint/no-duplicate-imports": "error",
+        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/consistent-type-assertions": "off",
+        "@typescript-eslint/consistent-type-imports": "error",
+        "@typescript-eslint/restrict-plus-operands": "off",
+        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/no-unnecessary-condition": "off",
+        "@typescript-eslint/no-base-to-string": "off",
+        "@typescript-eslint/restrict-template-expressions": "off",
+        "@typescript-eslint/no-dynamic-delete": "off"
+    }
+}

@@ -1,32 +1,26 @@
 {
-    "compilerOptions": {
-        "outDir": "dist",
-        "lib": [
-            "ES2020",
-            "ESNext",
-            "DOM"
-        ],
-        "baseUrl": "./",
-        "paths": {
+	"compilerOptions": {
+		"outDir": "dist",
+		"lib": ["ES2020", "ESNext", "DOM"],
+		"baseUrl": "./",
+		"paths": {
 			"#util/*": ["src/util/*"]
 		},
-        "module": "CommonJS",
-        "target": "ES2020",
-        "strict": true,
-        "alwaysStrict": true,
-        "strictNullChecks": false,
-        "esModuleInterop": true,
-        "moduleResolution": "node",
-        "removeComments": false,
-        "newLine": "lf",
-        "pretty": true,
-        "resolveJsonModule": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "importHelpers": true,
-        "incremental": true,
-    },
-    "include": [
-        "./src"
-    ],
+		"module": "CommonJS",
+		"target": "ES2020",
+		"strict": true,
+		"alwaysStrict": true,
+		"strictNullChecks": false,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"removeComments": false,
+		"newLine": "lf",
+		"pretty": true,
+		"resolveJsonModule": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"importHelpers": true,
+		"incremental": true
+	},
+	"include": ["./src"]
 }
