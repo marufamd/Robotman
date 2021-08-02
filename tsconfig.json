@@ -18,6 +18,7 @@
         "esModuleInterop": true,
         "moduleResolution": "node",
         "removeComments": false,
+        "newLine": "lf",
         "pretty": true,
         "resolveJsonModule": true,
         "experimentalDecorators": true,

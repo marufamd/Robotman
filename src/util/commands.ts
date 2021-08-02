@@ -118,8 +118,9 @@ export function parseCommand(message: Message): { command: Command; args: Args }
 	);
 
 	if (command.options.owner && !isOwner(message.author)) return { command: null, args: null };
-	if (command.options.mod && !message.member?.permissions.has(Permissions.FLAGS.MANAGE_GUILD) && !isOwner(message.author))
+	if (command.options.mod && !message.member?.permissions.has(Permissions.FLAGS.MANAGE_GUILD) && !isOwner(message.author)) {
 		return { command: null, args: null };
+	}
 
 	const parser = new Parser(tokens()).setUnorderedStrategy(longShortStrategy());
 

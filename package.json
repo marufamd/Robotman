@@ -7,11 +7,14 @@
     "#util/*": "./dist/util/*.js"
   },
   "scripts": {
-    "build": "npx rimraf ./dist && npx tsc",
+    "prebuild": "npx rimraf ./dist",
+    "build": "npx tsc",
     "test": "npm run build && node .",
+    "lint": "npx eslint src",
+    "lint:fix": "npx eslint src --fix",
+    "prettier": "npx prettier src --write",
     "start": "pm2 start dist/index.js --name \"robotman\"",
-    "restart": "pm2 restart robotman",
-    "build:run": "npm run build && npm run start"
+    "restart": "pm2 restart robotman"
   },
   "author": "maruf99",
   "license": "ISC",

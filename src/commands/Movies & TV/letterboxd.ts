@@ -109,11 +109,12 @@ export default class implements Command {
 
 			if (rating.review?.length) {
 				let desc = rating.review;
-				if (rating.spoiler)
+				if (rating.spoiler) {
 					desc = desc
 						.split('\n')
 						.map((d) => `||${d}||`)
 						.join('\n');
+				}
 				embed.setDescription(trim(desc, 2048));
 			}
 

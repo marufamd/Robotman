@@ -96,15 +96,17 @@ export class ConnectFourGame {
 		for (let x = 0; x < 3; x++) {
 			for (let y = 0; y < 4; y++) {
 				const z = board[x][y];
-				if (z !== ConnectFour.PIECES.default && z === board[x + 1][y + 1] && z === board[x + 2][y + 2] && z === board[x + 3][y + 3])
+				if (z !== ConnectFour.PIECES.default && z === board[x + 1][y + 1] && z === board[x + 2][y + 2] && z === board[x + 3][y + 3]) {
 					return true;
+				}
 			}
 		}
 		for (let x = 3; x < 6; x++) {
 			for (let y = 0; y < 4; y++) {
 				const z = board[x][y];
-				if (z !== ConnectFour.PIECES.default && z === board[x - 1][y + 1] && z === board[x - 2][y + 2] && z === board[x - 3][y + 3])
+				if (z !== ConnectFour.PIECES.default && z === board[x - 1][y + 1] && z === board[x - 2][y + 2] && z === board[x - 3][y + 3]) {
 					return true;
+				}
 			}
 		}
 		return false;
