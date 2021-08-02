@@ -7,7 +7,7 @@ import type { ApplicationCommandOptionData, CommandInteraction, Message } from '
 
 export default class implements Command {
 	public options: CommandOptions = {
-		aliases: [],
+		aliases: ['thesaurus'],
 		description: 'Finds synonyms for a word from the dictionary.',
 		usage: '<word>',
 		example: ['fast', 'cold'],

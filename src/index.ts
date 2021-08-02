@@ -69,8 +69,3 @@ async function init() {
 }
 
 void init().catch((e) => log(e, 'error'));
-
-process.on('unhandledRejection', (e: any) => {
-	if (/The server did not return the correct signature/g.test(e.message)) return;
-	log(`Unhandled Promise Rejection: ${e.stack}`, 'error', { ping: true });
-});

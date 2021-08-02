@@ -196,7 +196,7 @@ export async function handleMessageCommand(message: Message, command: Command, a
 		commandLocks.add(message.channel.id);
 		await command.exec(message, params, context);
 	} catch (e) {
-		handleError(message, command, e);
+		handleCommandError(message, command, e);
 	} finally {
 		commandLocks.delete(message.channel.id);
 	}
@@ -225,7 +225,7 @@ export async function handleSlashCommand(interaction: CommandInteraction, comman
 		commandLocks.add(interaction.channel.id);
 		await command.interact(interaction, args);
 	} catch (e) {
-		handleError(interaction, command, e);
+		handleCommandError(interaction, command, e);
 	} finally {
 		commandLocks.delete(interaction.channel.id);
 	}
@@ -309,7 +309,7 @@ async function handleLocks(data: CommandInteraction | Message, command: Command)
 	return false;
 }
 
-function handleError(data: CommandInteraction | Message, command: Command, error: any): void {
+function handleCommandError(data: CommandInteraction | Message, command: Command, error: any): void {
 	const err = { content: 'An error occurred.', ephemeral: true };
 
 	let user: User;
@@ -358,4 +358,8 @@ function handleError(data: CommandInteraction | Message, command: Command, error
 	});
 
 	log(error.stack ?? error, 'error', { ping: true }, extra);
+}
+
+export function handleListenerError(listener: Listener, error: any) {
+	log(error.stack ?? error, 'error', { ping: true }, { title: `Listener Error (${listener.event})` });
 }
