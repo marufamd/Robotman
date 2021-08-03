@@ -1,4 +1,5 @@
 import type { Command, CommandOptions } from '#util/commands';
+import { codeBlock } from '@discordjs/builders';
 import { reply } from '@skyra/editable-commands';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 import { Parser } from 'expr-eval';
@@ -51,7 +52,7 @@ export default class implements Command {
 			const answer = Parser.evaluate(expression).toString();
 			return answer.length > 1015
 				? { content: `Output was uploaded as a file.`, files: [{ attachment: Buffer.from(answer), name: 'result.txt' }] }
-				: `\`\`\`${answer}\`\`\``;
+				: codeBlock(answer);
 		} catch {
 			return { content: `\`${expression}\` is not a valid expression.`, ephemeral: true };
 		}

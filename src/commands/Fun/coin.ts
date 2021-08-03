@@ -21,7 +21,7 @@ export default class implements Command {
 	}
 
 	private async run() {
-		const random = randomResponse(['heads', 'tails']);
+		const random = `${randomResponse(['heads', 'tails'])}.png`;
 		const file = await readFile(join(__dirname, '..', '..', '..', 'images', 'coins', random));
 
 		return {
