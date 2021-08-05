@@ -13,7 +13,11 @@ export class Embed extends MessageEmbed {
 
 	public inlineFields(): this {
 		const length = this.fields.length - 5;
-		if (length % 3 === 0) this.addField('\u200b', '\u200b', true);
+
+		if (length % 3 === 0) {
+			this.addField('\u200b', '\u200b', true);
+		}
+
 		return this;
 	}
 }
@@ -25,7 +29,10 @@ export class Table {
 
 	public setColumns(columns: string[]): this {
 		this.columns = columns;
-		for (const c of columns) this.widths.push(c.length + 2);
+
+		for (const c of columns) {
+			this.widths.push(c.length + 2);
+		}
 
 		return this;
 	}
@@ -33,10 +40,15 @@ export class Table {
 	public addRows(rows: any[]): this {
 		for (const row of rows) {
 			const formattedRow = row.map((r: any) => {
-				if (r instanceof Date) r = r.getTime();
+				if (r instanceof Date) {
+					r = r.getTime();
+				}
+
 				return trim(String(r), 30);
 			});
+
 			this.rows.push(formattedRow);
+
 			for (const [i, el] of formattedRow.entries()) {
 				const width = el.length + 2;
 				if (width > this.widths[i]) this.widths[i] = width;
