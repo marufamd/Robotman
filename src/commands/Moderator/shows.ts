@@ -29,43 +29,10 @@ export default class implements Command {
 	public async exec(message: Message, { date }: { date: Date }) {
 		const dtf = DateTime.fromJSDate(date, { zone: 'utc' });
 
-		const templates = [];
+		const firstDay = dtf.set({ weekday: 1 }).toFormat(DateFormats.LOCG);
 
-		let firstDay;
-
-		for (let i = 1; i < 8; i++) {
-			const date = dtf.set({ weekday: i }).toFormat(DateFormats.LOCG);
-
-			if (i === 1) firstDay = date;
-
-			const { body } = await request.get(`${Links.TV_MAZE}/schedule`).query({ country: 'US', date });
-
-			const found = body.filter((e: Record<string, any>) => Shows.has(e.show.id));
-			if (!found.length) continue;
-
-			for (const episode of found) {
-				if (episode.number === null) continue;
-
-				const day = DateTime.fromJSDate(new Date(episode.airdate), { zone: 'utc' });
-
-				const season = pad(episode.season);
-				const number = pad(episode.number);
-
-				const part = (str = '') => `[***${episode.show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
-
-				const template = stripIndents`
-                >Time/Date: ${day.toFormat(DateFormats.TEMPLATE)} ${this.convertTime(episode.airtime)} ET
-                >Network/Channel: ${(episode.show.network ?? episode.show.webChannel).name}
-                ${episode.summary?.length ? `\n${this.makeSynopsis(episode.summary)}` : ''}
-                `;
-
-				templates.push(
-					stripIndents`
-                        ${part(episode.show.image.original)}
-                        ${template.replaceAll('\n', '\\n')}`
-				);
-			}
-		}
+		const data = await Promise.all([this.getScheduled(dtf), this.getScheduled(dtf, true)]);
+		const templates = data.flat();
 
 		if (!templates.length) return message.channel.send(`There are no episodes scheduled for the week of ${firstDay}`);
 
@@ -77,6 +44,53 @@ export default class implements Command {
 			content: str,
 			components: [new MessageActionRow().addComponents(new MessageButton().setLabel('Comment Templates').setStyle('LINK').setURL(link))]
 		});
+	}
+
+	private async getScheduled(week: DateTime, streaming = false) {
+		const final = [];
+
+		for (let i = 1; i < 8; i++) {
+			const date = week.set({ weekday: i }).toFormat(DateFormats.LOCG);
+
+			const { body } = await request.get(`${Links.TV_MAZE}/schedule${streaming ? '/web' : ''}`).query({ country: 'US', date });
+
+			const found = body.filter((e: Record<string, any>) => {
+				if (streaming) {
+					return Shows.has(e._embedded.show.id);
+				}
+
+				return Shows.has(e.show.id);
+			});
+
+			if (!found.length) continue;
+
+			for (const episode of found) {
+				if (episode.number === null) continue;
+
+				const day = DateTime.fromJSDate(new Date(episode.airdate), { zone: 'utc' });
+
+				const season = pad(episode.season);
+				const number = pad(episode.number);
+
+				const show = streaming ? episode._embedded.show : episode.show;
+
+				const part = (str = '') => `[***${show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
+
+				const template = stripIndents`
+                >Time/Date: ${day.toFormat(DateFormats.TEMPLATE)}${streaming ? '' : ` ${this.convertTime(episode.airtime)} ET`}
+                >Network/Channel: ${(show.network ?? show.webChannel)?.name}
+                ${episode.summary?.length ? `\n${this.makeSynopsis(episode.summary)}` : ''}
+                `;
+
+				final.push(
+					stripIndents`
+                        ${part(show.image.original)}
+                        ${template.replaceAll('\n', '\\n')}`
+				);
+			}
+		}
+
+		return final;
 	}
 
 	private convertTime(time: string): string {
