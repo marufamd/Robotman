@@ -71,11 +71,11 @@ export default class implements Command {
 		return reply(message, await this.run(username, week));
 	}
 
-	public async interact(interaction: CommandInteraction, { username, date }: { username: string; date: string }) {
+	public async interact(interaction: CommandInteraction, { user, date }: { user: string; date: string }) {
 		const parsed = resolveArgument(date, 'date') ?? new Date();
 		const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
 
-		return interaction.reply(await this.run(username.toLowerCase(), week));
+		return interaction.reply(await this.run(user.toLowerCase(), week));
 	}
 
 	private async run(username: string, date: DateTime) {
