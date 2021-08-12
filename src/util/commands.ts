@@ -121,6 +121,10 @@ export function parseCommand(message: Message): { command: Command; args: Args; 
 			c.options.aliases.map((a) => a.replace(ALIAS_REPLACEMENT_REGEX, '')).includes(cmd.value.toLowerCase())
 	);
 
+	if (!command) {
+		return { command: null, args: null, context: null };
+	}
+
 	if (command.options.owner && !isOwner(message.author)) {
 		return { command: null, args: null, context: null };
 	}
