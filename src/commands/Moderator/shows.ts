@@ -4,7 +4,7 @@ import { pad } from '#util/misc';
 import { request } from '#util/request';
 import { paste } from '#util/wrappers';
 import { reply } from '@skyra/editable-commands';
-import { stripIndents } from 'common-tags';
+import { oneLine, stripIndents } from 'common-tags';
 import type { Message } from 'discord.js';
 import { MessageActionRow, MessageButton } from 'discord.js';
 import { DateTime } from 'luxon';
@@ -76,16 +76,16 @@ export default class implements Command {
 
 				const part = (str = '') => `[***${show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
 
-				const template = stripIndents`
-                >Time/Date: ${day.toFormat(DateFormats.TEMPLATE)}${streaming ? '' : ` ${this.convertTime(episode.airtime)} ET`}
-                >Network/Channel: ${(show.network ?? show.webChannel)?.name}
-                ${episode.summary?.length ? `\n${this.makeSynopsis(episode.summary)}` : ''}
+				const template = oneLine`
+                \\n\\nTime/Date: ${day.toFormat(DateFormats.TEMPLATE)}${streaming ? '' : ` ${this.convertTime(episode.airtime)} ET`}
+                \\n\\nNetwork/Channel: ${(show.network ?? show.webChannel)?.name}
+				${episode.summary?.length ? `\\n\\n${this.makeSynopsis(episode.summary)}` : ''}
                 `;
 
 				final.push(
 					stripIndents`
                         ${part(show.image.original)}
-                        ${template.replaceAll('\n', '\\n')}`
+                        ${template}`
 				);
 			}
 		}
@@ -110,6 +110,6 @@ export default class implements Command {
 			.turndown(str)
 			.split('\n')
 			.map((s) => `> ${s}`)
-			.join('\n');
+			.join('\\n');
 	}
 }
