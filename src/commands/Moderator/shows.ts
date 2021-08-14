@@ -4,7 +4,7 @@ import { pad } from '#util/misc';
 import { request } from '#util/request';
 import { paste } from '#util/wrappers';
 import { reply } from '@skyra/editable-commands';
-import { oneLine, stripIndents } from 'common-tags';
+import { oneLineTrim, stripIndents } from 'common-tags';
 import type { Message } from 'discord.js';
 import { MessageActionRow, MessageButton } from 'discord.js';
 import { DateTime } from 'luxon';
@@ -76,7 +76,7 @@ export default class implements Command {
 
 				const part = (str = '') => `[***${show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
 
-				const template = oneLine`
+				const template = oneLineTrim`
                 \\n\\nTime/Date: ${day.toFormat(DateFormats.TEMPLATE)}${streaming ? '' : ` ${this.convertTime(episode.airtime)} ET`}
                 \\n\\nNetwork/Channel: ${(show.network ?? show.webChannel)?.name}
 				${episode.summary?.length ? `\\n\\n${this.makeSynopsis(episode.summary)}` : ''}
