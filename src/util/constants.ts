@@ -253,6 +253,26 @@ export const Recommendations = {
 	}
 } as const;
 
+export const Tables = {
+	AUTO_RESPONSES: {
+		id: 'serial primary key',
+		name: 'text not null',
+		type: 'text not null',
+		guild: 'varchar(20) not null',
+		content: 'text not null',
+		aliases: 'text[] default array[]::text[]',
+		author: 'varchar(20) not null',
+		author_tag: 'text not null',
+		editor: 'varchar(20)',
+		editor_tag: 'text',
+		created: 'timestamp default current_timestamp',
+		updated: 'timestamp',
+		wildcard: 'boolean not null',
+		embed: 'boolean not null',
+		embed_color: 'integer default 0'
+	}
+};
+
 export const TicTacToe = {
 	EMOJIS: {
 		O: '⭕',

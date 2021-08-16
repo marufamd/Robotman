@@ -353,3 +353,9 @@ export function getWikiParams(query: string) {
 		pithumbsize: 1000
 	};
 }
+
+export function formatTable(data: Record<string, string>) {
+	return Object.entries(data)
+		.map(([k, v]) => `${k} ${v}`)
+		.join(',\n');
+}

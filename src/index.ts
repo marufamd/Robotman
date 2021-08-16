@@ -5,13 +5,16 @@ import 'reflect-metadata';
 
 import type { Command, Listener } from '#util/commands';
 import { assignOptions } from '#util/commands';
-import { PRODUCTION, ScheduleTime } from '#util/constants';
+import { PRODUCTION, ScheduleTime, Tables } from '#util/constants';
 import { log } from '#util/logger';
 import { Client, Collection, Constants, Intents, Options } from 'discord.js';
 import { RecurrenceRule, scheduleJob } from 'node-schedule';
 import { join } from 'node:path';
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
+import type { Notice } from 'postgres';
+import postgres from 'postgres';
+import { formatTable } from '#util/misc';
 
 const client = new Client({
 	makeCache: Options.cacheWithLimits({
@@ -26,13 +29,25 @@ const client = new Client({
 	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES]
 });
 
+const sql = postgres(process.env.POSTGRES_URL, {
+	onnotice: (notice: Notice) => {
+		if (notice.code === '42P07') return;
+		log(notice, 'info', { code: true }, { title: 'Postgres Notice' });
+	}
+});
+
 const commands = new Collection<string, Command>();
 
 container.register(Client, { useValue: client });
+container.register('sql', { useValue: sql });
 container.register('commands', { useValue: commands });
 
 async function init() {
 	log('Initializing...');
+
+	await sql.begin(async (sql) => {
+		await sql.unsafe(`create table if not exists auto_responses(${formatTable(Tables.AUTO_RESPONSES)})`);
+	});
 
 	client
 		.on(Constants.Events.ERROR, (e) => log(e.stack, 'error', { ping: true }))
