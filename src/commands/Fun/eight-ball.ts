@@ -34,7 +34,7 @@ export default class implements Command {
 	}
 
 	public async interact(interaction: CommandInteraction) {
-		await interaction.defer();
+		await interaction.deferReply();
 		return interaction.editReply(await this.run());
 	}
 

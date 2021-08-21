@@ -35,7 +35,7 @@ export default class implements Command {
 	}
 
 	public async interact(interaction: CommandInteraction, { subCommand }: { subCommand: 'cat' | 'dog' }) {
-		await interaction.defer();
+		await interaction.deferReply();
 		return interaction.editReply({
 			files: [subCommand === 'cat' ? await this.cat() : await this.dog()]
 		});
