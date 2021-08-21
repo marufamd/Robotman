@@ -5,6 +5,7 @@ import Pokemon from './json/pokemon.json';
 import Timezones from './json/timezones.json';
 import Words from './json/words.json';
 import publishers from './json/publishers.json';
+import { codeBlock } from '@discordjs/builders';
 
 export { Colors, Pokemon, Timezones, Words };
 
@@ -234,7 +235,7 @@ export const Shows = new Set<number>([
 
 export const Recommendations = {
 	TEXT: {
-		LIST: oneLine`
+		TASTE_TEST: oneLine`
         Welcome to **Taste Test**, where you can sample our mods' and boosters' 
         personal recommendations and personal taste! Feel free to engage us on a discussion, 
         and please, have fun discovering what we love.`,
@@ -245,11 +246,25 @@ export const Recommendations = {
 		BOOSTER: oneLine`
         Welcome to a special **Taste Test**, where you can sample our **Boosters'** personal 
         recommendations and personal taste! Feel free to engage us on a discussion, and please, 
-        have fun discovering what we love.`
+        have fun discovering what we love.`,
+		CHARACTER: oneLine`
+		Browse our recs lists! Simply type in the key phrases shown in the []s to bring up a
+		list of entry-point reads! For more detailed listings, type .reclist`,
+		WRITER: oneLine`
+		To summon a brief list of a creator's notable works, simply type in their **FULL listed**
+		name __below__ followed by "recs": ${codeBlock('EX: Jerry Siegel recs')}`
+	},
+	CUSTOM_TEXT: {
+		batfamily: 'The Bat Family',
+		'morrison bats': "Grant Morrison's Batman Epic",
+		'johns green lantern': "Geoff Johns' Green Lantern Saga",
+		legion: 'Legion of Super-Heroes',
+		'mature readers': 'Vertigo/Black Label'
 	},
 	REGEX: {
 		TASTE_TEST: /^taste test$/i,
-		WRITERS: /^writers? rec(ommendation)?s$/i
+		WRITER: /^writers? rec(ommendation)?s$/i,
+		CHARACTER: /^(characters?\s)?rec(ommendation)?s(\sindex)?$/i
 	}
 } as const;
 
@@ -269,7 +284,7 @@ export const Tables = {
 		updated: 'timestamp',
 		wildcard: 'boolean not null',
 		embed: 'boolean not null',
-		embed_color: 'integer default 0'
+		embed_color: 'varchar(7)'
 	}
 };
 

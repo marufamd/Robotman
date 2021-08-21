@@ -18,10 +18,11 @@ import { formatTable } from '#util/misc';
 
 const client = new Client({
 	makeCache: Options.cacheWithLimits({
-		MessageManager: {
-			maxSize: 50,
-			sweepInterval: 600
-		}
+		MessageManager: 25,
+		StageInstanceManager: 0,
+		VoiceStateManager: 0,
+		GuildStickerManager: 0,
+		BaseGuildEmojiManager: 0
 	}),
 	allowedMentions: {
 		parse: ['users']
@@ -52,8 +53,8 @@ async function init() {
 	client
 		.on(Constants.Events.ERROR, (e) => log(e.stack, 'error', { ping: true }))
 		.on(Constants.Events.WARN, (info) => log(info, 'warn'))
-		.on(Constants.Events.SHARD_RECONNECTING, () => log('Attempting to reconnect...', 'info'))
-		.on(Constants.Events.SHARD_RESUME, () => log('Reconnected'));
+		.on(Constants.Events.SHARD_RECONNECTING, () => log('Attempting to reconnect...', 'info', { logToWebhook: false }))
+		.on(Constants.Events.SHARD_RESUME, () => log('Reconnected', 'log', { logToWebhook: false }));
 
 	const commandFiles = readdirp(join(__dirname, 'commands'), { fileFilter: '*.js' });
 	const listenerFiles = readdirp(join(__dirname, 'listeners'), { fileFilter: '*.js' });

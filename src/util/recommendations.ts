@@ -12,7 +12,7 @@ export function handleRecommendations(message: Message) {
 		return tasteTest(message);
 	}
 
-	if (Recommendations.REGEX.WRITERS.test(message.content)) {
+	if (Recommendations.REGEX.WRITER.test(message.content)) {
 		return writersRecs(message);
 	}
 }
@@ -31,7 +31,7 @@ async function tasteTest(message: Message) {
 
 	const columns = chunk(boosters, 15);
 
-	const embed = new Embed().setColor(Colors.DC).setDescription(Recommendations.TEXT.LIST).addField('Mods', mods.join('\n'));
+	const embed = new Embed().setColor(Colors.DC).setDescription(Recommendations.TEXT.TASTE_TEST).addField('Mods', mods.join('\n'));
 
 	for (const column of columns) {
 		embed.addField(embed.fields.length === 1 ? 'Boosters' : '\u200b', column.join('\n'), true);

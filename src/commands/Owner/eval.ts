@@ -12,13 +12,18 @@ import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
 import { reply } from '@skyra/editable-commands';
+import { Sql } from 'postgres';
 
 @injectable()
 export default class implements Command {
 	public lastInput: any = null;
 	public lastResult: any = null;
 
-	public constructor(private readonly client: Client, @inject('commands') private readonly commands: Commands) {}
+	public constructor(
+		private readonly client: Client,
+		@inject('commands') private readonly commands: Commands,
+		@inject('sql') private readonly sql: Sql<any>
+	) {}
 
 	public options: CommandOptions = {
 		aliases: ['async'],
@@ -47,7 +52,7 @@ export default class implements Command {
 		const DateTime = dateTime;
 		const Duration = duration;
 		const request = Request;
-		const { lastInput, lastResult, client, commands } = this;
+		const { lastInput, lastResult, client, commands, sql } = this;
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 
 		this.lastInput = code;

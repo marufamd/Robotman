@@ -30,7 +30,7 @@
     "comicgeeks": "^1.0.2",
     "common-tags": "^1.8.0",
     "connect4-ai": "^0.1.3",
-    "discord.js": "^13.0.0-dev.d310e4f.1627560163",
+    "discord.js": "^13.2.0-dev.1629504266.d6e6244",
     "dotenv": "^8.2.0",
     "expr-eval": "^2.0.2",
     "form-data": "^3.0.1",

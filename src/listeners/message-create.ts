@@ -1,8 +1,8 @@
+import { handleAutoResponses, handleLists } from '#util/auto-responses';
 import type { Listener } from '#util/commands';
 import { handleListenerError, handleMessageCommand, parseCommand } from '#util/commands';
-import { Channels, PRODUCTION } from '#util/constants';
+import { Channels } from '#util/constants';
 import { log } from '#util/logger';
-import { handleRecommendations } from '#util/recommendations';
 import type { Message, PermissionResolvable, TextChannel } from 'discord.js';
 import { Constants, Permissions } from 'discord.js';
 
@@ -26,7 +26,9 @@ export default class implements Listener {
 
 			if (!hasPermission(Permissions.FLAGS.SEND_MESSAGES)) return;
 
-			if (PRODUCTION && (await handleRecommendations(message))) return;
+			if (await handleLists(message)) return;
+
+			if (await handleAutoResponses(message)) return;
 
 			const { command, args, context } = parseCommand(message);
 
