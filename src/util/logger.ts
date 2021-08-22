@@ -4,7 +4,7 @@ import * as colorette from 'colorette';
 import type { MessageEmbedOptions } from 'discord.js';
 import { Util, WebhookClient } from 'discord.js';
 import { DateTime } from 'luxon';
-import { inspect } from 'util';
+import { inspect } from 'node:util';
 
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
 
@@ -38,7 +38,7 @@ export function log(
 		text = inspect(text);
 	}
 
-	if (!(logType.toLowerCase() in LogTypes)) {
+	if (!Reflect.has(LogTypes, logType.toLowerCase())) {
 		logType = 'log';
 	}
 
