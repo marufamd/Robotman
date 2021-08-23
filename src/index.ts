@@ -27,7 +27,7 @@ const client = new Client({
 	allowedMentions: {
 		parse: ['users']
 	},
-	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES]
+	intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
 });
 
 const sql = postgres(process.env.POSTGRES_URL, {
