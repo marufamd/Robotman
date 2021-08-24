@@ -121,11 +121,11 @@ export default class implements Command {
 				let desc = rating.review;
 				if (rating.spoiler) {
 					desc = desc
-						.split('\n')
+						.split(/\n+/)
 						.map((d) => `||${d}||`)
 						.join('\n');
 				}
-				embed.setDescription(trim(desc, 2048));
+				embed.setDescription(trim(desc, 3800));
 			}
 
 			if (rating.rating) embed.addField('Rating', rating.rating);
