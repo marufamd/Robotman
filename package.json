@@ -8,12 +8,12 @@
     "#util/*": "./dist/util/*.js"
   },
   "scripts": {
-    "prebuild": "npx rimraf ./dist",
-    "build": "npx tsc",
+    "prebuild": "rimraf ./dist",
+    "build": "tsc",
     "test": "npm run build && node .",
-    "lint": "npx eslint src",
-    "lint:fix": "npx eslint src --fix",
-    "prettier": "npx prettier src --write",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "prettier": "prettier src --write",
     "start": "pm2 start dist/index.js --name \"robotman\"",
     "restart": "pm2 restart robotman"
   },

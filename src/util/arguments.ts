@@ -112,7 +112,7 @@ export const ArgumentTypes: { [key: string]: ArgumentTypeCaster } = {
 		} else {
 			resolve = arg.replaceAll(/ +/g, '_').replaceAll('#', '');
 
-			resolve = resolve.length !== 6 ? (isNaN(parseInt(resolve)) ? resolve : parseInt(resolve)) : resolve;
+			resolve = resolve.length !== 6 ? parseInt(resolve) : resolve;
 		}
 
 		const resolved = resolveColor(resolve);

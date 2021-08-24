@@ -22,7 +22,11 @@ const client = new Client({
 		StageInstanceManager: 0,
 		VoiceStateManager: 0,
 		GuildStickerManager: 0,
-		BaseGuildEmojiManager: 0
+		BaseGuildEmojiManager: 0,
+		ReactionManager: 0,
+		ReactionUserManager: 0,
+		PresenceManager: 0,
+		GuildInviteManager: 0
 	}),
 	allowedMentions: {
 		parse: ['users']

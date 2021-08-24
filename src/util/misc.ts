@@ -320,11 +320,13 @@ export function resolveColor(input: unknown): number {
 		if (!/^#[0-9A-F]{6}$/i.test(hex)) return null;
 
 		resolved = parseInt(input, 16);
+	} else if (typeof input === 'number') {
+		resolved = input;
 	} else if (Array.isArray(input)) {
 		resolved = (input[0] << 16) + (input[1] << 8) + input[2];
 	}
 
-	if (resolved < 0 || resolved > 0xffffff || (resolved && isNaN(resolved))) return null;
+	if (resolved < 0 || resolved > 0xffffff || !Number.isInteger(resolved)) return null;
 
 	return resolved;
 }
