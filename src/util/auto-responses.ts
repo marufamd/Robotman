@@ -100,17 +100,28 @@ export async function handleLists(message: Message) {
 		RegExp
 	];
 
+	console.log(found);
+
 	if (!found) return false;
 
 	const sql = container.resolve<Sql<any>>('sql');
 
 	const [list] = found;
 
-	const data = await sql<AutoResponse[]>`
-	select * from auto_responses
-	where type in (${list === 'TASTE_TEST' ? "'booster', 'moderator'" : list.toLowerCase()})
-	and guild = ${message.guild.id};
-	`;
+	const data =
+		list === 'TASTE_TEST'
+			? await sql<AutoResponse[]>`
+			select * from auto_responses
+			where type in ('booster', 'moderator')
+			and guild = ${message.guild.id};
+			`
+			: await sql<AutoResponse[]>`
+			select * from auto_responses
+			where type = ${list.toLowerCase()}
+			and guild = ${message.guild.id};
+			`;
+
+	console.log(data);
 
 	if (!data?.length) return false;
 
