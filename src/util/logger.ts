@@ -1,9 +1,9 @@
 import { DateFormats, LogTypes } from '#util/constants';
-import { codeBlock } from '@discordjs/builders';
+import { codeBlock, time, TimestampStyles } from '@discordjs/builders';
 import * as colorette from 'colorette';
+import dayjs from 'dayjs';
 import type { MessageEmbedOptions } from 'discord.js';
 import { Util, WebhookClient } from 'discord.js';
-import { DateTime } from 'luxon';
 import { inspect } from 'node:util';
 
 const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
@@ -53,7 +53,7 @@ export function log(
 
 function consoleLog(text: string, logType: ConsoleType): void {
 	console[logType](
-		colorette.gray(`[${DateTime.local().setZone('est').toFormat(DateFormats.LOG)}] `),
+		colorette.gray(`[${dayjs().format(DateFormats.LOG)}] `),
 		colorette.bold(colorette[LogTypes[logType].name as ColoretteType](text))
 	);
 }
@@ -63,10 +63,25 @@ function webhookLog(text: string, logType: ConsoleType, ping: boolean, code: boo
 	const embed: MessageEmbedOptions = {
 		title: `${mode.title} ${NODE_ENV === 'development' ? '(Development)' : ''}`,
 		color: mode.color,
-		footer: { text: DateTime.local().setZone('est').toFormat(DateFormats.LOG) }
+		fields: [
+			{
+				name: '\u200b',
+				value: time(dayjs().unix(), TimestampStyles.ShortDateTime)
+			}
+		]
 	};
 
-	if (typeof extra === 'object') Object.assign(embed, extra);
+	if (typeof extra === 'object') {
+		if (extra.fields?.length) {
+			for (const field of extra.fields) {
+				embed.fields.push(field);
+			}
+
+			delete extra.fields;
+		}
+
+		Object.assign(embed, extra);
+	}
 
 	try {
 		if (text.length < 2040) {

@@ -7,7 +7,6 @@ import { Type } from '@sapphire/type';
 import { isThenable } from '@sapphire/utilities';
 import type { Message, MessageOptions } from 'discord.js';
 import { Client } from 'discord.js';
-import { DateTime as dateTime, Duration as duration } from 'luxon';
 import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
@@ -49,8 +48,6 @@ export default class implements Command {
 
 	public async exec(message: Message, { code, depth }: { code: string; depth: number }, context: MessageContext) {
 		/* eslint-disable @typescript-eslint/no-unused-vars */
-		const DateTime = dateTime;
-		const Duration = duration;
 		const request = Request;
 		const { lastInput, lastResult, client, commands, sql } = this;
 		/* eslint-enable @typescript-eslint/no-unused-vars */

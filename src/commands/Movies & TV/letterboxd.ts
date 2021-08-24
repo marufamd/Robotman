@@ -1,13 +1,14 @@
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
-import { Colors, DateFormats } from '#util/constants';
+import { Colors } from '#util/constants';
 import { closest, randomResponse, trim } from '#util/misc';
 import type { ReviewEntry } from '#util/wrappers';
 import { letterboxd } from '#util/wrappers';
+import { time, TimestampStyles } from '@discordjs/builders';
 import { chunk } from '@sapphire/utilities';
 import { reply } from '@skyra/editable-commands';
+import dayjs from 'dayjs';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { DateTime } from 'luxon';
 
 export default class implements Command {
 	public options: CommandOptions = {
@@ -106,7 +107,15 @@ export default class implements Command {
 				.setFooter(`Review by ${user}`)
 				.setTimestamp(rating.published);
 
-			if (!isNaN(rating.watched.getTime())) embed.addField('Watched On', DateTime.fromJSDate(rating.watched).toFormat(DateFormats.REGULAR));
+			if (!isNaN(rating.watched.getTime())) {
+				embed.addField(
+					'Watched On',
+					`${time(dayjs(rating.watched).unix(), TimestampStyles.ShortDateTime)} (${time(
+						dayjs(rating.watched).unix(),
+						TimestampStyles.RelativeTime
+					)})`
+				);
+			}
 
 			if (rating.review?.length) {
 				let desc = rating.review;

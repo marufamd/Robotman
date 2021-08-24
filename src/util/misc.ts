@@ -1,8 +1,8 @@
-import { Colors, DateFormats } from '#util/constants';
+import { Colors } from '#util/constants';
 import { regExpEsc, toTitleCase } from '@sapphire/utilities';
+import type { Dayjs } from 'dayjs';
 import type { CollectorFilter, Message, User } from 'discord.js';
 import { ButtonInteraction, CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
-import { DateTime } from 'luxon';
 import os from 'node:os';
 import { setTimeout as wait } from 'node:timers/promises';
 
@@ -18,10 +18,6 @@ export function trim(str: string, max: number): string {
 
 export function pluralize(word: string, length: number, includeLength = true): string {
 	return `${includeLength ? `${length} ` : ''}${word}${length === 1 ? '' : 's'}`;
-}
-
-export function difference(date: Date, format: string = DateFormats.DAYS): string {
-	return DateTime.local().diff(DateTime.fromJSDate(date), 'days').toFormat(format);
 }
 
 export function formatQuery(str: string): string {
@@ -100,12 +96,8 @@ export function closest(target: string, arr: string[]): string {
 
 /* Dates and Numbers */
 
-export function formatDate(date: Date, format: string = DateFormats.LOG): string {
-	return DateTime.fromJSDate(date).setZone('utc').toFormat(format);
-}
-
-export function getPullDate(date: DateTime): DateTime {
-	return date.set({ weekday: 3 }).plus({ weeks: date.weekday <= 3 ? 0 : 1 });
+export function getPullDate(date: Dayjs): Dayjs {
+	return date.set('day', 3).add(date.day() <= 3 ? 0 : 1, 'week');
 }
 
 export function pad(num: number): string {

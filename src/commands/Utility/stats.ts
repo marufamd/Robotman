@@ -5,8 +5,11 @@ import { cpuUsage } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
 import type { CommandInteraction, Message } from 'discord.js';
 import { Client } from 'discord.js';
-import { Duration } from 'luxon';
 import { injectable } from 'tsyringe';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+
+dayjs.extend(duration);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
 const { dependencies, version } = require('../../../package.json');
@@ -39,7 +42,7 @@ export default class implements Command {
 					.addField('Node.js Version', process.version, true)
 					.addField('Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`, true)
 					.addField('CPU Usage', `${await cpuUsage()}%`, true)
-					.addField('Uptime', Duration.fromMillis(this.client.uptime).toFormat(DateFormats.UPTIME), true)
+					.addField('Uptime', dayjs.duration(this.client.uptime).format(DateFormats.UPTIME), true)
 			]
 		};
 	}

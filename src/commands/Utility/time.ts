@@ -2,8 +2,13 @@ import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
 import { toTitleCase } from '@sapphire/utilities';
 import { reply } from '@skyra/editable-commands';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { DateTime } from 'luxon';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default class implements Command {
 	public options: CommandOptions = {
@@ -39,7 +44,7 @@ export default class implements Command {
 	}
 
 	private run(zone: string) {
-		const formatted = DateTime.local().setZone(zone).toFormat(DateFormats.CLOCK);
+		const formatted = dayjs().tz(zone).format(DateFormats.CLOCK);
 
 		let formatText = zone.length <= 3 ? zone.toUpperCase() : toTitleCase(zone.replaceAll(/(_|\/)/gi, ' '));
 		formatText = zone.includes('/') ? formatText.replace(' ', '/') : formatText;

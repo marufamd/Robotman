@@ -76,14 +76,13 @@ export const ConnectFour = {
 };
 
 export const DateFormats = {
-	LOG: "MMMM d yyyy, 'at' tt",
-	UPTIME: "d'd', h'h', m'm', s's'",
-	LOCG: 'y-MM-dd',
-	DAY: 'EEEE',
-	CLOCK: "h':'mm a",
+	LOG: 'MMMM D YYYY, [at] h:mm A',
+	UPTIME: 'D[d], H[h], m[m], s[s]',
+	LOCG: 'YYYY-MM-DD',
+	CLOCK: 'h:mm A',
 	REGULAR: "MMMM d',' y",
 	DAYS: 'd',
-	TEMPLATE: 'MMMM d'
+	TEMPLATE: 'MMMM D'
 } as const;
 
 export const Emojis = {

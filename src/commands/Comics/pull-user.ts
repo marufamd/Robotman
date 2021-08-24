@@ -1,13 +1,14 @@
+import { resolveArgument } from '#util/arguments';
+import { Embed } from '#util/builders';
 import type { Command, CommandOptions, MessageContext } from '#util/commands';
-import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
+import { Colors, DateFormats, Pull } from '#util/constants';
+import { getPullDate } from '#util/misc';
+import { reply } from '@skyra/editable-commands';
 import type { User } from 'comicgeeks';
 import { BASE_URL, fetchPulls, fetchUser, SortTypes } from 'comicgeeks';
-import { DateTime } from 'luxon';
-import { getPullDate } from '#util/misc';
-import { Colors, DateFormats, Pull } from '#util/constants';
-import { Embed } from '#util/builders';
-import { resolveArgument } from '#util/arguments';
-import { reply } from '@skyra/editable-commands';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
 
 const { PREVIOUS, NEXT } = Pull.USER;
 
@@ -58,14 +59,14 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { username, date }: { username: string; date: Date }, context: MessageContext) {
-		let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
+		let week = getPullDate(dayjs(date));
 
 		const alias = context.alias.replace(/pull(last|next)user/gi, 'pull-$1-user');
 
 		if (NEXT.includes(alias)) {
-			week = week.plus({ days: 7 });
+			week = week.add(7, 'day');
 		} else if (PREVIOUS.includes(alias)) {
-			week = week.minus({ days: 7 });
+			week = week.subtract(7, 'day');
 		}
 
 		return reply(message, await this.run(username, week));
@@ -73,12 +74,12 @@ export default class implements Command {
 
 	public async interact(interaction: CommandInteraction, { user, date }: { user: string; date: string }) {
 		const parsed = resolveArgument(date, 'date') ?? new Date();
-		const week = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
+		const week = getPullDate(dayjs(parsed));
 
 		return interaction.reply(await this.run(user.toLowerCase(), week));
 	}
 
-	private async run(username: string, date: DateTime) {
+	private async run(username: string, date: Dayjs) {
 		const user = userCache.get(username) ?? (await fetchUser(username).catch(() => null));
 
 		if (!user) {
@@ -90,7 +91,7 @@ export default class implements Command {
 
 		if (!userCache.has(user.name)) userCache.set(user.name, user);
 
-		const week = date.toFormat(DateFormats.LOCG);
+		const week = date.format(DateFormats.LOCG);
 
 		const pulls = await fetchPulls(user.id, week, { sort: SortTypes.AlphaAsc });
 		const prices = pulls.length

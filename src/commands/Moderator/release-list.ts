@@ -6,8 +6,8 @@ import { chunk } from '@sapphire/utilities';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { Client } from 'discord.js';
 import type { TextChannel } from 'discord.js';
-import { DateTime } from 'luxon';
 import { injectable } from 'tsyringe';
+import dayjs from 'dayjs';
 
 @injectable()
 export default class implements Command {
@@ -19,12 +19,12 @@ export default class implements Command {
 	};
 
 	public async exec() {
-		const day = DateTime.local();
+		const day = dayjs();
 
 		const date = day
-			.set({ weekday: 2 })
-			.plus({ weeks: day.weekday <= 2 ? 0 : 1 })
-			.toFormat(DateFormats.LOCG);
+			.set('day', 2)
+			.add(day.day() <= 2 ? 0 : 1, 'week')
+			.format(DateFormats.LOCG);
 
 		const channel = this.client.channels.cache.get(Channels.NEWS.COMICS) as TextChannel;
 

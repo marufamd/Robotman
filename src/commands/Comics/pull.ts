@@ -7,7 +7,8 @@ import { getPullDate } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
-import { DateTime } from 'luxon';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 
 const { PREVIOUS, NEXT } = Pull.DEFAULT;
 
@@ -58,14 +59,14 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { publisher, date }: { publisher: PublisherData; date: Date }, context: MessageContext) {
-		let week = getPullDate(DateTime.fromJSDate(date).setZone('utc'));
+		let week = getPullDate(dayjs(date));
 
 		const alias = context.alias.replace(/pull(last|next)/gi, 'pull-$1');
 
 		if (NEXT.includes(alias)) {
-			week = week.plus({ weeks: 1 });
+			week = week.add(7, 'day');
 		} else if (PREVIOUS.includes(alias)) {
-			week = week.minus({ weeks: 1 });
+			week = week.subtract(7, 'day');
 		}
 
 		return reply(message, await this.run(publisher, week));
@@ -73,19 +74,19 @@ export default class implements Command {
 
 	public async interact(interaction: CommandInteraction, { publisher, date }: { publisher: string; date: string }) {
 		const parsed = resolveArgument(date, 'date') ?? new Date();
-		const day = getPullDate(DateTime.fromJSDate(parsed).setZone('utc'));
+		const day = getPullDate(dayjs(parsed));
 
 		return interaction.reply(await this.run(Publishers.get(publisher), day));
 	}
 
-	private async run(publisher: PublisherData, date: DateTime) {
-		const pull = await fetchReleases(date.toFormat(DateFormats.LOCG), {
+	private async run(publisher: PublisherData, date: Dayjs) {
+		const pull = await fetchReleases(date.format(DateFormats.LOCG), {
 			publishers: [publisher.id],
 			filter: [FilterTypes.Regular, FilterTypes.Digital, FilterTypes.Annual],
 			sort: SortTypes.AlphaAsc
 		});
 
-		const week = (publisher.id === 1 ? date.minus({ days: 1 }) : date).toFormat(DateFormats.LOCG);
+		const week = (publisher.id === 1 ? date.subtract(1, 'day') : date).format(DateFormats.LOCG);
 
 		return {
 			embeds: [

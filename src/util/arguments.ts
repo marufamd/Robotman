@@ -2,10 +2,10 @@ import type { Command } from '#util/commands';
 import { PromptOptions, Timezones } from '#util/constants';
 import { closest, parseRGB, resolveColor } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
+import dayjs from 'dayjs';
 import type { Message } from 'discord.js';
 import type { Args } from 'lexure';
 import { fail, finish, joinTokens, loop1Async, step } from 'lexure';
-import { DateTime } from 'luxon';
 
 const fnOrAny = (fn: any | ((message: Message) => string), message: Message) => (typeof fn === 'function' ? fn(message) : fn);
 
@@ -70,8 +70,8 @@ export const ArgumentTypes: { [key: string]: ArgumentTypeCaster } = {
 
 		if (isNaN(parsed)) {
 			if (['next', 'last'].includes(arg.toLowerCase())) {
-				let date = DateTime.local();
-				date = date[arg.toLowerCase() === 'next' ? 'plus' : 'minus']({ days: 7 });
+				let date = dayjs();
+				date = date[arg.toLowerCase() === 'next' ? 'add' : 'subtract'](7, 'day');
 				str = date.toLocaleString();
 			} else {
 				const month = arg.match(
