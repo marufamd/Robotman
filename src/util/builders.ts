@@ -58,7 +58,7 @@ export class Table {
 		return this;
 	}
 
-	public render(): string {
+	public toString(): string {
 		const table = [
 			this.separate('┌', '┬', '┐'),
 			this.formatEntry(this.columns),
