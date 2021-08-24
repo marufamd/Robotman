@@ -70,7 +70,9 @@ export async function handleAutoResponses(message: Message) {
 	`;
 
 	if (response) {
-		let payload: Payload = response.content;
+		let payload: Payload = [AutoResponseTypes.Moderator, AutoResponseTypes.Booster].includes(response.type)
+			? `${Reflect.get(Recommendations.TEXT, response.type.toUpperCase())}\n\n${response.content}`
+			: response.content;
 
 		for (const [val, resolver] of Object.entries(resolvers)) {
 			payload = payload.replaceAll(`{${val}}`, resolver(message));
