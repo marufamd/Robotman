@@ -107,8 +107,8 @@ export async function handleLists(message: Message) {
 	const [list] = found;
 
 	const data = await sql<AutoResponse[]>`
-	select from auto_responses
-	where type in (${list === 'TASTE_TEST' ? 'booster, moderator' : list.toLowerCase()})
+	select * from auto_responses
+	where type in (${list === 'TASTE_TEST' ? "'booster', 'moderator'" : list.toLowerCase()})
 	and guild = ${message.guild.id};
 	`;
 
