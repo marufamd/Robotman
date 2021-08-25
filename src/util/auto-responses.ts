@@ -155,10 +155,7 @@ export async function handleLists(message: Message) {
 			embed.setDescription(`${embed.description}\n\n${formatted.join('\n')}`);
 			break;
 		case 'WRITER':
-			const writerColumns = chunk(
-				data.map((a) => toTitleCase(a.name.replace(' recs', ''))),
-				20
-			);
+			const writerColumns = chunk(data.map((a) => toTitleCase(a.name.replace(' recs', ''))).sort(), 20);
 
 			for (const writerColumn of writerColumns) {
 				embed.addField('\u200b', writerColumn.join('\n'), true);
