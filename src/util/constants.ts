@@ -235,16 +235,16 @@ export const Shows = new Set<number>([
 export const Recommendations = {
 	TEXT: {
 		TASTE_TEST: oneLine`
-        Welcome to **Taste Test**, where you can sample our mods' and boosters' 
-        personal recommendations and personal taste! Feel free to engage us on a discussion, 
+        Welcome to **Taste Test**, where you can sample our mods' and boosters'
+        personal recommendations and personal taste! Feel free to engage us on a discussion,
         and please, have fun discovering what we love.`,
 		MODERATOR: oneLine`
-        Welcome to **Taste Test**, where you can sample our mods' personal 
-        recommendations and personal taste! Feel free to engage us on a discussion, 
+        Welcome to **Taste Test**, where you can sample our mods' personal
+        recommendations and personal taste! Feel free to engage us on a discussion,
         and please, have fun discovering what we love.`,
 		BOOSTER: oneLine`
-        Welcome to a special **Taste Test**, where you can sample our **Boosters'** personal 
-        recommendations and personal taste! Feel free to engage us on a discussion, and please, 
+        Welcome to a special **Taste Test**, where you can sample our **Boosters'** personal
+        recommendations and personal taste! Feel free to engage us on a discussion, and please,
         have fun discovering what we love.`,
 		CHARACTER: oneLine`
 		Browse our recs lists! Simply type in the key phrases shown in the []s to bring up a
