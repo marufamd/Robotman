@@ -6,8 +6,6 @@ import { Embed } from '#util/builders';
 import { Channels, Colors, Recommendations } from './constants';
 import { chunk, toTitleCase } from '@sapphire/utilities';
 
-const RECOMMENDATION_TYPES = ['writer', 'character', 'taste_test'];
-
 export enum AutoResponseTypes {
 	Regular = 'Regular',
 	Writer = 'writer',
@@ -15,6 +13,8 @@ export enum AutoResponseTypes {
 	Moderator = 'moderator',
 	Booster = 'booster'
 }
+
+const RECOMMENDATION_TYPES = [AutoResponseTypes.Booster, AutoResponseTypes.Moderator, AutoResponseTypes.Character, AutoResponseTypes.Writer];
 
 export interface AutoResponse {
 	id: number;
