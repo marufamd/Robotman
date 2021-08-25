@@ -100,8 +100,6 @@ export async function handleLists(message: Message) {
 		RegExp
 	];
 
-	console.log(found);
-
 	if (!found) return false;
 
 	const sql = container.resolve<Sql<any>>('sql');
@@ -120,8 +118,6 @@ export async function handleLists(message: Message) {
 			where type = ${list.toLowerCase()}
 			and guild = ${message.guild.id};
 			`;
-
-	console.log(data);
 
 	if (!data?.length) return false;
 
