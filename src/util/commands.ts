@@ -361,9 +361,14 @@ function handleCommandError(data: CommandInteraction | Message, command: Command
 		value: `${Links.DISCORD}/channels/${data.guild.id}/${data.channel.id}/${isInteraction(data) ? data.channel.lastMessageId : data.id}`
 	});
 
-	log(error.stack ?? error, 'error', { ping: true }, extra);
+	log(error.stack ?? error, 'error', { ping: true, extra });
 }
 
 export function handleListenerError(listener: Listener, error: any) {
-	log(error.stack ?? error, 'error', { ping: true }, { title: `Listener Error (${listener.event})` });
+	log(error.stack ?? error, 'error', {
+		ping: true,
+		extra: {
+			title: `Listener Error (${listener.event})`
+		}
+	});
 }

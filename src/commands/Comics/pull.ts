@@ -1,7 +1,7 @@
 import { resolveArgument } from '#util/arguments';
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions, MessageContext } from '#util/commands';
-import type { PublisherData } from '#util/constants';
+import type { Publisher, PublisherData } from '#util/constants';
 import { DateFormats, Publishers, Pull } from '#util/constants';
 import { getPullDate } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
@@ -29,7 +29,7 @@ export default class implements Command {
 		args: [
 			{
 				name: 'publisher',
-				type: (_, arg) => Publishers.get(arg?.toLowerCase() ?? 'dc') ?? null,
+				type: (_, arg) => Publishers.get((arg?.toLowerCase() as Publisher) ?? 'dc') ?? null,
 				otherwise: 'Invalid publisher.'
 			},
 			{
@@ -72,7 +72,7 @@ export default class implements Command {
 		return reply(message, await this.run(publisher, week));
 	}
 
-	public async interact(interaction: CommandInteraction, { publisher, date }: { publisher: string; date: string }) {
+	public async interact(interaction: CommandInteraction, { publisher, date }: { publisher: Publisher; date: string }) {
 		const parsed = resolveArgument(date, 'date') ?? new Date();
 		const day = getPullDate(dayjs(parsed));
 
