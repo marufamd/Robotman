@@ -16,6 +16,7 @@ interface LogOptions {
 	logToConsole?: boolean;
 	code?: boolean | string;
 	ping?: boolean;
+	extra?: MessageEmbedOptions;
 }
 
 let webhook: WebhookClient = null;
@@ -27,8 +28,7 @@ if (WEBHOOK_URL) {
 export function log(
 	text: any,
 	logType: ConsoleType = 'log',
-	{ logToWebhook = true, logToConsole = true, code = false, ping = false }: LogOptions = {},
-	extra: MessageEmbedOptions = {}
+	{ logToWebhook = true, logToConsole = true, code = false, ping = false, extra = {} }: LogOptions = {}
 ): void {
 	if (Array.isArray(text)) {
 		text = text.join('\n');
@@ -62,40 +62,30 @@ function webhookLog(text: string, logType: ConsoleType, ping: boolean, code: boo
 	const mode = LogTypes[logType];
 	const embed: MessageEmbedOptions = {
 		title: `${mode.title} ${NODE_ENV === 'development' ? '(Development)' : ''}`,
-		color: mode.color,
-		fields: [
-			{
-				name: '\u200b',
-				value: time(dayjs().unix(), TimestampStyles.ShortDateTime)
-			}
-		]
+		color: mode.color
 	};
 
-	if (typeof extra === 'object') {
-		if (extra.fields?.length) {
-			for (const field of extra.fields) {
-				embed.fields.push(field);
-			}
+	if (typeof extra === 'object') Object.assign(embed, extra);
 
-			delete extra.fields;
-		}
-
-		Object.assign(embed, extra);
-	}
+	const content = `${ping ? `<@${BOT_OWNER}>` : ''}\n${time(dayjs().unix(), TimestampStyles.ShortDateTime)}`;
 
 	try {
 		if (text.length < 2040) {
-			if (logType === 'error') text = `\`\`\`xl\n${text}\`\`\``;
-			else if (code) text = `\`\`\`${typeof code === 'string' ? code : 'js'}\n${text}\`\`\``;
+			if (logType === 'error') {
+				text = codeBlock('xl', text);
+			} else if (code) {
+				text = codeBlock(typeof code === 'string' ? code : 'js', text);
+			}
 
 			if (typeof embed.description === 'undefined') embed.description = text;
+
 			void webhook.send({
-				content: ping ? `<@${BOT_OWNER}>` : null,
+				content,
 				embeds: [embed]
 			});
 		} else {
 			void webhook.send({
-				content: ping ? `<@${BOT_OWNER}>` : null,
+				content,
 				embeds: [embed]
 			});
 

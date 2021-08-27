@@ -91,7 +91,7 @@ export default class implements Command {
 					break;
 				}
 
-				const [final] = collected.content.split(/ +/);
+				const [final] = collected.content.toLowerCase().split(/ +/);
 
 				await m.delete();
 
@@ -112,11 +112,11 @@ export default class implements Command {
 				break;
 			}
 
-			if (!game.splitWord.includes(response.content)) {
+			if (!game.splitWord.includes(response.content.toLowerCase())) {
 				game.incorrect++;
 			}
 
-			game.guesses.push(response.content);
+			game.guesses.push(response.content.toLowerCase());
 
 			await msg.delete();
 		}

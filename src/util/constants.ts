@@ -190,7 +190,7 @@ export interface PublisherData {
 	thumbnail: string;
 }
 
-export const Publishers = new Map(Object.entries(publishers as Record<Publisher, PublisherData>));
+export const Publishers = new Map(Object.entries(publishers) as [Publisher, PublisherData][]);
 
 export const Pull = {
 	DEFAULT: {

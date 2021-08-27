@@ -37,7 +37,12 @@ const client = new Client({
 const sql = postgres(process.env.POSTGRES_URL, {
 	onnotice: (notice: Notice) => {
 		if (notice.code === '42P07') return;
-		log(notice, 'info', { code: true }, { title: 'Postgres Notice' });
+		log(notice, 'info', {
+			code: true,
+			extra: {
+				title: 'Postgres Notice'
+			}
+		});
 	}
 });
 
