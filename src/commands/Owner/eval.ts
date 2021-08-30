@@ -4,25 +4,19 @@ import * as util from '#util/misc';
 import { request as Request } from '#util/request';
 import { codeBlock } from '@discordjs/builders';
 import { Type } from '@sapphire/type';
-import { isThenable } from '@sapphire/utilities';
 import type { Message, MessageOptions } from 'discord.js';
 import { Client } from 'discord.js';
 import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';
 import { inspect } from 'util';
 import { reply } from '@skyra/editable-commands';
-import { Sql } from 'postgres';
 
 @injectable()
 export default class implements Command {
 	public lastInput: any = null;
 	public lastResult: any = null;
 
-	public constructor(
-		private readonly client: Client,
-		@inject('commands') private readonly commands: Commands,
-		@inject('sql') private readonly sql: Sql<any>
-	) {}
+	public constructor(private readonly client: Client, @inject('commands') private readonly commands: Commands) {}
 
 	public options: CommandOptions = {
 		aliases: ['async'],
@@ -49,7 +43,7 @@ export default class implements Command {
 	public async exec(message: Message, { code, depth }: { code: string; depth: number }, context: MessageContext) {
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		const request = Request;
-		const { lastInput, lastResult, client, commands, sql } = this;
+		const { lastInput, lastResult } = this;
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 
 		this.lastInput = code;
@@ -70,7 +64,7 @@ export default class implements Command {
 
 			type = new Type(result);
 
-			if (isThenable(result)) result = await result;
+			if (util.isPromise(result)) result = await result;
 
 			content += `**Output**\n`;
 		} catch (e) {

@@ -1,6 +1,6 @@
 import type { Command, CommandOptions } from '#util/commands';
 import { DateFormats } from '#util/constants';
-import { toTitleCase } from '@sapphire/utilities';
+import { toTitleCase } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';

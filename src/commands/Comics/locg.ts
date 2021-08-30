@@ -1,7 +1,7 @@
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors, NO_RESULTS_FOUND } from '#util/constants';
-import { chunk } from '@sapphire/utilities';
+import { chunk } from '#util/misc';
 import { reply } from '@skyra/editable-commands';
 import { BASE_URL, CollectionTypes, fetchSearchResults } from 'comicgeeks';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';

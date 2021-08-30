@@ -1,10 +1,10 @@
+import { Embed } from '#util/builders';
+import { Channels, Colors, Recommendations } from '#util/constants';
+import { chunk, toTitleCase } from '#util/misc';
 import { reply, send } from '@skyra/editable-commands';
 import type { Message, Snowflake, TextChannel } from 'discord.js';
 import type { Sql } from 'postgres';
 import { container } from 'tsyringe';
-import { Embed } from '#util/builders';
-import { Channels, Colors, Recommendations } from './constants';
-import { chunk, toTitleCase } from '@sapphire/utilities';
 
 export enum AutoResponseTypes {
 	Regular = 'Regular',

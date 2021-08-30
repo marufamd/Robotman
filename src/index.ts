@@ -5,10 +5,10 @@ import 'reflect-metadata';
 
 import type { Command, Listener } from '#util/commands';
 import { assignOptions } from '#util/commands';
-import { PRODUCTION, ScheduleTime, Tables } from '#util/constants';
+import { PRODUCTION, SCHEDULE_CRON, Tables } from '#util/constants';
 import { log } from '#util/logger';
 import { Client, Collection, Constants, Intents, Options } from 'discord.js';
-import { RecurrenceRule, scheduleJob } from 'node-schedule';
+import { scheduleJob } from 'node-schedule';
 import { join } from 'node:path';
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
@@ -85,9 +85,7 @@ async function init() {
 	log(`Loaded ${commands.size} commands`);
 
 	if (PRODUCTION && commands.has('release-list')) {
-		scheduleJob(new RecurrenceRule(null, null, null, ScheduleTime.DAY, ScheduleTime.HOUR, ScheduleTime.MINUTE), () =>
-			commands.get('release-list').exec()
-		);
+		scheduleJob(SCHEDULE_CRON, () => commands.get('release-list').exec());
 	}
 
 	await client.login();

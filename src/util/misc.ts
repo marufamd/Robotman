@@ -1,5 +1,4 @@
 import { Colors } from '#util/constants';
-import { regExpEsc, toTitleCase } from '@sapphire/utilities';
 import type { Dayjs } from 'dayjs';
 import type { CollectorFilter, Message, User } from 'discord.js';
 import { ButtonInteraction, CommandInteraction, MessageActionRow, MessageButton } from 'discord.js';
@@ -12,12 +11,20 @@ export function capitalize(str: string): string {
 	return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+export function toTitleCase(str: string): string {
+	return str.replace(/[A-Za-zÀ-ÖØ-öø-ÿ]\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+
 export function trim(str: string, max: number): string {
 	return str.length > max ? `${str.slice(0, max - 3).trimEnd()}...` : str;
 }
 
 export function pluralize(word: string, length: number, includeLength = true): string {
 	return `${includeLength ? `${length} ` : ''}${word}${length === 1 ? '' : 's'}`;
+}
+
+export function escapeRegex(str: string): string {
+	return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 export function formatQuery(str: string): string {
@@ -41,7 +48,7 @@ export function redact(str: string): string {
 		'OPEN_MOVIE_DB_KEY'
 	];
 
-	return str.replaceAll(new RegExp(tokens.map((t) => regExpEsc(process.env[t])).join('|'), 'gi'), '[REDACTED]');
+	return str.replaceAll(new RegExp(tokens.map((t) => escapeRegex(process.env[t])).join('|'), 'gi'), '[REDACTED]');
 }
 
 export function removeArticles(str: string): string {
@@ -120,6 +127,16 @@ export function sort(arr: any[]): any[] {
 
 export function randomResponse<T>(arr: T[]): T {
 	return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export function chunk<T>(arr: T[], max: number): T[][] {
+	const chunks = [];
+
+	while (arr.length) {
+		chunks.push(arr.splice(0, max));
+	}
+
+	return chunks;
 }
 
 /* Discord */
@@ -333,6 +350,10 @@ export function parseRGB(str: string) {
 }
 
 /* Misc */
+
+export function isPromise<T>(obj: PromiseLike<T>): obj is PromiseLike<T> {
+	return typeof obj === 'object' && obj !== null && typeof obj.then === 'function';
+}
 
 export function getWikiParams(query: string) {
 	return {

@@ -1,4 +1,5 @@
-// Credit: This is a TypeScript version of the node-superfetch wrapper module https://github.com/dragonfire535/node-superfetch
+// Copyright (c) 2017-2018 dragonfire535. All rights reserved. ISC license.
+// https://github.com/dragonfire535/node-superfetch
 
 import FormData from 'form-data';
 import type { Agent } from 'http';

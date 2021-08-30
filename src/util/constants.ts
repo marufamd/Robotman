@@ -203,11 +203,7 @@ export const Pull = {
 	}
 };
 
-export const ScheduleTime = {
-	DAY: 0,
-	HOUR: 1,
-	MINUTE: 0
-} as const;
+export const SCHEDULE_CRON = '0 0 * * 0';
 
 export const Shows = new Set<number>([
 	13, // The Flash

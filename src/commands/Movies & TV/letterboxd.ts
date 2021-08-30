@@ -1,11 +1,10 @@
 import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Colors } from '#util/constants';
-import { closest, randomResponse, trim } from '#util/misc';
+import { chunk, closest, randomResponse, trim } from '#util/misc';
 import type { ReviewEntry } from '#util/wrappers';
 import { letterboxd } from '#util/wrappers';
 import { time, TimestampStyles } from '@discordjs/builders';
-import { chunk } from '@sapphire/utilities';
 import { reply } from '@skyra/editable-commands';
 import dayjs from 'dayjs';
 import type { ApplicationCommandOptionData, CommandInteraction, Message } from 'discord.js';
@@ -80,8 +79,8 @@ export default class implements Command {
 			const films = list.map((r) => `[${this.getFilm(r)}](${r.url}) ${r.rating ?? ''}`);
 			const chunks = chunk(films, 10).entries();
 
-			for (let [i, chunk] of chunks) {
-				embed.addField(`Page ${++i}`, trim(chunk.join('\n'), 1024), true);
+			for (let [i, page] of chunks) {
+				embed.addField(`Page ${++i}`, trim(page.join('\n'), 1024), true);
 			}
 
 			embed.setTitle(`${user}'s Latest Reviews`).setURL(`https://letterboxd.com/${username}/films/reviews/`);

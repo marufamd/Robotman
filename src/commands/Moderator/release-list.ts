@@ -2,12 +2,12 @@ import { Embed } from '#util/builders';
 import type { Command, CommandOptions } from '#util/commands';
 import { Channels, Colors, DateFormats } from '#util/constants';
 import { log } from '#util/logger';
-import { chunk } from '@sapphire/utilities';
+import { chunk } from '#util/misc';
 import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
-import { Client } from 'discord.js';
-import type { TextChannel } from 'discord.js';
-import { injectable } from 'tsyringe';
 import dayjs from 'dayjs';
+import type { TextChannel } from 'discord.js';
+import { Client } from 'discord.js';
+import { injectable } from 'tsyringe';
 
 @injectable()
 export default class implements Command {

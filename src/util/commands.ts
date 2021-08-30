@@ -2,8 +2,7 @@ import type { ArgumentGenerator, ArgumentOption } from '#util/arguments';
 import { parseArguments } from '#util/arguments';
 import { ALIAS_REPLACEMENT_REGEX, Links, PRODUCTION } from '#util/constants';
 import { log } from '#util/logger';
-import { getUser, isInteraction, isOwner, pluralize } from '#util/misc';
-import { regExpEsc } from '@sapphire/utilities';
+import { escapeRegex, getUser, isInteraction, isOwner, pluralize } from '#util/misc';
 import type {
 	ApplicationCommandOptionData,
 	ClientEvents,
@@ -102,7 +101,7 @@ export function assignOptions(command: Command, path: string) {
 export function parseCommand(message: Message): { command: Command; args: Args; context: MessageContext } {
 	const commands = container.resolve<Commands>('commands');
 
-	const prefixRegix = new RegExp(`^(<@!?${message.client.user.id}>|${regExpEsc(process.env.BOT_PREFIX)})\\s*`);
+	const prefixRegix = new RegExp(`^(<@!?${message.client.user.id}>|${escapeRegex(process.env.BOT_PREFIX)})\\s*`);
 
 	const lexer = new Lexer(message.content).setQuotes([
 		['"', '"'],
