@@ -43,7 +43,7 @@ export default class implements Command {
 	public async exec(message: Message, { code, depth }: { code: string; depth: number }, context: MessageContext) {
 		/* eslint-disable @typescript-eslint/no-unused-vars */
 		const request = Request;
-		const { lastInput, lastResult } = this;
+		const { lastInput, lastResult, client } = this;
 		/* eslint-enable @typescript-eslint/no-unused-vars */
 
 		this.lastInput = code;
