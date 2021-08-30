@@ -27,8 +27,8 @@ export default class implements Listener {
 				await fs.unlink(rebootPath);
 			}
 
-			if (!this.client.application?.owner) {
-				await this.client.application?.fetch();
+			for (const channel of this.client.channels.cache.values()) {
+				if (Reflect.has(channel, 'topic')) Reflect.deleteProperty(channel, 'topic');
 			}
 
 			log(`Logged in as ${this.client.user.tag} (${this.client.user.id})!`);

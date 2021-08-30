@@ -18,7 +18,7 @@ import { formatTable } from '#util/misc';
 
 const client = new Client({
 	makeCache: Options.cacheWithLimits({
-		MessageManager: 25,
+		MessageManager: 15,
 		StageInstanceManager: 0,
 		VoiceStateManager: 0,
 		GuildStickerManager: 0,
@@ -26,7 +26,9 @@ const client = new Client({
 		ReactionManager: 0,
 		ReactionUserManager: 0,
 		PresenceManager: 0,
-		GuildInviteManager: 0
+		GuildInviteManager: 0,
+		GuildBanManager: 0,
+		ApplicationCommandManager: 0
 	}),
 	allowedMentions: {
 		parse: ['users']
