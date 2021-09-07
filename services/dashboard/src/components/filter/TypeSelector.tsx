@@ -1,4 +1,4 @@
-import type { AutoResponse, AutoResponseTypes } from '@robotman/types';
+import type { AutoResponse } from '@robotman/types';
 import { toTitleCase } from '#utils/util';
 import { Select } from '@chakra-ui/react';
 import { useMemo } from 'react';
@@ -8,7 +8,7 @@ const TypeSelector = ({ column }: FilterProps<AutoResponse> & { column: UseFilte
 	const { filterValue, setFilter, preFilteredRows, id } = column;
 
 	const options: any[] = useMemo(() => {
-		const opts: AutoResponseTypes[] = [];
+		const opts: any[] = [];
 
 		for (const row of preFilteredRows) {
 			if (!opts.includes(row.values[id])) {
@@ -17,7 +17,7 @@ const TypeSelector = ({ column }: FilterProps<AutoResponse> & { column: UseFilte
 		}
 
 		return opts;
-	}, [id, preFilteredRows]);
+	}, [preFilteredRows, id]);
 
 	return (
 		<Select
