@@ -45,7 +45,7 @@ export default class implements Route {
 			void createHistory({
 				action: Actions.Add,
 				guild: row.guild,
-				user: row.author,
+				user_id: row.author,
 				user_tag: row.author_tag,
 				response: row.name
 			}).catch((e) => log(e, 'error', { path: `/responses`, method: Methods.Post }));

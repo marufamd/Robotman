@@ -283,7 +283,7 @@ export const Tables = {
 	},
 	HISTORY: {
 		guild: 'varchar(20) not null',
-		user: 'varchar(20) not null',
+		user_id: 'varchar(20) not null',
 		user_tag: 'text not null',
 		action: 'text not null',
 		response: 'text not null',

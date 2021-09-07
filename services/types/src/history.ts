@@ -14,6 +14,6 @@ export interface ActionHistory extends DeletePayload {
 }
 
 export interface DeletePayload {
-	user: Snowflake;
+	user_id: Snowflake;
 	user_tag: string;
 }

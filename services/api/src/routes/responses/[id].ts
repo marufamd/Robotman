@@ -53,7 +53,7 @@ export default class implements Route {
 				void createHistory({
 					action: Actions.Edit,
 					guild: row.guild,
-					user: row.editor,
+					user_id: row.editor,
 					user_tag: row.editor_tag,
 					response: row.name
 				}).catch((e) => log(e, 'error', { path: `/responses/${row.id}`, method: Methods.Patch }));
@@ -81,7 +81,7 @@ export default class implements Route {
 				void createHistory({
 					action: Actions.Delete,
 					guild: row.guild,
-					user: body.user,
+					user_id: body.user_id,
 					user_tag: body.user_tag,
 					response: row.name
 				}).catch((e) => log(e, 'error', { path: `/responses`, method: Methods.Post }));

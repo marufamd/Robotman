@@ -15,7 +15,7 @@ const ActionButtons = ({ id }: { id: number }) => {
 
 	const handleDelete = async () => {
 		const payload: DeletePayload = {
-			user: user.id,
+			user_id: user.id,
 			user_tag: user.tag
 		};
 

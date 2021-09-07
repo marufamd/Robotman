@@ -4,7 +4,7 @@
 	"main": "dist/index.js",
 	"typings": "typings/index.d.ts",
 	"scripts": {
-		"prebuild": "rimraf dist typings",
+		"prebuild": "rimraf tsconfig.tsbuildinfo dist typings",
 		"build": "tsc"
 	},
 	"author": "maruf99",
