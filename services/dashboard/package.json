@@ -1,0 +1,41 @@
+{
+  "name": "@robotman/dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Robotman Dashboard",
+  "scripts": {
+    "dev": "next dev src",
+    "typecheck": "tsc -b src",
+    "build": "next build src",
+    "start": "next start src",
+    "lint": "next lint src --fix",
+    "prettier": "prettier src/**/*.{js,jsx,ts,tsx} --write"
+  },
+  "author": "maruf99",
+  "dependencies": {
+    "@chakra-ui/icons": "^1.0.15",
+    "@chakra-ui/react": "^1.6.6",
+    "@emotion/react": "^11.4.1",
+    "@emotion/styled": "^11.3.0",
+    "@skyra/discord-components-react": "^2.8.1",
+    "@types/react-color": "^3.0.5",
+    "constate": "^3.3.0",
+    "discord-markdown": "^2.5.0",
+    "framer-motion": "^4.1.17",
+    "next": "^11.1.0",
+    "react": "17.0.2",
+    "react-autosize-textarea": "^7.1.0",
+    "react-color": "^2.17.3",
+    "react-dom": "17.0.2",
+    "react-hook-form": "^7.12.2",
+    "react-query": "^3.19.6",
+    "react-table": "^7.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.19",
+    "@types/react-dom": "^17.0.9",
+    "@types/react-table": "^7.7.2",
+    "discord-api-types": "^0.22.0",
+    "node-jose-tools": "^1.6.28"
+  }
+}

@@ -1,0 +1,25 @@
+{
+	"extends": "../../../tsconfig.base.json",
+	"compilerOptions": {
+		"target": "es5",
+		"downlevelIteration": true,
+		"allowJs": true,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"esModuleInterop": true,
+		"module": "esnext",
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"baseUrl": ".",
+		"paths": {
+			"#components/*": ["components/*"],
+			"#hooks/*": ["hooks/*"],
+			"#styles/*": ["styles/*"],
+			"#utils/*": ["utils/*"]
+		},
+		"skipLibCheck": true
+	},
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+	"exclude": ["node_modules"],
+	"references": [{ "path": "../../../services/types" }]
+}

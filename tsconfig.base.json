@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"module": "CommonJS",
+		"target": "ES2020",
+		"strict": true,
+		"alwaysStrict": true,
+		"strictNullChecks": false,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"removeComments": false,
+		"newLine": "lf",
+		"pretty": true,
+		"resolveJsonModule": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"importHelpers": true
+	}
+}

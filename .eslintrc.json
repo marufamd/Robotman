@@ -1,15 +1,15 @@
 {
-    "extends": "marine/prettier/node",
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "createDefaultProgram": true,
-        "ecmaVersion": 2020,
-        "project": "tsconfig.json"
-    },
-    "plugins": [
-        "@typescript-eslint/eslint-plugin"
-    ],
-    "rules": {
+    "root": true,
+	"extends": ["next", "next/core-web-vitals", "marine/prettier/node"],
+	"parserOptions": {
+		"ecmaVersion": 2020,
+		"project": "./tsconfig.eslint.json"
+	},
+	"plugins": ["@typescript-eslint/eslint-plugin"],
+	"rules": {
+		"radix": "off",
+		"no-duplicate-imports": "off",
+		"spaced-comment": "off",
         "no-redeclare": "off",
         "generator-star-spacing": "off",
         "comma-dangle": "off",
@@ -21,21 +21,25 @@
         "quote-props": "off",
         "no-case-declarations": "off",
         "no-eval": "off",
-        "radix": "off",
         "no-negated-condition": "off",
         "func-name-matching": "off",
-        "no-duplicate-imports": "off",
         "curly": "error",
-        "@typescript-eslint/no-unused-vars": "warn",
-        "@typescript-eslint/no-duplicate-imports": "error",
+        "import/no-anonymous-default-export": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+		"@typescript-eslint/consistent-type-imports": "error",
+		"@typescript-eslint/no-base-to-string": "off",
+		"@typescript-eslint/no-duplicate-imports": "error",
+        "@typescript-eslint/no-throw-literal": "off",
+		"@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-unnecessary-boolean-literal-compare": "off",
+        "@typescript-eslint/switch-exhaustiveness-check": "off",
         "@typescript-eslint/indent": "off",
         "@typescript-eslint/consistent-type-assertions": "off",
-        "@typescript-eslint/consistent-type-imports": "error",
         "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/naming-convention": "off",
         "@typescript-eslint/no-unnecessary-condition": "off",
-        "@typescript-eslint/no-base-to-string": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
+        "@typescript-eslint/prefer-optional-chain": "off",
         "@typescript-eslint/no-dynamic-delete": "off"
-    }
+	}
 }

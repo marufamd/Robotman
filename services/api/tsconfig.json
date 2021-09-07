@@ -1,0 +1,12 @@
+{
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"baseUrl": ".",
+		"paths": {
+			"#util/*": ["src/util/*"]
+		}
+	},
+	"include": ["src"],
+	"references": [{ "path": "../../services/types" }]
+}
