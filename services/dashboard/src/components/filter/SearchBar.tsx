@@ -1,14 +1,16 @@
 /* eslint-disable react/no-children-prop */
 import { SearchIcon } from '@chakra-ui/icons';
-import type { LayoutProps } from '@chakra-ui/react';
+import type { InputProps } from '@chakra-ui/react';
 import { Center, Input, InputGroup, InputLeftElement } from '@chakra-ui/react';
 
-const SearchBar: React.FC<
-	LayoutProps & {
-		filter: any;
-		setFilter: (value: any) => void;
-	}
-> = ({ filter, setFilter, ...rest }) => {
+const SearchBar = ({
+	filter,
+	setFilter,
+	...rest
+}: InputProps & {
+	filter: any;
+	setFilter: (value: any) => void;
+}) => {
 	return (
 		<Center>
 			<InputGroup>

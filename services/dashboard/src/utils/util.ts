@@ -2,6 +2,23 @@ import type { DiscordGuild, DiscordUser } from '@robotman/types';
 import { createStandaloneToast } from '@chakra-ui/react';
 import { STORAGE_KEY } from '#utils/constants';
 
+export interface ErrorData {
+	headers: Headers;
+	ok: boolean;
+	redirected: boolean;
+	status: number;
+	statusText: string;
+	type: ResponseType;
+	url: string;
+}
+
+export class APIError extends Error {
+	public constructor(message: string, data: ErrorData) {
+		super(message);
+		Object.assign(this, data);
+	}
+}
+
 export async function fetchAPI<T>(path: string, options: RequestInit = {}) {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${path}`, {
 		...options,
@@ -15,7 +32,15 @@ export async function fetchAPI<T>(path: string, options: RequestInit = {}) {
 	const json = await res.json();
 
 	if (json.error) {
-		throw new Error(json.error);
+		throw new APIError(json.error, {
+			headers: res.headers,
+			ok: res.ok,
+			redirected: res.redirected,
+			status: res.status,
+			statusText: res.statusText,
+			type: res.type,
+			url: res.url
+		});
 	} else {
 		return json as T;
 	}

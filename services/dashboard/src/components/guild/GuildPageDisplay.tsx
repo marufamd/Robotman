@@ -6,13 +6,27 @@ import Loading from '#components/display/Loading';
 import { AUTO_RESPONSE_HEADERS } from '#utils/constants';
 import { useQueryResponses } from '#hooks/queries';
 import type { AutoResponse, DiscordGuild } from '@robotman/types';
-import { toTitleCase } from '#utils/util';
+import { clearUserState, toTitleCase } from '#utils/util';
 import { Avatar, Heading, HStack } from '@chakra-ui/react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { Column, Row } from 'react-table';
+import { setDiscordUser } from '#hooks/discord';
+import { useRouter } from 'next/router';
 
 const GuildPageDisplay = ({ guild }: { guild: DiscordGuild }) => {
-	const { data: responses, isLoading: loadingData } = useQueryResponses(guild.id);
+	const { data: responses, isLoading: loadingData, error } = useQueryResponses(guild.id);
+	const router = useRouter();
+	const setUser = setDiscordUser();
+
+	useEffect(() => {
+		if (router.isReady && error.status === 401) {
+			clearUserState();
+			setUser(null);
+
+			void router.push('/');
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [router.isReady, error.status]);
 
 	const data = useMemo(() => responses ?? [], [responses]);
 

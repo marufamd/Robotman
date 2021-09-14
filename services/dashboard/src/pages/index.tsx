@@ -1,10 +1,21 @@
 import GuildCard from '#components/guild/GuildCard';
 import Layout from '#components/display/Layout';
-import { useDiscordUser } from '#hooks/discord';
+import { setDiscordUser, useDiscordUser } from '#hooks/discord';
 import { Grid, Heading, useBreakpointValue } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { clearUserState } from '#utils/util';
 
 const HomePage = () => {
 	const user = useDiscordUser();
+	const setUser = setDiscordUser();
+
+	useEffect(() => {
+		if (Date.now() >= user.expires) {
+			clearUserState();
+			setUser(null);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const columns = useBreakpointValue({ base: 'auto', md: '4' });
 

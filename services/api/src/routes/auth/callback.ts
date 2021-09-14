@@ -26,6 +26,7 @@ export default class implements Route {
 		}
 
 		const now = Date.now();
+		const expiresMS = now + auth.expires_in * 1000;
 
 		const [user, guilds] = await Promise.all([
 			this.fetchData<RESTGetAPICurrentUserResult>(auth.access_token, Routes.user()),
@@ -55,12 +56,13 @@ export default class implements Route {
 						.replace(/'s /g, ' ')
 						.replace(/\w+/g, (e) => e[0])
 						.replace(/\s/g, '')
-				}))
+				})),
+			expires: expiresMS
 		};
 
 		const session = encryptSession({
 			id: data.id,
-			expires: now + auth.expires_in * 1000,
+			expires: expiresMS,
 			refreshToken: auth.refresh_token,
 			accessToken: auth.access_token
 		});

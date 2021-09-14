@@ -4,6 +4,7 @@ export interface DiscordUser extends RESTGetAPICurrentUserResult {
 	tag: string;
 	avatar_url: string;
 	guilds: DiscordGuild[];
+	expires: number;
 }
 
 export interface DiscordGuild extends RESTAPIPartialCurrentUserGuild {
