@@ -10,12 +10,12 @@ const HomePage = () => {
 	const setUser = setDiscordUser();
 
 	useEffect(() => {
-		if (Date.now() >= user.expires) {
+		if (Date.now() >= user?.expires) {
 			clearUserState();
 			setUser(null);
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
+	}, [user]);
 
 	const columns = useBreakpointValue({ base: 'auto', md: '4' });
 
