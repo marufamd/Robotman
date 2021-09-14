@@ -19,14 +19,14 @@ const GuildPageDisplay = ({ guild }: { guild: DiscordGuild }) => {
 	const setUser = setDiscordUser();
 
 	useEffect(() => {
-		if (router.isReady && error.status === 401) {
+		if (router.isReady && error?.status === 401) {
 			clearUserState();
 			setUser(null);
 
 			void router.push('/');
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [router.isReady, error.status]);
+	}, [router.isReady, error?.status]);
 
 	const data = useMemo(() => responses ?? [], [responses]);
 
