@@ -53,7 +53,7 @@ export default class implements Command {
 		for (let i = 1; i < 8; i++) {
 			const date = week.set('day', i).format(DateFormats.LOCG);
 
-			const { body } = await request.get(`${Links.TV_MAZE}/schedule${streaming ? '/web' : ''}`).query({ country: 'US', date });
+			const { body } = await request.get(`${Links.TV_MAZE}/schedule${streaming ? '/web' : ''}`).query({ date });
 
 			const found = body.filter((e: Record<string, any>) => {
 				if (streaming) {

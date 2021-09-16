@@ -10,6 +10,7 @@ import { log } from '#util/log';
 import cors from 'cors';
 import helmet from 'helmet';
 import { join } from 'node:path';
+import type { Middleware } from 'polka';
 import polka from 'polka';
 import postgres from 'postgres';
 import readdirp from 'readdirp';
@@ -26,7 +27,7 @@ const app = polka({
 });
 
 app.use(cors({ origin: process.env.WEB_URL, credentials: true }));
-app.use(helmet() as any);
+app.use(helmet() as Middleware);
 app.use(json());
 app.use(extensions);
 app.use(auth);
