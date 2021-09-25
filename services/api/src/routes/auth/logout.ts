@@ -3,59 +3,29 @@ import type { Route } from '#util/interfaces';
 import { deleteCookie } from '#util/util';
 import type { Request, Response } from 'polka';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { OAuth2Routes } from 'discord-api-types/v9';
-import fetch from 'node-fetch';
+import { OAuth } from '#util/oauth';
 
 export default class implements Route {
 	public auth = true;
 
 	public async post(req: Request, res: Response) {
-		const result = await this.revokeToken(res, req.auth.accessToken);
+		const result = await OAuth.revoke(req.auth.accessToken);
 
-		if (result.success === false) {
-			if (result.retry) {
-				await sleep(result.retry);
+		if (result === true) return this.removeCookie(res);
 
-				const retry = await this.revokeToken(res, req.auth.accessToken);
+		if (typeof result === 'number') {
+			await sleep(result);
 
-				if (retry?.success) return;
-			}
+			const retry = await OAuth.revoke(req.auth.accessToken);
+
+			if (retry === true) return this.removeCookie(res);
 		}
 
-		if (result.error) {
-			return res.send(500, { error: result.error });
-		}
+		return res.send(500, { success: false, error: 'An error occurred.' });
 	}
 
-	private async revokeToken(res: Response, token: string) {
-		const params = {
-			token,
-			client_id: process.env.CLIENT_ID,
-			client_secret: process.env.CLIENT_SECRET
-		};
-
-		const result = await fetch(OAuth2Routes.tokenRevocationURL, {
-			method: 'POST',
-			body: new URLSearchParams(params).toString(),
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			}
-		});
-
-		if (result.ok) {
-			deleteCookie(res, COOKIE_NAME);
-			res.send(200, { success: true });
-			return { success: true };
-		}
-
-		if (result.status === 503) {
-			const retryAfter = result.headers.get('Retry-After');
-			return {
-				success: false,
-				retry: retryAfter === null ? 5000 : Number(retryAfter) * 1000
-			};
-		}
-
-		return { error: (await result.json()).message };
+	private removeCookie(res: Response) {
+		deleteCookie(res, COOKIE_NAME);
+		res.send(200, { success: true });
 	}
 }

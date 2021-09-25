@@ -9,9 +9,15 @@ declare module 'http' {
 		cookie: (name: string, data: string, options?: CookieSerializeOptions) => void;
 		send: (code: number, data?: any, headers?: Record<string, string | string[]>) => void;
 	}
+
+	export interface IncomingMessage {
+		cookies: { [key: string]: string };
+	}
 }
 
-const extensions: Middleware = (_, res, next) => {
+const extensions: Middleware = (req, res, next) => {
+	req.cookies = cookie.parse(req.headers.cookie ?? '');
+
 	res.append = (header, value) => {
 		const set = res.getHeader(header);
 		res.setHeader(header, set ? (Array.isArray(set) ? set.concat(value) : [set].concat(value)) : value);

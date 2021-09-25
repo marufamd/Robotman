@@ -1,12 +1,13 @@
-import { Methods } from '#util/interfaces';
+import { history } from '#util/history';
 import type { Route } from '#util/interfaces';
+import { Methods } from '#util/interfaces';
 import { log } from '#util/log';
-import type { Request, Response } from 'polka';
-import { Sql } from 'postgres';
-import { inject, injectable } from 'tsyringe';
-import { createHistory, transformPayload } from '#util/util';
+import { transformPayload } from '#util/util';
 import type { AutoResponse, DeletePayload } from '@robotman/types';
 import { Actions } from '@robotman/types';
+import { Request, Response } from 'polka';
+import { Sql } from 'postgres';
+import { inject, injectable } from 'tsyringe';
 
 const error = (res: Response, e: any, id: string, method: Methods) => {
 	log(e, 'error', { path: `/responses/${id}`, method });
@@ -38,6 +39,7 @@ export default class implements Route {
 		}
 	}
 
+	@history('/responses/:id')
 	public async patch(req: Request, res: Response) {
 		try {
 			const body = transformPayload(req.body);
@@ -50,15 +52,15 @@ export default class implements Route {
             `;
 
 			if (row) {
-				void createHistory({
+				res.send(200, row);
+
+				return {
 					action: Actions.Edit,
 					guild: row.guild,
 					user_id: row.editor,
 					user_tag: row.editor_tag,
 					response: row.name
-				}).catch((e) => log(e, 'error', { path: `/responses/${row.id}`, method: Methods.Patch }));
-
-				return res.send(200, row);
+				};
 			}
 
 			return missing(req, res);
@@ -67,6 +69,7 @@ export default class implements Route {
 		}
 	}
 
+	@history('/responses/:id')
 	public async delete(req: Request, res: Response) {
 		try {
 			const body = req.body as DeletePayload;
@@ -78,15 +81,15 @@ export default class implements Route {
             `;
 
 			if (row) {
-				void createHistory({
+				res.send(200, row);
+
+				return {
 					action: Actions.Delete,
 					guild: row.guild,
 					user_id: body.user_id,
 					user_tag: body.user_tag,
 					response: row.name
-				}).catch((e) => log(e, 'error', { path: `/responses`, method: Methods.Post }));
-
-				return res.send(200, row);
+				};
 			}
 
 			return missing(req, res);

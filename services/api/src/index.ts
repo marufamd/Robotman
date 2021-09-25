@@ -3,10 +3,12 @@ require('dotenv').config();
 
 import 'reflect-metadata';
 
+import { auth, checkAuth } from '#util/auth';
 import extensions from '#util/extensions';
 import type { Route } from '#util/interfaces';
 import { Methods } from '#util/interfaces';
 import { log } from '#util/log';
+import { json } from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import { join } from 'node:path';
@@ -15,10 +17,20 @@ import polka from 'polka';
 import postgres from 'postgres';
 import readdirp from 'readdirp';
 import { container } from 'tsyringe';
-import { json } from 'body-parser';
-import { auth, checkAuth } from '#util/auth';
+import { STATUS_CODES } from 'node:http';
 
 const app = polka({
+	onError(err, req, res) {
+		res.setHeader('Content-Type', 'application/json');
+
+		log(err, 'error', { path: req.url, method: req.method as Methods });
+
+		if (typeof err === 'string' || Buffer.isBuffer(err)) {
+			res.end(JSON.stringify({ error: err.toString() }));
+		} else {
+			res.end(JSON.stringify({ error: err.message ?? STATUS_CODES[err.code ?? err.status ?? 500] }));
+		}
+	},
 	onNoMatch(_, res) {
 		res.setHeader('Content-Type', 'application/json');
 		res.statusCode = 404;
@@ -33,7 +45,6 @@ app.use(extensions);
 app.use(auth);
 
 const sql = postgres(process.env.POSTGRES_URL);
-
 container.register('sql', { useValue: sql });
 
 const METHODS = [Methods.Get, Methods.Post, Methods.Patch, Methods.Delete];

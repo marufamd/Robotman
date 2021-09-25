@@ -1,12 +1,13 @@
-import { Methods } from '#util/interfaces';
+import { history } from '#util/history';
 import type { Route } from '#util/interfaces';
+import { Methods } from '#util/interfaces';
 import { log } from '#util/log';
-import type { Request, Response } from 'polka';
-import { Sql } from 'postgres';
-import { inject, injectable } from 'tsyringe';
-import { createHistory, transformPayload } from '#util/util';
+import { transformPayload } from '#util/util';
 import type { AutoResponse } from '@robotman/types';
 import { Actions } from '@robotman/types';
+import { Request, Response } from 'polka';
+import { Sql } from 'postgres';
+import { inject, injectable } from 'tsyringe';
 
 const error = (res: Response, e: any, method: Methods) => {
 	log(e, 'error', { path: `/responses`, method });
@@ -32,6 +33,7 @@ export default class implements Route {
 		}
 	}
 
+	@history('/responses')
 	public async post(req: Request, res: Response) {
 		try {
 			const body = transformPayload(req.body);
@@ -42,15 +44,15 @@ export default class implements Route {
             returning *
             `;
 
-			void createHistory({
+			res.send(200, row);
+
+			return {
 				action: Actions.Add,
 				guild: row.guild,
 				user_id: row.author,
 				user_tag: row.author_tag,
 				response: row.name
-			}).catch((e) => log(e, 'error', { path: `/responses`, method: Methods.Post }));
-
-			return res.send(200, row);
+			};
 		} catch (e) {
 			return error(res, e, Methods.Post);
 		}

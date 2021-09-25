@@ -166,10 +166,19 @@ const AutoResponseModal = ({ id, isOpen, onClose }: { id?: number; isOpen: boole
 
 	useEffect(() => {
 		setName(watchName);
+	}, [watchName, response?.name]);
+
+	useEffect(() => {
 		setContent(watchContent);
+	}, [watchContent, response?.content]);
+
+	useEffect(() => {
 		setEmbed(watchEmbed);
+	}, [watchEmbed, response?.embed]);
+
+	useEffect(() => {
 		setColor(watchColor);
-	}, [watchName, response?.name, watchContent, response?.content, watchEmbed, response?.embed, watchColor, response?.embed_color]);
+	}, [watchColor, response?.embed_color]);
 
 	useEffect(() => {
 		remove();

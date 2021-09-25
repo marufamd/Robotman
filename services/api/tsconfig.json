@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"outDir": "dist",
 		"baseUrl": ".",
+		"importHelpers": true,
 		"paths": {
 			"#util/*": ["src/util/*"]
 		}

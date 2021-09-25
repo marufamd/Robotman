@@ -1,24 +1,22 @@
 import type { Middleware } from 'polka';
-import cookie from 'cookie';
 import { COOKIE_NAME } from '#util/constants';
 import type { Route, Session } from '#util/interfaces';
-import { decryptSession, deleteCookie } from '#util/util';
+import { deleteCookie } from '#util/util';
+import { OAuth } from '#util/oauth';
 
-declare module 'polka' {
-	interface Request {
+declare module 'http' {
+	interface IncomingMessage {
 		auth?: Session | null;
 	}
 }
 
 export const auth: Middleware = (req, res, next) => {
-	const cookies = cookie.parse(req.headers.cookie ?? '');
-
-	const auth = cookies[COOKIE_NAME];
+	const auth = req.cookies[COOKIE_NAME];
 
 	if (!auth) {
 		req.auth = null;
 	} else {
-		req.auth = decryptSession(auth);
+		req.auth = OAuth.decrypt(auth);
 
 		if (req.auth === null) {
 			deleteCookie(res, COOKIE_NAME);
