@@ -4,7 +4,9 @@ import { Heading } from '@chakra-ui/react';
 const AuthFailedPage = () => {
 	return (
 		<Layout>
-			<Heading size="4xl">Failed to Login.</Heading>
+			<Heading size="4xl" textAlign="center">
+				Failed to Login.
+			</Heading>
 			<Heading size="md">Please try again.</Heading>
 		</Layout>
 	);

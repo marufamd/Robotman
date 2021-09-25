@@ -4,8 +4,12 @@ import { Heading } from '@chakra-ui/react';
 const NotFoundPage = () => {
 	return (
 		<Layout>
-			<Heading size="4xl">404</Heading>
-			<Heading size="md">{"This page wasn't found."}</Heading>
+			<Heading size="4xl" textAlign="center">
+				404
+			</Heading>
+			<Heading size="md" textAlign="center">
+				{"This page wasn't found."}
+			</Heading>
 		</Layout>
 	);
 };

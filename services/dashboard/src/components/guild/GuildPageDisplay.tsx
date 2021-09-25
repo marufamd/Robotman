@@ -7,7 +7,7 @@ import { AUTO_RESPONSE_HEADERS } from '#utils/constants';
 import { useQueryResponses } from '#hooks/queries';
 import type { AutoResponse, DiscordGuild } from '@robotman/types';
 import { clearUserState, toTitleCase } from '#utils/util';
-import { Avatar, Heading, HStack } from '@chakra-ui/react';
+import { Avatar, Heading, HStack, useBreakpointValue } from '@chakra-ui/react';
 import { useEffect, useMemo } from 'react';
 import type { Column, Row } from 'react-table';
 import { setDiscordUser } from '#hooks/discord';
@@ -61,8 +61,8 @@ const GuildPageDisplay = ({ guild }: { guild: DiscordGuild }) => {
 	return (
 		<Layout>
 			<HStack spacing={5}>
-				<Avatar size="xl" bg="blurple.200" name={guild?.acronym} src={guild?.icon_url} />
-				<Heading size="3xl">{guild?.name}</Heading>
+				<Avatar size={useBreakpointValue({ base: 'lg', md: 'xl' })} bg="blurple.200" name={guild?.acronym} src={guild?.icon_url} />
+				<Heading size={useBreakpointValue({ base: 'xl', md: '3xl' })}>{guild?.name}</Heading>
 			</HStack>
 			{loadingData ? <Loading size="xl" /> : <AutoResponseDisplay data={data} columns={columns} guild={guild.id} />}
 		</Layout>

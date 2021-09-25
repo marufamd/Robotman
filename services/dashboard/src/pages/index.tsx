@@ -21,8 +21,12 @@ const HomePage = () => {
 
 	return (
 		<Layout>
-			<Heading size="4xl">Welcome</Heading>
-			<Heading size="md">{user ? 'Please select a server.' : 'Please Login.'}</Heading>
+			<Heading size="4xl" textAlign="center">
+				Welcome
+			</Heading>
+			<Heading size="md" textAlign="center">
+				{user ? 'Please select a server.' : 'Please Login.'}
+			</Heading>
 			<Grid templateColumns={`repeat(${columns}, 180px)`} gap={5} placeContent="center">
 				{user?.guilds && user.guilds.map((g, i) => <GuildCard guild={g} key={i} />)}
 			</Grid>
