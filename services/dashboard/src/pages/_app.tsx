@@ -20,7 +20,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 			<Head>
 				<title>Robotman</title>
 				<meta charSet="utf-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-sacle=1.0" />
+				<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
 				<link rel="icon" type="image/png" sizes="96x96" href="/favicon.png" />
 
 				<meta name="theme-color" content="#f2b139" />
