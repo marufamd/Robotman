@@ -9,7 +9,7 @@
 	"scripts": {
 		"prebuild": "rimraf dist",
 		"build": "tsc",
-		"start": "node .",
+		"start": "node --enable-source-maps .",
 		"lint": "eslint src --fix",
 		"format": "prettier src --write"
 	},

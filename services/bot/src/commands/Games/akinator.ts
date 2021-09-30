@@ -178,7 +178,9 @@ export default class implements Command {
 			}
 		}
 
-		guessEmbed.fields = [];
+		if (guessEmbed) {
+			guessEmbed.fields = [];
+		}
 
 		await response.editReply({
 			components: this.generateYesNoButtons(status === GameStatus.LOSS ? null : status === GameStatus.WIN ? 'yes' : 'no', true),
