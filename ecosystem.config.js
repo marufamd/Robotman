@@ -1,7 +1,7 @@
 module.exports = {
 	apps: [
 		{
-			name: 'robotman',
+			name: 'bot',
 			cwd: './services/bot',
 			script: 'npm',
 			args: 'run start'
