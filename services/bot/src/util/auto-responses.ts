@@ -122,7 +122,7 @@ export async function handleLists(message: Message) {
 					`**${
 						Reflect.has(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
 							? Reflect.get(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
-							: toTitleCase(a.name)
+							: toTitleCase(a.name.replace(' recs', ''))
 					}** [${a.name}]`
 			);
 

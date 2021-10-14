@@ -224,6 +224,7 @@ export const Shows = new Set<number>([
 	44751, // Superman and Lois
 	44776, // Green Lantern
 	44777, // Strange Adventures
+	45844, // Aquaman: King of Atlantis
 	47261, // Justice League Dark
 	51042 // Batwheels
 ]);
@@ -259,7 +260,7 @@ export const Recommendations = {
 	REGEX: {
 		TASTE_TEST: /^taste test$/i,
 		WRITER: /^writers? rec(ommendation)?s$/i,
-		CHARACTER: /^(characters?\s)?rec(ommendation)?s(\sindex)?$/i
+		CHARACTER: /^(characters?\s)rec(ommendation)?s|rec(ommendation)?s\sindex$/i
 	}
 } as const;
 
