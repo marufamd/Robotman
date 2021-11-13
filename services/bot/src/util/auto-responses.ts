@@ -106,7 +106,7 @@ export async function handleLists(message: Message) {
 			const [mods, boosters] = [
 				data.filter((a) => a.type === AutoResponseTypes.Moderator),
 				data.filter((a) => a.type === AutoResponseTypes.Booster)
-			].map((c) => c.map((a) => a.name.replace(' recs', '')));
+			].map((c) => c.map((a) => a.name.replace(' recs', '')).sort());
 
 			const boosterColumns = chunk(boosters, 15);
 
@@ -117,14 +117,16 @@ export async function handleLists(message: Message) {
 			}
 			break;
 		case 'CHARACTER':
-			const formatted = data.map(
-				(a) =>
-					`**${
-						Reflect.has(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
-							? Reflect.get(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
-							: toTitleCase(a.name.replace(' recs', ''))
-					}** [${a.name}]`
-			);
+			const formatted = data
+				.map(
+					(a) =>
+						`**${
+							Reflect.has(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
+								? Reflect.get(Recommendations.CUSTOM_TEXT, a.name.replace(' recs', ''))
+								: toTitleCase(a.name.replace(' recs', ''))
+						}** [${a.name}]`
+				)
+				.sort();
 
 			embed.setDescription(`${embed.description}\n\n${formatted.join('\n')}`);
 			break;
