@@ -227,7 +227,9 @@ export const Shows = new Set<number>([
 	44777, // Strange Adventures
 	45844, // Aquaman: King of Atlantis
 	47261, // Justice League Dark
-	51042 // Batwheels
+	50603, // Peacemaker
+	51042, // Batwheels
+	52243 // Naomi
 ]);
 
 export const Recommendations = {
