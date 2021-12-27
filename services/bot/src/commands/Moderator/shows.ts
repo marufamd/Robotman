@@ -75,7 +75,8 @@ export default class implements Command {
 
 				const show = streaming ? episode._embedded.show : episode.show;
 
-				const part = (str = '') => `[***${show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
+				const part = (str = '') =>
+					`[**${day.format(DateFormats.LIST)}:** ***${show.name}*** **S${season}E${number}** - *${episode.name}*](${str})`;
 
 				const template = oneLineTrim`
                 \\n\\nTime/Date: ${day.format(DateFormats.TEMPLATE)}${streaming ? '' : ` ${this.convertTime(episode.airtime)} ET`}

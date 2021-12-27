@@ -82,7 +82,8 @@ export const DateFormats = {
 	CLOCK: 'h:mm A',
 	REGULAR: "MMMM d',' y",
 	DAYS: 'd',
-	TEMPLATE: 'MMMM D'
+	TEMPLATE: 'MMMM D',
+	LIST: 'dddd, M/D'
 } as const;
 
 export const Emojis = {

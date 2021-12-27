@@ -1,3 +1,6 @@
+// Copyright (c) 2020 Skyra Project - Apache License 2.0
+// https://github.com/skyra-project/skyra.pw/blob/main/src/pages/oauth/callback.tsx
+
 import Loading from '#components/display/Loading';
 import { setDiscordUser } from '#hooks/discord';
 import type { DiscordUser } from '@robotman/types';
