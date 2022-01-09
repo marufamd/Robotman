@@ -292,6 +292,10 @@ export const Tables = {
 		action: 'text not null',
 		response: 'text not null',
 		date: 'timestamp default current_timestamp'
+	},
+	RANKS: {
+		score: 'integer default 0',
+		user_id: 'varchar(20) primary key'
 	}
 };
 

@@ -59,6 +59,7 @@ async function init() {
 	await sql.begin(async (sql) => {
 		await sql.unsafe(`create table if not exists auto_responses(${formatTable(Tables.AUTO_RESPONSES)})`);
 		await sql.unsafe(`create table if not exists history(${formatTable(Tables.HISTORY)})`);
+		await sql.unsafe(`create table if not exists ranks(${formatTable(Tables.RANKS)})`);
 	});
 
 	client

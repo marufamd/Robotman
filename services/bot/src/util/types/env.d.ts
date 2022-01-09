@@ -9,6 +9,7 @@ declare global {
 			BOT_OWNER: Snowflake;
 			BOT_PREFIX: string;
 			BOT_PERMISSIONS: Snowflake;
+			SCORE_GUILD: Snowflake;
 
 			POSTGRES_URL: string;
 
