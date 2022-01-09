@@ -12,7 +12,14 @@ export default class implements Command {
 		description: 'Searches Bulbapedia for a Pokemon.',
 		usage: '<pokemon>',
 		example: ['pikachu', 'charmander', 'greninja'],
-		args: [],
+		args: [
+			{
+				name: 'query',
+				type: 'lowercase',
+				match: 'content',
+				prompt: 'What Pokemon would you like to search for?'
+			}
+		],
 		cooldown: 4,
 		typing: true
 	};
