@@ -18,7 +18,7 @@ export default class implements Listener {
 
 			if (message.author.bot || message.system || message.webhookId !== null) return;
 
-			// void handleScores(message);
+			void handleScores(message);
 
 			if (!(message.channel as TextChannel).permissionsFor(message.client.user).has(Permissions.FLAGS.SEND_MESSAGES)) return;
 
