@@ -37,6 +37,7 @@ export default class implements Command {
 	];
 
 	public async exec(message: Message, { page }: { page: number }) {
+		if (message.guild.id !== process.env.SCORE_GUILD) return;
 		return send(message, await this.run(page, message.author, message.guild));
 	}
 
