@@ -15,7 +15,7 @@ import type {
 	User
 } from 'discord.js';
 import { Permissions } from 'discord.js';
-import { Args, Lexer, longShortStrategy, Parser } from 'lexure';
+import { Args, Lexer, longStrategy, Parser } from 'lexure';
 import { basename, dirname } from 'node:path';
 import { setTimeout as wait } from 'node:timers/promises';
 import { container } from 'tsyringe';
@@ -132,7 +132,7 @@ export function parseCommand(message: Message): { command: Command; args: Args; 
 		return { command: null, args: null, context: null };
 	}
 
-	const parser = new Parser(tokens()).setUnorderedStrategy(longShortStrategy());
+	const parser = new Parser(tokens()).setUnorderedStrategy(longStrategy());
 
 	return {
 		command,
