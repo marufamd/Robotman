@@ -14,7 +14,8 @@ import { Colors } from '#util/constants';
 
 registerFont('ComfortaaBold', [
 	join(__dirname, '..', '..', '..', 'fonts', 'Comfortaa-Bold.ttf'),
-	join(__dirname, '..', '..', '..', 'fonts', 'NotoSans-Bold.ttf')
+	join(__dirname, '..', '..', '..', 'fonts', 'NotoSans-Bold.ttf'),
+	join(__dirname, '..', '..', '..', 'fonts', 'NotoColorEmoji.ttf')
 ]);
 
 @injectable()
