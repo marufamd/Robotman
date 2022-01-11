@@ -5,6 +5,7 @@ import { container } from 'tsyringe';
 export interface Rank {
 	score: number;
 	user_id: Snowflake;
+	color: number;
 }
 
 const timestamps = new Map<Snowflake, number>();

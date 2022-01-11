@@ -14,8 +14,7 @@ import { Colors } from '#util/constants';
 
 registerFont('ComfortaaBold', [
 	join(__dirname, '..', '..', '..', 'fonts', 'Comfortaa-Bold.ttf'),
-	join(__dirname, '..', '..', '..', 'fonts', 'NotoSans-Bold.ttf'),
-	join(__dirname, '..', '..', '..', 'fonts', 'NotoColorEmoji.ttf')
+	join(__dirname, '..', '..', '..', 'fonts', 'NotoSans-Bold.ttf')
 ]);
 
 @injectable()
@@ -34,7 +33,7 @@ export default class implements Command {
 				default: 1
 			}
 		],
-		cooldown: 5,
+		cooldown: 8,
 		typing: true
 	};
 
@@ -81,6 +80,7 @@ export default class implements Command {
 		if (rows.count === 0) return { content: 'There are no entries for that page.', ephemeral: true };
 
 		const embed = new Embed()
+			.setColor(row.color ?? Colors.ROBOTMAN)
 			.setAuthor(`${guild.name} Leaderboard`, guild.iconURL())
 			.setDescription(`You are rank **#${row.position}** with a score of **${row.score}**`)
 			.setImage('attachment://lb.png')
@@ -91,9 +91,8 @@ export default class implements Command {
 
 	private async drawLeaderboard(rows: Rank[], range: number[]) {
 		const width = 600;
-		const gray = makeHex(Colors.LEADERBOARD);
 
-		const canvas = new Canvas(width, 700).setColor(gray).setTextFont('23px ComfortaaBold');
+		const canvas = new Canvas(width, 700).setTextFont('23px ComfortaaBold');
 
 		const textX = 30;
 		let y = 0;
@@ -110,12 +109,12 @@ export default class implements Command {
 			const { width: scoreWidth } = canvas.measureText(row.score.toString());
 
 			canvas
+				.setColor(makeHex(row.color ?? Colors.LEADERBOARD))
 				.printRoundedRectangle(0, y, width, 61, 8)
 				.setColor(makeHex(Colors.WHITE))
 				.printText(`#${rank}`, textX, textY)
 				.printText(`• ${trim(user.username, 30)}`, textX + rankWidth + 16, textY)
-				.printText(row.score.toString(), width - scoreSpace / 2 - scoreWidth / 2, textY)
-				.setColor(gray);
+				.printText(row.score.toString(), width - scoreSpace / 2 - scoreWidth / 2, textY);
 
 			y += 71;
 		}
