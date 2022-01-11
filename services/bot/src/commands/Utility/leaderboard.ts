@@ -7,6 +7,15 @@ import { inject, injectable } from 'tsyringe';
 import type { Rank } from '#util/ranks';
 import { send } from '@skyra/editable-commands';
 import { ArgumentUtil } from '#util/arguments';
+import { Canvas, registerFont } from 'canvas-constructor/skia';
+import { join } from 'node:path';
+import { makeHex, trim } from '#util/misc';
+import { Colors } from '#util/constants';
+
+registerFont('ComfortaaBold', [
+	join(__dirname, '..', '..', '..', 'fonts', 'Comfortaa-Bold.ttf'),
+	join(__dirname, '..', '..', '..', 'fonts', 'NotoSans-Bold.ttf')
+]);
 
 @injectable()
 export default class implements Command {
@@ -70,18 +79,46 @@ export default class implements Command {
 
 		if (rows.count === 0) return { content: 'There are no entries for that page.', ephemeral: true };
 
-		const entries = await Promise.all(
-			rows.map(async (r, i) => {
-				const member = await this.client.users.fetch(r.user_id);
-				return `**${range[i]}. ${member.username} - ${r.score}**`;
-			})
-		);
-
 		const embed = new Embed()
 			.setAuthor(`${guild.name} Leaderboard`, guild.iconURL())
-			.setDescription(`You are rank **#${row.position}** with a score of **${row.score}**\n\n${entries.join('\n')}`);
+			.setDescription(`You are rank **#${row.position}** with a score of **${row.score}**`)
+			.setImage('attachment://lb.png');
 
-		return { embeds: [embed] };
+		return { embeds: [embed], files: [{ name: 'lb.png', attachment: await this.drawLeaderboard(rows, range) }] };
+	}
+
+	private async drawLeaderboard(rows: Rank[], range: number[]) {
+		const width = 600;
+		const gray = makeHex(Colors.LEADERBOARD);
+
+		const canvas = new Canvas(width, 700).setColor(gray).setTextFont('23px ComfortaaBold');
+
+		const textX = 30;
+		let y = 0;
+
+		const scoreSpace = 116;
+
+		const { width: rankWidth } = canvas.measureText(`#${range.at(-1)}`);
+
+		for (const [i, row] of rows.entries()) {
+			const rank = range[i];
+			const user = await this.client.users.fetch(row.user_id);
+
+			const textY = y + 40;
+			const { width: scoreWidth } = canvas.measureText(row.score.toString());
+
+			canvas
+				.printRoundedRectangle(0, y, width, 61, 8)
+				.setColor(makeHex(Colors.WHITE))
+				.printText(`#${rank}`, textX, textY)
+				.printText(`• ${trim(user.username, 17)}`, textX + rankWidth + 16, textY)
+				.printText(row.score.toString(), width - scoreSpace / 2 - scoreWidth / 2, textY)
+				.setColor(gray);
+
+			y += 71;
+		}
+
+		return canvas.png();
 	}
 
 	private createRange(num: number) {

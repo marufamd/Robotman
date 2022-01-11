@@ -340,7 +340,8 @@ export function resolveColor(input: unknown): number {
 	return resolved;
 }
 
-export function makeHex(color: string, prefix = true) {
+export function makeHex(color: string | number, prefix = true) {
+	if (typeof color === 'number') color = color.toString(16);
 	const formatted = color.padStart(6, '0').toUpperCase();
 	return prefix ? `#${formatted}` : formatted;
 }
