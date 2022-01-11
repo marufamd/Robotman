@@ -82,7 +82,12 @@ export default class implements Command {
 		const embed = new Embed()
 			.setColor(row.color ?? Colors.ROBOTMAN)
 			.setAuthor(`${guild.name} Leaderboard`, guild.iconURL())
-			.setDescription(`You are rank **#${row.position}** with a score of **${row.score}**`)
+			.setDescription(
+				[
+					`You are rank **#${row.position}** with a score of **${row.score}**`,
+					`Type \`${process.env.BOT_PREFIX}setcolor <color>\` to update your leaderboard color.`
+				].join('\n')
+			)
 			.setImage('attachment://lb.png')
 			.setFooter(`Page ${page} • Type ${process.env.BOT_PREFIX}top ${page + 1} to go to Page ${page + 1}`);
 
