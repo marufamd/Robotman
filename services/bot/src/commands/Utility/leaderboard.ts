@@ -82,7 +82,8 @@ export default class implements Command {
 		const embed = new Embed()
 			.setAuthor(`${guild.name} Leaderboard`, guild.iconURL())
 			.setDescription(`You are rank **#${row.position}** with a score of **${row.score}**`)
-			.setImage('attachment://lb.png');
+			.setImage('attachment://lb.png')
+			.setFooter(`Page ${page} • Type ${process.env.BOT_PREFIX} to go to Page ${page + 1}`);
 
 		return { embeds: [embed], files: [{ name: 'lb.png', attachment: await this.drawLeaderboard(rows, range) }] };
 	}
@@ -111,7 +112,7 @@ export default class implements Command {
 				.printRoundedRectangle(0, y, width, 61, 8)
 				.setColor(makeHex(Colors.WHITE))
 				.printText(`#${rank}`, textX, textY)
-				.printText(`• ${trim(user.username, 17)}`, textX + rankWidth + 16, textY)
+				.printText(`• ${trim(user.username, 30)}`, textX + rankWidth + 16, textY)
 				.printText(row.score.toString(), width - scoreSpace / 2 - scoreWidth / 2, textY)
 				.setColor(gray);
 
