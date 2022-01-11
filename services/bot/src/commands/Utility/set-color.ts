@@ -23,8 +23,7 @@ export default class implements Command {
 				prompt: 'What color would you like to set your leaderboard entry to?'
 			}
 		],
-		cooldown: 2,
-		typing: true
+		cooldown: 2
 	};
 
 	public async exec(message: Message, { color }: { color: number }) {
