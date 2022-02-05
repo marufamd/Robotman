@@ -25,10 +25,23 @@ const HistoryButton = ({ guild }: { guild: string }) => {
 
 	const columns = useMemo(
 		() =>
-			Object.entries(ACTION_HISTORY_HEADERS).map(([k, v]) => ({
-				Header: v,
-				accessor: k
-			})),
+			Object.entries(ACTION_HISTORY_HEADERS).map(([k, v]) => {
+				const obj = {
+					Header: v,
+					accessor: k
+				};
+
+				if (k === 'date') {
+					Reflect.defineProperty(obj, 'sortType', {
+						value: 'datetime',
+						writable: true,
+						enumerable: true,
+						configurable: true
+					});
+				}
+
+				return obj;
+			}),
 		[]
 	) as Column<FormattedHistory>[];
 
