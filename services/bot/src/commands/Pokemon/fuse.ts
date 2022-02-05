@@ -11,7 +11,7 @@ const agent = new Agent({ rejectUnauthorized: false });
 
 export default class implements Command {
 	public options: CommandOptions = {
-		aliases: ['pokemon-fuse'],
+		aliases: ['pokemon-fuse', 'poke-fuse'],
 		description: 'Fuses two Pokemon together.',
 		extended: ['Providing `random` as an argument will use a random Pokemon.', 'Providing no Pokemon will fuse two random Pokemon.'],
 		usage: '[first pokemon] [second pokemon]',
@@ -94,24 +94,28 @@ export default class implements Command {
 
 		const url = `https://japeal.prestocdn.net/wordpress/wp-content/themes/total/PKM/upload2/${one}X${two}X0.png`;
 
-		const { buffer: image } = await request.get(url, { agent });
+		try {
+			const { buffer: image } = await request.get(url, { agent });
 
-		return {
-			embeds: [
-				new Embed()
-					.setColor('RANDOM')
-					.setAuthor(`${toTitleCase(first)} + ${toTitleCase(second)}`)
-					.setTitle(this.getName(first, second))
-					.setURL(url)
-					.setImage('attachment://fused.png')
-			],
-			files: [
-				{
-					name: 'fused.png',
-					attachment: image
-				}
-			]
-		};
+			return {
+				embeds: [
+					new Embed()
+						.setColor('RANDOM')
+						.setAuthor(`${toTitleCase(first)} + ${toTitleCase(second)}`)
+						.setTitle(this.getName(first, second))
+						.setURL(url)
+						.setImage('attachment://fused.png')
+				],
+				files: [
+					{
+						name: 'fused.png',
+						attachment: image
+					}
+				]
+			};
+		} catch {
+			return { content: 'Unable to fuse that combination. Please try a different one.' };
+		}
 	}
 
 	private getName(first: string, second: string) {
