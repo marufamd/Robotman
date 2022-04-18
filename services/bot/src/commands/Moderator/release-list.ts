@@ -26,7 +26,7 @@ export default class implements Command {
 			.add(day.day() <= 2 ? 0 : 1, 'week')
 			.format(DateFormats.LOCG);
 
-		const channel = this.client.channels.cache.get(Channels.NEWS.COMICS) as TextChannel;
+		const channel = this.client.channels.cache.get(Channels.NEWS.PULL_LIST) as TextChannel;
 
 		try {
 			const pulls = await fetchReleases(date, {
