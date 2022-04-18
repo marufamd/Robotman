@@ -43,7 +43,7 @@ export const OAUTH_URL = `https://discord.com/api/oauth2/authorize?${new URLSear
 export const STORAGE_KEY = 'discord_data';
 
 export interface FormattedHistory {
-	date: string;
+	date: Date;
 	user: string;
 	action: string;
 }

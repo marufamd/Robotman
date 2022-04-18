@@ -16,7 +16,7 @@ const HistoryButton = ({ guild }: { guild: string }) => {
 	const data: FormattedHistory[] = useMemo(
 		() =>
 			(history ?? []).map((h) => ({
-				date: new Date(h.date).toLocaleString(),
+				date: new Date(h.date),
 				user: h.user_tag,
 				action: `${toTitleCase(h.action)}${h.action === 'delete' ? 'd' : 'ed'} response: ${h.response}`
 			})),
@@ -32,11 +32,9 @@ const HistoryButton = ({ guild }: { guild: string }) => {
 				};
 
 				if (k === 'date') {
-					Reflect.defineProperty(obj, 'sortType', {
-						value: 'datetime',
-						writable: true,
-						enumerable: true,
-						configurable: true
+					Object.assign(obj, {
+						Cell: ({ value }: { value: Date }) => value.toLocaleString(),
+						sortType: 'datetime'
 					});
 				}
 
