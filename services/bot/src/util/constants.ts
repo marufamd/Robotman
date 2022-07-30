@@ -216,6 +216,7 @@ export const Shows = new Set<number>([
 	1859, // Lucifer
 	20683, // Black Lightning
 	27557, // Titans
+	33452, // Harley Quinn
 	36745, // Doom Patrol
 	36774, // Pennyworth
 	37776, // Batwoman
