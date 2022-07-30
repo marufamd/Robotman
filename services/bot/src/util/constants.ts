@@ -222,6 +222,7 @@ export const Shows = new Set<number>([
 	37776, // Batwoman
 	37809, // Stargirl
 	39764, // Sweet Tooth
+	40884, // DC Super Hero Girls
 	42668, // Y: The Last Man
 	42827, // The Sandman
 	44751, // Superman and Lois
@@ -231,7 +232,8 @@ export const Shows = new Set<number>([
 	47261, // Justice League Dark
 	50603, // Peacemaker
 	51042, // Batwheels
-	52243 // Naomi
+	52243, // Naomi
+	59492 // Gotham Knights
 ]);
 
 export const Recommendations = {
