@@ -233,7 +233,12 @@ export const Shows = new Set<number>([
 	50603, // Peacemaker
 	51042, // Batwheels
 	52243, // Naomi
-	59492 // Gotham Knights
+	55414, // My Adventures With Superman
+	55415, // Batman: Caped Crusader
+	57400, // Dead Boy Detectives
+	59492, // Gotham Knights
+	60920, // The Penguin
+	61066 // Noonan's
 ]);
 
 export const Recommendations = {

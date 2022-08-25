@@ -30,7 +30,7 @@ export default class implements Command {
 
 		try {
 			const pulls = await fetchReleases(date, {
-				publishers: ['DC Comics'],
+				publishers: ['DC Comics', 'Milestone'],
 				filter: [FilterTypes.Regular, FilterTypes.Digital, FilterTypes.Annual],
 				sort: SortTypes.AlphaAsc
 			});
