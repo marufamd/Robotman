@@ -11,7 +11,7 @@ export default class implements Listener {
 		try {
 			if (oldMessage.content === message.content || message.author.bot || message.system || message.webhookId !== null) return;
 
-			if (!(message.channel as TextChannel).permissionsFor(message.client.user.id).has(Permissions.FLAGS.SEND_MESSAGES)) return;
+			if (!(message.channel as TextChannel).permissionsFor(message.client.user.id)?.has(Permissions.FLAGS.SEND_MESSAGES)) return;
 
 			if (await handleLists(message)) return;
 

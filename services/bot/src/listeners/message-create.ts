@@ -20,7 +20,7 @@ export default class implements Listener {
 
 			void handleScores(message);
 
-			if (!(message.channel as TextChannel).permissionsFor(message.client.user).has(Permissions.FLAGS.SEND_MESSAGES)) return;
+			if (!(message.channel as TextChannel).permissionsFor(message.client.user)?.has(Permissions.FLAGS.SEND_MESSAGES)) return;
 
 			if (await handleLists(message)) return;
 
