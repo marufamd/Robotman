@@ -11,7 +11,5 @@ declare namespace NodeJS {
 
 		WEBHOOK_URL: string;
 		POSTGRES_URL: string;
-
-		ALLOWED_GUILDS: string;
 	}
 }

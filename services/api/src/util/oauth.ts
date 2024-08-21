@@ -75,7 +75,7 @@ export class OAuth {
 		return { error: data?.error };
 	}
 
-	public async fetchUser(allowedGuilds: string[]) {
+	public async fetchUser() {
 		const [user, guilds] = await Promise.all([
 			this.fetch<RESTGetAPICurrentUserResult>(Routes.user()),
 			this.fetch<RESTGetAPICurrentUserGuildsResult>(Routes.userGuilds())
@@ -92,8 +92,7 @@ export class OAuth {
 			guilds: (guilds ?? [])
 				.filter(
 					(g) =>
-						(g.owner || checkPermissions(g, [PermissionFlagsBits.ManageGuild, PermissionFlagsBits.Administrator])) &&
-						allowedGuilds.includes(g.id)
+						(g.owner || checkPermissions(g, [PermissionFlagsBits.ManageGuild, PermissionFlagsBits.Administrator]))
 				)
 				.map((g) => ({
 					...g,

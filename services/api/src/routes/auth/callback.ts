@@ -6,8 +6,6 @@ import type { Request, Response } from 'polka';
 import { OAuth } from '#util/oauth';
 
 export default class implements Route {
-	private readonly allowedGuilds = process.env.ALLOWED_GUILDS.split(' ');
-
 	public async post(req: Request, res: Response) {
 		const body = req.body as OAuthBody;
 
@@ -24,7 +22,7 @@ export default class implements Route {
 
 		const auth = OAuth.create(data);
 
-		const user = await auth.fetchUser(this.allowedGuilds);
+		const user = await auth.fetchUser();
 
 		if (user === false) return res.send(500, { error: 'Unable to fetch user.' });
 
