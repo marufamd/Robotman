@@ -13,7 +13,7 @@
 		"lint": "eslint src --fix",
 		"format": "prettier src --write"
 	},
-	"author": "maruf99",
+	"author": "marufamd",
 	"dependencies": {
 		"@discordjs/rest": "^0.1.0-canary.0",
 		"@polka/send": "^1.0.0-next.15",

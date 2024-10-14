@@ -11,7 +11,7 @@
     "lint": "next lint src --fix",
     "prettier": "prettier src/**/*.{js,jsx,ts,tsx} --write"
   },
-  "author": "maruf99",
+  "author": "marufamd",
   "dependencies": {
     "@chakra-ui/icons": "^1.0.15",
     "@chakra-ui/react": "^1.6.6",

@@ -13,7 +13,7 @@
     "format": "prettier src --write",
     "start": "node --enable-source-maps ."
   },
-  "author": "maruf99",
+  "author": "marufamd",
   "dependencies": {
     "@discordjs/builders": "^0.2.0",
     "@sapphire/type": "^2.0.11",

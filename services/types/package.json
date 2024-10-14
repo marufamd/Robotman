@@ -7,7 +7,7 @@
 		"prebuild": "rimraf tsconfig.tsbuildinfo dist typings",
 		"build": "tsc"
 	},
-	"author": "maruf99",
+	"author": "marufamd",
 	"devDependencies": {
 		"discord-api-types": "^0.22.0"
 	}
