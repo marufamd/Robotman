@@ -26,7 +26,7 @@ export default class implements Route {
 
 		if (user === false) return res.send(500, { error: 'Unable to fetch user.' });
 
-		res.cookie(COOKIE_NAME, auth.session, { maxAge: data.expires_in, httpOnly: true, path: '/' });
+		res.cookie(COOKIE_NAME, auth.session, { maxAge: data.expires_in, httpOnly: true, path: '/', sameSite: 'none', secure: true });
 		res.send(200, auth.user);
 	}
 }
