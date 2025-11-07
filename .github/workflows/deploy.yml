@@ -102,18 +102,18 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             
             # Pull latest images and rebuild
-            docker-compose pull
-            docker-compose build --no-cache
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml build --no-cache
             
             # Stop old containers and start new ones
-            docker-compose down
-            docker-compose up -d
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
             
             # Clean up old images and containers
             docker system prune -f
             
             # Show running containers
-            docker-compose ps
+            docker compose -f docker-compose.prod.yml ps
           ENDSSH
 
       - name: Verify deployment
@@ -127,10 +127,10 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             
             echo "=== Container Status ==="
-            docker-compose ps
+            docker compose -f docker-compose.prod.yml ps
             
             echo -e "\n=== Recent Logs ==="
-            docker-compose logs --tail=50
+            docker compose -f docker-compose.prod.yml logs --tail=50
           ENDSSH
 
       - name: Cleanup
