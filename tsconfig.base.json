@@ -16,5 +16,11 @@
 		"emitDecoratorMetadata": true,
 		"importHelpers": true,
 		"sourceMap": true
-	}
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"**/*.js",
+		"**/*.jsx"
+	]
 }

@@ -4,7 +4,7 @@ declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
 			DISCORD_TOKEN: string;
-			WEBHOOK_URL: string;
+			BOT_WEBHOOK_URL: string;
 
 			BOT_OWNER: Snowflake;
 			BOT_PREFIX: string;

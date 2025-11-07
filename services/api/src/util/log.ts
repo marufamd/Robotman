@@ -5,7 +5,7 @@ import type { APIEmbed } from 'discord-api-types/v9';
 import { APIVersion as version, Routes } from 'discord-api-types/v9';
 import * as colorette from 'colorette';
 
-const { id, token } = parseWebhook(process.env.WEBHOOK_URL);
+const { id, token } = parseWebhook(process.env.API_WEBHOOK_URL);
 const rest = new REST({ version }).setToken(token);
 
 export function log(text: any, type: 'log' | 'error' = 'log', route?: { path: string; method: Methods }) {

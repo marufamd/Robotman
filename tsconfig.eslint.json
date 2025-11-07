@@ -8,5 +8,8 @@
 		"**/*.tsx",
 		"**/*.js",
 		"**/*.jsx"
+	],
+	"exclude": [
+		".dockerignore"
 	]
 }

@@ -9,7 +9,7 @@ declare namespace NodeJS {
 
 		WEB_URL: string;
 
-		WEBHOOK_URL: string;
+		API_WEBHOOK_URL: string;
 		POSTGRES_URL: string;
 	}
 }

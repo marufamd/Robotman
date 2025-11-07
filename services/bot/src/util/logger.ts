@@ -6,7 +6,7 @@ import type { MessageEmbedOptions } from 'discord.js';
 import { Util, WebhookClient } from 'discord.js';
 import { inspect } from 'node:util';
 
-const { NODE_ENV, BOT_OWNER, WEBHOOK_URL } = process.env;
+const { NODE_ENV, BOT_OWNER, BOT_WEBHOOK_URL } = process.env;
 
 type ConsoleType = 'log' | 'error' | 'info' | 'warn';
 type ColoretteType = 'green' | 'red' | 'blue' | 'yellow';
@@ -21,8 +21,8 @@ interface LogOptions {
 
 let webhook: WebhookClient = null;
 
-if (WEBHOOK_URL) {
-	webhook = new WebhookClient({ url: WEBHOOK_URL });
+if (BOT_WEBHOOK_URL) {
+	webhook = new WebhookClient({ url: BOT_WEBHOOK_URL });
 }
 
 export function log(

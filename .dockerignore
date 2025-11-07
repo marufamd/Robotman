@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.github
+*.log
+coverage
+/.next
+services/*/dist/**/*.map
+services/*/node_modules
+services/*/dist/**/*.ts
+.env
+*.local
+tmp
+npm-debug.log
+Dockerfile
+.dockerignore
