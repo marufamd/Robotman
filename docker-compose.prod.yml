@@ -34,9 +34,9 @@ services:
     environment:
       POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
-    # Use 'expose' instead of 'ports' - only accessible within docker network
-    expose:
-      - "3001"
+    # Expose port to localhost only (for nginx reverse proxy access)
+    ports:
+      - "127.0.0.1:3001:3001"
     depends_on:
       postgres:
         condition: service_healthy

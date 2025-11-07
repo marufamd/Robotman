@@ -347,7 +347,8 @@ server {
     client_max_body_size 10M;
 
     location / {
-        proxy_pass http://localhost:3000;
+        # Access API via Docker network name instead of localhost
+        proxy_pass http://172.17.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -363,6 +364,10 @@ server {
         proxy_read_timeout 60s;
     }
 }
+
+# Alternative: If the above doesn't work, you need to either:
+# 1. Add Nginx to the same Docker network, OR
+# 2. Change docker-compose.prod.yml to use 'ports' instead of 'expose'
 ```
 
 ### 3. Enable the site
