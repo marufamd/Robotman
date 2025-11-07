@@ -50,7 +50,7 @@ sudo ufw enable
 sudo ufw status
 ```
 
-**Important**: Do NOT expose port 5432 (PostgreSQL) or 3000 (API) directly to the internet. Use nginx as a reverse proxy.
+**Important**: Do NOT expose port 5432 (PostgreSQL) or 3001 (API) directly to the internet. Use nginx as a reverse proxy.
 
 ---
 

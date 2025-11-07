@@ -10,6 +10,7 @@ jobs:
   deploy:
     name: Deploy Application
     runs-on: ubuntu-latest
+    environment: Production
     
     steps:
       - name: Checkout code
@@ -34,7 +35,8 @@ jobs:
           # API Service
           PORT=3000
           WEB_URL=${{ secrets.WEB_URL }}
-          WEBHOOK_URL=${{ secrets.WEBHOOK_URL }}
+          BOT_WEBHOOK_URL=${{ secrets.BOT_WEBHOOK_URL }}
+          API_WEBHOOK_URL=${{ secrets.API_WEBHOOK_URL }}
           CLIENT_ID=${{ secrets.CLIENT_ID }}
           CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
           NODE_ENV=production

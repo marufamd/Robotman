@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups  # For database backups
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # DO NOT expose port 5432 in production
+    networks:
+      - robotman_network
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NODE_ENV: production
+    # Use 'expose' instead of 'ports' - only accessible within docker network
+    expose:
+      - "3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - robotman_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  bot:
+    build:
+      context: .
+      dockerfile: services/bot/Dockerfile
+    env_file: .env
+    environment:
+      POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - robotman_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+volumes:
+  postgres_data:
+
+networks:
+  robotman_network:
+    driver: bridge
+
+# Production Notes:
+# - PostgreSQL port 5432 is NOT exposed to the host (security)
+# - API port 3001 uses 'expose' instead of 'ports' - only accessible within docker network
+# - Use nginx reverse proxy to access the API from outside (see docs/DEPLOY.md)
+# - All services use 'restart: always' for automatic recovery
+# - Logging limits prevent disk space issues
+# - Resource limits prevent services from consuming all system resources
+# - Dedicated network for service isolation
+# - Backup volume mounted for postgres backups
+# 
+# Deploy with: docker compose -f docker-compose.prod.yml up -d
+# View logs: docker compose -f docker-compose.prod.yml logs -f
+# Stop: docker compose -f docker-compose.prod.yml down
