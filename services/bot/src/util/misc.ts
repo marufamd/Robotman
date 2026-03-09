@@ -33,7 +33,8 @@ export function formatQuery(str: string): string {
 
 export function redact(str: string): string {
 	const tokens = [
-		'WEBHOOK_URL',
+		'BOT_WEBHOOK_URL',
+		'API_WEBHOOK_URL',
 		'DISCORD_TOKEN',
 		'POSTGRES_URL',
 		'GOOGLE_SEARCH_KEY',
