@@ -36,7 +36,7 @@ const app = polka({
 });
 
 app.use(cors({ origin: process.env.WEB_URL, credentials: true }));
-log("CORS enabled for origin:", process.env.WEB_URL);
+log(`CORS enabled for origin: ${process.env.WEB_URL}`);
 app.use(helmet() as Middleware);
 app.use(json());
 app.use(extensions);
