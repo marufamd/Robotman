@@ -1,4 +1,4 @@
-import { EventType, type RobotmanEvent } from "../../shared/events";
+import { EventType, type RobotmanEvent } from "@robotman/shared";
 import {
 	RabbitMqPublisher,
 	type RabbitMqChannel,

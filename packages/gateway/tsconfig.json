@@ -5,13 +5,19 @@
     "moduleResolution": "Node",
     "outDir": "dist",
     "rootDir": ".",
+    "baseUrl": ".",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": true,
+    "composite": true,
+    "paths": {
+      "@robotman/shared": ["../shared/index.ts"]
+    },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts", "__tests__/**/*.ts", "../shared/events.ts"]
+  "include": ["src/**/*.ts", "__tests__/**/*.ts"],
+  "references": [{ "path": "../shared" }]
 }

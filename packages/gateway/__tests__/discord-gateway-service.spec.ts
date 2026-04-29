@@ -1,6 +1,6 @@
 import { GatewayDispatchEvents, GatewayIntentBits, Routes } from "discord-api-types/v10";
 
-import { EventType } from "../../shared/events";
+import { EventType } from "@robotman/shared";
 import {
 	type DiscordGatewayManager,
 	DiscordGatewayService,

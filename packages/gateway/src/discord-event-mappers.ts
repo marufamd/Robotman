@@ -10,7 +10,7 @@ import {
 	type DiscordInteractionPayload,
 	type DiscordMessagePayload,
 	type RobotmanEvent,
-} from "../../shared/events";
+} from "@robotman/shared";
 
 type JsonObject = Record<string, unknown>;
 
@@ -78,20 +78,22 @@ export function createDiscordInteractionEvent(
 		isRecord(interaction.member) && isRecord(interaction.member.user)
 			? interaction.member.user
 			: undefined;
-	const interactionData = isRecord(interaction.data) ? interaction.data : undefined;
+	const interactionData: JsonObject = isRecord(interaction.data)
+		? interaction.data
+		: {};
 
 	return {
 		eventId: randomUUID(),
 		timestamp: new Date().toISOString(),
 		type: EventType.DISCORD_INTERACTION,
-		payload: {
-			interactionId: interaction.id,
-			interactionToken: interaction.token,
-			guildId: interaction.guild_id ?? "",
-			channelId: interaction.channel_id,
-			userId: readString(memberUser?.id) || readString(interaction.user?.id),
-			commandName: readString(interactionData?.name),
-			options: readOptions(interactionData?.options),
-		},
-	};
+			payload: {
+				interactionId: interaction.id,
+				interactionToken: interaction.token,
+				guildId: interaction.guild_id ?? "",
+				channelId: interaction.channel_id ?? "",
+				userId: readString(memberUser?.id) || readString(interaction.user?.id),
+				commandName: readString(interactionData.name),
+				options: readOptions(interactionData.options),
+			},
+		};
 }

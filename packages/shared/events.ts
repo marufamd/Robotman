@@ -88,6 +88,7 @@ export interface DashboardResponseUpdatedPayload {
 
 export interface DashboardSettingsUpdatedPayload {
 	guildId: string;
+	prefix: string | null;
 	isRankingEnabled: boolean;
 	auditLogChannelId: string | null;
 }

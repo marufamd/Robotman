@@ -34,11 +34,12 @@ module Rabbitmq
       )
     end
 
-    def publish_settings_updated!(guild_id:, is_ranking_enabled:, audit_log_channel_id:, traceparent: @traceparent)
+    def publish_settings_updated!(guild_id:, prefix:, is_ranking_enabled:, audit_log_channel_id:, traceparent: @traceparent)
       publish!(
         type: SETTINGS_UPDATED_TYPE,
         payload: {
           guildId: guild_id,
+          prefix: prefix,
           isRankingEnabled: is_ranking_enabled,
           auditLogChannelId: audit_log_channel_id
         },

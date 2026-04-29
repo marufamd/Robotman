@@ -1,8 +1,7 @@
 import { Buffer } from "node:buffer";
 
+import type { EventType, RobotmanEvent } from "@robotman/shared";
 import { connect, type Options } from "amqplib";
-
-import type { EventType, RobotmanEvent } from "../../shared/events";
 
 export interface RabbitMqChannel {
 	assertExchange(

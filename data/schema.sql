@@ -36,6 +36,7 @@ CREATE INDEX idx_history_resource ON history(resource_type, resource_id);
 
 CREATE TABLE guild_settings (
     guild TEXT PRIMARY KEY,
+    prefix VARCHAR(15),
     is_ranking_enabled BOOLEAN NOT NULL DEFAULT false,
     audit_log_channel_id TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

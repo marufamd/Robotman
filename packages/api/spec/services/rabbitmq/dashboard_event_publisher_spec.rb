@@ -111,6 +111,7 @@ RSpec.describe Rabbitmq::DashboardEventPublisher do
     it "publishes the settings invalidation payload" do
       publisher.publish_settings_updated!(
         guild_id: "guild-1",
+        prefix: "!",
         is_ranking_enabled: true,
         audit_log_channel_id: "channel-1"
       )
@@ -122,6 +123,7 @@ RSpec.describe Rabbitmq::DashboardEventPublisher do
       expect(parsed_body["type"]).to eq("dashboard.settings.updated")
       expect(parsed_body["payload"]).to eq(
         "guildId" => "guild-1",
+        "prefix" => "!",
         "isRankingEnabled" => true,
         "auditLogChannelId" => "channel-1"
       )

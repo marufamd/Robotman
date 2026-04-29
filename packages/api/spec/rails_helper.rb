@@ -1,16 +1,22 @@
+ENV["RAILS_ENV"] ||= "test"
+
 require "spec_helper"
-require "active_record"
+require File.expand_path("../config/environment", __dir__)
+require "rspec/rails"
+require "webmock/rspec"
 
-models_path = File.expand_path("../app/models", __dir__)
-$LOAD_PATH.unshift(models_path) unless $LOAD_PATH.include?(models_path)
+abort("The Rails environment is running in production mode!") if Rails.env.production?
 
-require "application_record"
-require "auto_response"
-require "history"
-require "guild_setting"
-require "rank"
+begin
+  ActiveRecord::Migration.maintain_test_schema!
+rescue ActiveRecord::NoDatabaseError, PG::ConnectionBad
+  warn "Test database unavailable; database-backed specs may require setup."
+end
 
-services_path = File.expand_path("../app/services", __dir__)
-$LOAD_PATH.unshift(services_path) unless $LOAD_PATH.include?(services_path)
+WebMock.disable_net_connect!(allow_localhost: true)
 
-require "rabbitmq/dashboard_event_publisher"
+RSpec.configure do |config|
+  config.use_transactional_fixtures = true
+  config.infer_spec_type_from_file_location!
+  config.filter_rails_from_backtrace!
+end

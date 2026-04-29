@@ -1,0 +1,68 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+@import "tailwindcss";
+@import "@skyra/discord-components-core/dist/style.css";
+
+@theme {
+	--font-sans: "Inter", sans-serif;
+	--font-display: "Manrope", sans-serif;
+	--color-sunset-50: #ffefd4;
+	--color-sunset-200: #ffd48d;
+	--color-sunset-300: #ffb689;
+	--color-sunset-400: #fdbb2d;
+	--color-sunset-500: #ff8c37;
+	--color-sunset-700: #672f00;
+	--color-night-950: #031427;
+	--color-night-900: #0b1c30;
+	--color-night-850: #102034;
+	--color-night-800: #1b2b3f;
+	--color-night-700: #26364a;
+	--color-night-200: #d3e4fe;
+	--color-night-100: #edf4ff;
+	--shadow-sunset: 0 24px 64px rgba(255, 140, 55, 0.18);
+}
+
+:root {
+	color-scheme: dark;
+	background:
+		radial-gradient(circle at top left, rgba(255, 140, 55, 0.24), transparent 28%),
+		radial-gradient(circle at top right, rgba(253, 187, 45, 0.16), transparent 22%),
+		linear-gradient(180deg, #031427 0%, #07182c 100%);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: var(--font-sans);
+	background:
+		radial-gradient(circle at top left, rgba(255, 140, 55, 0.2), transparent 30%),
+		radial-gradient(circle at top right, rgba(253, 187, 45, 0.18), transparent 24%),
+		linear-gradient(180deg, #031427 0%, #07182c 100%);
+	color: var(--color-night-200);
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+button,
+input,
+textarea {
+	font: inherit;
+}
+
+.glass-panel {
+	background: linear-gradient(180deg, rgba(27, 43, 63, 0.78), rgba(11, 28, 48, 0.92));
+	backdrop-filter: blur(18px);
+	border: 1px solid rgba(211, 228, 254, 0.08);
+	box-shadow: var(--shadow-sunset);
+}
