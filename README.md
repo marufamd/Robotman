@@ -1,4 +1,7 @@
-# Robotman
+<div align="center">
+  <img src="packages/dashboard/public/favicon.png" width="100" height="100" alt="Robotman Logo" />
+  <h1>Robotman</h1>
+</div>
 
 Robotman is a high-performance, distributed Discord bot infrastructure designed for scalability and extreme UI performance. It utilizes a microservice architecture communicating via a RabbitMQ event bus to handle large-scale automation and guild management.
 
