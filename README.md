@@ -55,20 +55,18 @@ The administrative frontend built with TanStack Start, Router, and Query. It pro
 
 ### Local Setup
 
-1. Clone the repository.
-2. Install dependencies:
+1.  Clone the repository.
+2.  Configure environment variables:
     ```bash
-    npm install
-    bundle install --gemfile packages/api/Gemfile
+    cp .env.example .env
     ```
-3. Start infrastructure:
+    Fill in the `.env` file with your Discord Application credentials and database preferences.
+3.  Start the infrastructure and services:
     ```bash
     docker compose up -d
     ```
-4. Run development servers:
-    ```bash
-    npm run dev
-    ```
+
+The dashboard will be live on `http://localhost:3000`.
 
 ## Development Protocol
 
