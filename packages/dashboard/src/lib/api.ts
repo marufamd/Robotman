@@ -1,7 +1,11 @@
 import {
+	AuditLogPageSchema,
 	AutoResponseSchema,
 	GuildSettingsSchema,
 	GuildSummarySchema,
+	type AuditLogAction,
+	type AuditLogPage,
+	type AuditLogResourceType,
 	type GuildSettings,
 	type UpsertAutoResponse,
 	UpsertAutoResponseSchema,
@@ -16,6 +20,14 @@ type Parser<T> = {
 const GuildSummaryListSchema = GuildSummarySchema.array();
 const AutoResponseListSchema = AutoResponseSchema.array();
 let csrfTokenPromise: Promise<string> | null = null;
+
+export interface AuditLogQueryParams {
+	page: number;
+	pageSize: number;
+	q?: string;
+	action?: AuditLogAction;
+	resourceType?: AuditLogResourceType;
+}
 
 async function readError(response: Response) {
 	try {
@@ -141,6 +153,30 @@ export function listGuilds() {
 
 export function getGuildSettings(guildId: string) {
 	return fetchJson(`/guilds/${guildId}/settings`, { method: "GET" }, GuildSettingsSchema);
+}
+
+export function listAuditLog(guildId: string, params: AuditLogQueryParams): Promise<AuditLogPage> {
+	const searchParams = new URLSearchParams();
+	searchParams.set("page", params.page.toString());
+	searchParams.set("pageSize", params.pageSize.toString());
+
+	if (params.q) {
+		searchParams.set("q", params.q);
+	}
+
+	if (params.action) {
+		searchParams.set("action", params.action);
+	}
+
+	if (params.resourceType) {
+		searchParams.set("resourceType", params.resourceType);
+	}
+
+	return fetchJson(
+		`/guilds/${guildId}/audit-log?${searchParams.toString()}`,
+		{ method: "GET" },
+		AuditLogPageSchema,
+	);
 }
 
 export function updateGuildSettings(guildId: string, payload: GuildSettings) {

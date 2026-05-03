@@ -29,7 +29,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 					"High-performance Discord bot management built for guild operators.",
 				),
 			],
-			links: [{ rel: "stylesheet", href: appCss }],
+			links: [
+				{ rel: "stylesheet", href: appCss },
+				{ rel: "icon", type: "image/png", href: "/favicon.png" },
+			],
 		}),
 		errorComponent: (props) => (
 			<RootDocument>

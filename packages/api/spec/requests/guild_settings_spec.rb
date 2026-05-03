@@ -10,6 +10,7 @@ RSpec.describe "GuildSettings", type: :request do
 
   before do
     Rails.cache.clear
+    History.delete_all
     allow(Discord::OauthClient).to receive(:new).and_return(client)
     allow(Rabbitmq::DashboardEventPublisher).to receive(:new).and_return(publisher)
     allow(client).to receive(:authorization_url).and_return("https://discord.com/oauth2/authorize?state=known-state")
@@ -146,6 +147,22 @@ RSpec.describe "GuildSettings", type: :request do
         audit_log_channel_id: "channel-2",
         traceparent: nil
       )
+      expect(History.last).to have_attributes(
+        guild: "guild-1",
+        user_id: "user-1",
+        user_username: "Robotman",
+        action: "CREATE",
+        resource_type: "GUILD_SETTINGS",
+        resource_id: "guild-1",
+        resource_name: "Server Settings"
+      )
+      expect(History.last[:changes]).to eq(
+        "after" => {
+          "prefix" => "?",
+          "isRankingEnabled" => true,
+          "auditLogChannelId" => "channel-2"
+        }
+      )
     end
 
     it "updates an existing row" do
@@ -172,6 +189,24 @@ RSpec.describe "GuildSettings", type: :request do
         prefix: nil,
         is_ranking_enabled: true,
         audit_log_channel_id: "channel-3"
+      )
+      expect(History.last).to have_attributes(
+        action: "UPDATE",
+        resource_type: "GUILD_SETTINGS",
+        resource_id: "guild-1",
+        resource_name: "Server Settings"
+      )
+      expect(History.last[:changes]).to eq(
+        "before" => {
+          "prefix" => "!",
+          "isRankingEnabled" => false,
+          "auditLogChannelId" => nil
+        },
+        "after" => {
+          "prefix" => nil,
+          "isRankingEnabled" => true,
+          "auditLogChannelId" => "channel-3"
+        }
       )
     end
   end

@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { GuildSummary } from "@robotman/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { ArrowRight } from "lucide-react";
 
 export function GuildCard({ guild }: { guild: GuildSummary }) {
@@ -16,13 +17,21 @@ export function GuildCard({ guild }: { guild: GuildSummary }) {
 
 				<div className="flex flex-1 flex-col px-6 pb-6 pt-0">
 					<div className="relative -mt-10 mb-4 flex items-end justify-between">
-						<div className="flex size-20 items-center justify-center overflow-hidden rounded-2xl border-4 border-night-900 bg-night-950 shadow-xl">
-							<img
+						<Avatar className="size-20 rounded-2xl border-4 border-night-900 bg-night-950 shadow-xl">
+							<AvatarImage
 								alt={`${guild.name} icon`}
-								className="size-full object-cover"
-								src={guild.iconUrl || "/icon.png"}
+								src={guild.iconUrl || undefined}
+								className="rounded-2xl"
 							/>
-						</div>
+							<AvatarFallback className="rounded-2xl bg-night-800 font-display text-xl font-bold text-white">
+								{guild.name
+									.split(" ")
+									.map((n) => n[0])
+									.join("")
+									.substring(0, 2)
+									.toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
 						<span className="mb-2 rounded-full border border-sunset-500/20 bg-sunset-500/10 px-2.5 py-1 text-xs font-semibold tracking-wide text-sunset-400">
 							{guild.isOwner ? "Owner" : "Moderator"}
 						</span>

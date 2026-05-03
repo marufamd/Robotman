@@ -156,6 +156,16 @@ export function DashboardShell({ session }: { session: Session }) {
 								)}
 								onClick={() => setIsSidebarOpen(false)}
 							/>
+							<NavLink
+								to="/guilds/$guildId/audit-log"
+								params={{ guildId }}
+								label="Audit Log"
+								icon={History}
+								isActive={location.pathname.endsWith(
+									"/audit-log",
+								)}
+								onClick={() => setIsSidebarOpen(false)}
+							/>
 						</>
 					)}
 				</ul>

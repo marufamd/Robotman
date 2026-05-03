@@ -17,6 +17,7 @@ RSpec.describe "AutoResponses", type: :request do
   before do
     Rails.cache.clear
     AutoResponse.delete_all
+    History.delete_all
     allow(Discord::OauthClient).to receive(:new).and_return(client)
     allow(Rabbitmq::DashboardEventPublisher).to receive(:new).and_return(publisher)
     allow(client).to receive(:authorization_url).and_return("https://discord.com/oauth2/authorize?state=known-state")
@@ -152,6 +153,26 @@ RSpec.describe "AutoResponses", type: :request do
         },
         traceparent: "00-abc-def-01"
       )
+      expect(History.last).to have_attributes(
+        guild: "guild-1",
+        user_id: "user-1",
+        user_username: "Robotman",
+        action: "CREATE",
+        resource_type: "AUTO_RESPONSE",
+        resource_id: created.id,
+        resource_name: "welcome"
+      )
+      expect(History.last[:changes]).to eq(
+        "after" => {
+          "trigger" => "welcome",
+          "type" => "Regular",
+          "content" => "hello",
+          "aliases" => ["hi", "hey"],
+          "wildcard" => false,
+          "embed" => true,
+          "embedColor" => 16_747_575
+        }
+      )
     end
   end
 
@@ -199,6 +220,32 @@ RSpec.describe "AutoResponses", type: :request do
           embed_color: 255
         },
         traceparent: "00-upd-def-01"
+      )
+      expect(History.last).to have_attributes(
+        action: "UPDATE",
+        resource_type: "AUTO_RESPONSE",
+        resource_id: auto_response.id,
+        resource_name: "welcome-back"
+      )
+      expect(History.last[:changes]).to eq(
+        "before" => {
+          "trigger" => "welcome",
+          "type" => "Regular",
+          "content" => "hello",
+          "aliases" => ["hi"],
+          "wildcard" => false,
+          "embed" => true,
+          "embedColor" => 16_747_575
+        },
+        "after" => {
+          "trigger" => "welcome-back",
+          "type" => "Moderator",
+          "content" => "updated",
+          "aliases" => ["updated"],
+          "wildcard" => true,
+          "embed" => false,
+          "embedColor" => 255
+        }
       )
     end
 
@@ -249,6 +296,23 @@ RSpec.describe "AutoResponses", type: :request do
         action: "DELETE",
         response_id: auto_response.id,
         traceparent: "00-del-def-01"
+      )
+      expect(History.last).to have_attributes(
+        action: "DELETE",
+        resource_type: "AUTO_RESPONSE",
+        resource_id: auto_response.id,
+        resource_name: "welcome"
+      )
+      expect(History.last[:changes]).to eq(
+        "before" => {
+          "trigger" => "welcome",
+          "type" => "Regular",
+          "content" => "hello",
+          "aliases" => ["hi"],
+          "wildcard" => false,
+          "embed" => true,
+          "embedColor" => 16_747_575
+        }
       )
     end
 

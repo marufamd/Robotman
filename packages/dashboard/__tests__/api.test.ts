@@ -1,9 +1,10 @@
-import { AutoResponseType } from "@robotman/shared";
+import { AuditLogAction, AuditLogResourceType, AutoResponseType } from "@robotman/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	createAutoResponse,
 	deleteAutoResponse,
 	getCurrentSession,
+	listAuditLog,
 	listAutoResponses,
 	updateAutoResponse,
 } from "../src/lib/api";
@@ -179,6 +180,69 @@ describe("auto response api helpers", () => {
 			expect.objectContaining({
 				credentials: "include",
 				method: "DELETE",
+			}),
+		);
+	});
+});
+
+describe("audit log api helpers", () => {
+	beforeEach(() => {
+		vi.stubEnv("DASHBOARD_API_BASE_URL", "http://localhost:3001");
+		vi.unstubAllGlobals();
+	});
+
+	it("lists paginated audit log entries with filters", async () => {
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						entries: [
+							{
+								id: "2a4ddc64-6e09-4726-b14c-6cff06d7d6ee",
+								guildId: "guild-1",
+								userId: "user-1",
+								userUsername: "Robotman",
+								action: "UPDATE",
+								resourceType: "AUTO_RESPONSE",
+								resourceId: "response-1",
+								resourceName: "welcome",
+								changes: {
+									before: { trigger: "welcome" },
+									after: { trigger: "welcome-back" },
+								},
+								createdAt: "2026-04-28T12:00:00.000Z",
+							},
+						],
+						page: 2,
+						pageSize: 25,
+						total: 51,
+						totalPages: 3,
+					}),
+					{ status: 200 },
+				),
+			),
+		);
+
+		await expect(
+			listAuditLog("guild-1", {
+				page: 2,
+				pageSize: 25,
+				q: "welcome",
+				action: AuditLogAction.Update,
+				resourceType: AuditLogResourceType.AutoResponse,
+			}),
+		).resolves.toMatchObject({
+			page: 2,
+			pageSize: 25,
+			total: 51,
+			totalPages: 3,
+		});
+		expect(fetch).toHaveBeenCalledWith(
+			"http://localhost:3001/guilds/guild-1/audit-log?page=2&pageSize=25&q=welcome&action=UPDATE&resourceType=AUTO_RESPONSE",
+			expect.objectContaining({
+				credentials: "include",
+				method: "GET",
 			}),
 		);
 	});

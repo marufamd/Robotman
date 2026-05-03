@@ -27,6 +27,17 @@ class ApplicationController < ActionController::API
     render json: { message: "Unauthorized" }, status: :unauthorized
   end
 
+  def current_user_id
+    current_session_user[:userId] || current_session_user[:user_id] || current_session_user[:id]
+  end
+
+  def current_user_display_name
+    current_session_user[:displayName] ||
+      current_session_user[:display_name] ||
+      current_session_user[:global_name] ||
+      current_session_user[:username]
+  end
+
   def render_oauth_error(error)
     Rails.logger.error("discord_oauth_error message=#{error.message}")
     render json: { message: error.message }, status: :bad_gateway

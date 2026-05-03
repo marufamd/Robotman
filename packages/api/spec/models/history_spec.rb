@@ -27,13 +27,13 @@ RSpec.describe History, type: :model do
   end
 
   it "accepts structured JSONB changes content" do
-    history.changes = {
+    history[:changes] = {
       before: { content: "old" },
       after: { content: "new" }
     }
 
     expect(history).to be_valid
-    expect(history.changes).to eq(
+    expect(history[:changes]).to eq(
       "before" => { "content" => "old" },
       "after" => { "content" => "new" }
     )

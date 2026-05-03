@@ -11,6 +11,17 @@ class AutoResponsesController < ApplicationController
     auto_response = AutoResponse.new(create_attributes)
 
     if auto_response.save
+      AuditLog::HistoryWriter.record!(
+        guild: guild_id,
+        user_id: current_user_id,
+        user_username: current_user_display_name,
+        action: "CREATE",
+        resource_type: "AUTO_RESPONSE",
+        resource_id: auto_response.id,
+        resource_name: auto_response.name,
+        after: audit_log_snapshot(auto_response)
+      )
+
       dashboard_event_publisher.publish_response_updated!(
         guild_id: auto_response.guild,
         action: "CREATE",
@@ -26,7 +37,21 @@ class AutoResponsesController < ApplicationController
   end
 
   def update
+    before_state = audit_log_snapshot(@auto_response)
+
     if @auto_response.update(update_attributes)
+      AuditLog::HistoryWriter.record!(
+        guild: guild_id,
+        user_id: current_user_id,
+        user_username: current_user_display_name,
+        action: "UPDATE",
+        resource_type: "AUTO_RESPONSE",
+        resource_id: @auto_response.id,
+        resource_name: @auto_response.name,
+        before: before_state,
+        after: audit_log_snapshot(@auto_response)
+      )
+
       dashboard_event_publisher.publish_response_updated!(
         guild_id: @auto_response.guild,
         action: "UPDATE",
@@ -43,7 +68,20 @@ class AutoResponsesController < ApplicationController
 
   def destroy
     response_id = @auto_response.id
+    before_state = audit_log_snapshot(@auto_response)
+    resource_name = @auto_response.name
     @auto_response.destroy!
+
+    AuditLog::HistoryWriter.record!(
+      guild: guild_id,
+      user_id: current_user_id,
+      user_username: current_user_display_name,
+      action: "DELETE",
+      resource_type: "AUTO_RESPONSE",
+      resource_id: response_id,
+      resource_name: resource_name,
+      before: before_state
+    )
 
     dashboard_event_publisher.publish_response_updated!(
       guild_id: guild_id,
@@ -147,15 +185,16 @@ class AutoResponsesController < ApplicationController
     }
   end
 
-  def current_user_id
-    current_session_user[:userId] || current_session_user[:user_id] || current_session_user[:id]
-  end
-
-  def current_user_display_name
-    current_session_user[:displayName] ||
-      current_session_user[:display_name] ||
-      current_session_user[:global_name] ||
-      current_session_user[:username]
+  def audit_log_snapshot(response)
+    {
+      trigger: response.name,
+      type: response.type,
+      content: response.content,
+      aliases: response.aliases,
+      wildcard: response.wildcard,
+      embed: response.embed,
+      embedColor: response.embed_color
+    }
   end
 
   def ensure_guild_access!

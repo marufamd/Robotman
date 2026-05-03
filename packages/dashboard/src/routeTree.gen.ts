@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedGuildsIndexRouteImport } from './routes/_authenticated/guilds/index'
 import { Route as AuthenticatedGuildsGuildIdSettingsRouteImport } from './routes/_authenticated/guilds/$guildId/settings'
+import { Route as AuthenticatedGuildsGuildIdAuditLogRouteImport } from './routes/_authenticated/guilds/$guildId/audit-log'
 import { Route as AuthenticatedGuildsGuildIdAutoResponsesIndexRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/index'
 import { Route as AuthenticatedGuildsGuildIdAutoResponsesNewRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/new'
 import { Route as AuthenticatedGuildsGuildIdAutoResponsesResponseIdRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/$responseId'
@@ -44,6 +45,12 @@ const AuthenticatedGuildsGuildIdSettingsRoute =
     path: '/guilds/$guildId/settings',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedGuildsGuildIdAuditLogRoute =
+  AuthenticatedGuildsGuildIdAuditLogRouteImport.update({
+    id: '/guilds/$guildId/audit-log',
+    path: '/guilds/$guildId/audit-log',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedGuildsGuildIdAutoResponsesIndexRoute =
   AuthenticatedGuildsGuildIdAutoResponsesIndexRouteImport.update({
     id: '/guilds/$guildId/auto-responses/',
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/guilds/': typeof AuthenticatedGuildsIndexRoute
+  '/guilds/$guildId/audit-log': typeof AuthenticatedGuildsGuildIdAuditLogRoute
   '/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
   '/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
   '/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/guilds': typeof AuthenticatedGuildsIndexRoute
+  '/guilds/$guildId/audit-log': typeof AuthenticatedGuildsGuildIdAuditLogRoute
   '/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
   '/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
   '/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/guilds/': typeof AuthenticatedGuildsIndexRoute
+  '/_authenticated/guilds/$guildId/audit-log': typeof AuthenticatedGuildsGuildIdAuditLogRoute
   '/_authenticated/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
   '/_authenticated/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
   '/_authenticated/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/guilds/'
+    | '/guilds/$guildId/audit-log'
     | '/guilds/$guildId/settings'
     | '/guilds/$guildId/auto-responses/$responseId'
     | '/guilds/$guildId/auto-responses/new'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/guilds'
+    | '/guilds/$guildId/audit-log'
     | '/guilds/$guildId/settings'
     | '/guilds/$guildId/auto-responses/$responseId'
     | '/guilds/$guildId/auto-responses/new'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/guilds/'
+    | '/_authenticated/guilds/$guildId/audit-log'
     | '/_authenticated/guilds/$guildId/settings'
     | '/_authenticated/guilds/$guildId/auto-responses/$responseId'
     | '/_authenticated/guilds/$guildId/auto-responses/new'
@@ -166,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGuildsGuildIdSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/guilds/$guildId/audit-log': {
+      id: '/_authenticated/guilds/$guildId/audit-log'
+      path: '/guilds/$guildId/audit-log'
+      fullPath: '/guilds/$guildId/audit-log'
+      preLoaderRoute: typeof AuthenticatedGuildsGuildIdAuditLogRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/guilds/$guildId/auto-responses/': {
       id: '/_authenticated/guilds/$guildId/auto-responses/'
       path: '/guilds/$guildId/auto-responses'
@@ -192,6 +212,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedGuildsIndexRoute: typeof AuthenticatedGuildsIndexRoute
+  AuthenticatedGuildsGuildIdAuditLogRoute: typeof AuthenticatedGuildsGuildIdAuditLogRoute
   AuthenticatedGuildsGuildIdSettingsRoute: typeof AuthenticatedGuildsGuildIdSettingsRoute
   AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
   AuthenticatedGuildsGuildIdAutoResponsesNewRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
@@ -200,6 +221,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedGuildsIndexRoute: AuthenticatedGuildsIndexRoute,
+  AuthenticatedGuildsGuildIdAuditLogRoute:
+    AuthenticatedGuildsGuildIdAuditLogRoute,
   AuthenticatedGuildsGuildIdSettingsRoute:
     AuthenticatedGuildsGuildIdSettingsRoute,
   AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute:

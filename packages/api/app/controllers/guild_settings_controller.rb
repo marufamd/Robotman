@@ -8,9 +8,23 @@ class GuildSettingsController < ApplicationController
 
   def update
     settings = settings_record || GuildSetting.new(guild: guild_id)
+    action = settings.persisted? ? "UPDATE" : "CREATE"
+    before_state = settings.persisted? ? audit_log_snapshot(settings) : nil
     settings.assign_attributes(settings_attributes)
 
     if settings.save
+      AuditLog::HistoryWriter.record!(
+        guild: guild_id,
+        user_id: current_user_id,
+        user_username: current_user_display_name,
+        action: action,
+        resource_type: "GUILD_SETTINGS",
+        resource_id: guild_id,
+        resource_name: "Server Settings",
+        before: before_state,
+        after: audit_log_snapshot(settings)
+      )
+
       dashboard_event_publisher.publish_settings_updated!(
         guild_id: settings.guild,
         prefix: settings.prefix.presence,
@@ -57,6 +71,14 @@ class GuildSettingsController < ApplicationController
   def serialize_settings(settings)
     {
       guildId: settings.guild,
+      prefix: settings.prefix.presence,
+      isRankingEnabled: settings.is_ranking_enabled,
+      auditLogChannelId: settings.audit_log_channel_id.presence
+    }
+  end
+
+  def audit_log_snapshot(settings)
+    {
       prefix: settings.prefix.presence,
       isRankingEnabled: settings.is_ranking_enabled,
       auditLogChannelId: settings.audit_log_channel_id.presence

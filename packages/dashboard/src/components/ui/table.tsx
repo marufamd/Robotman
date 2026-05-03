@@ -42,7 +42,7 @@ export function TH({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
 export function TD({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
 	return (
 		<td
-			className={cn("border-b border-white/8 px-4 py-4 align-top text-sm text-night-100", className)}
+			className={cn("border-b border-white/8 px-4 py-4 align-middle text-sm text-night-100", className)}
 			{...props}
 		/>
 	);
