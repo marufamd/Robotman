@@ -15,15 +15,15 @@ import {
 	type RmqContext,
 } from "@nestjs/microservices";
 
-import { CommandParserService } from "../../../command-parser/command-parser.service";
-import { WORKER_RABBITMQ_CLIENT } from "./ping.constants";
-import { PingService } from "./ping.service";
+import { CommandParserService } from "../command-parser/command-parser.service";
+import { WORKER_RABBITMQ_CLIENT } from "./commands.constants";
+import { CommandsRegistryService } from "./commands.registry";
 
 @Controller()
-export class PingMessageController {
+export class MessageCommandController {
 	public constructor(
 		private readonly commandParserService: CommandParserService,
-		private readonly pingService: PingService,
+		private readonly commandsRegistryService: CommandsRegistryService,
 		@Inject(WORKER_RABBITMQ_CLIENT)
 		private readonly rabbitMqClient: ClientProxy,
 	) {}
@@ -37,18 +37,31 @@ export class PingMessageController {
 			event.payload.content,
 			event.payload.guildId,
 			event.payload.isBot,
+			this.commandsRegistryService.getPrefixCommandDefinitions(),
+			event.payload.userId,
 		);
 
-		if (!parsedCommand || parsedCommand.commandName !== "ping") {
+		if (!parsedCommand) {
 			return;
 		}
 
-		const result = this.pingService.execute();
+		const commandHandler = this.commandsRegistryService.getCommandHandler(
+			parsedCommand.commandName,
+		);
+
+		if (!commandHandler?.executePrefix) {
+			return;
+		}
+
+		const result = await commandHandler.executePrefix({
+			event,
+			parsedCommand,
+		});
 		const outboundEvent: RobotmanEvent<OutboundMessagePayload> = {
 			eventId: randomUUID(),
 			payload: {
+				...result,
 				channelId: event.payload.channelId,
-				embeds: result.embeds,
 			},
 			timestamp: new Date().toISOString(),
 			traceparent: event.traceparent,

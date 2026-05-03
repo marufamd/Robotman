@@ -1,0 +1,15 @@
+.git
+.DS_Store
+node_modules
+dist
+coverage
+.output
+.turbo
+.cache
+tmp
+log
+vendor/bundle
+packages/*/node_modules
+packages/*/dist
+packages/*/coverage
+packages/*/.output

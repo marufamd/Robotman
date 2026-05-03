@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@robotman/shared": "file:../shared",
+    "amqplib": "^0.10.9",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/microservices": "^11.1.6",

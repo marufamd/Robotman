@@ -1,3 +1,5 @@
+import type { AutoResponseType } from "./dashboard";
+
 // ==========================================
 // 1. Core Event Envelope
 // Every message sent to RabbitMQ must follow this structure.
@@ -77,7 +79,7 @@ export interface DashboardResponseUpdatedPayload {
 	// If created/updated, send the new state so the cache can hydrate without a DB hit
 	data?: {
 		name: string;
-		type: string;
+		type: AutoResponseType;
 		content: string;
 		aliases: string[];
 		wildcard: boolean;

@@ -7,4 +7,5 @@ Rails.application.configure do
   config.action_controller.perform_caching = false
   config.action_dispatch.show_exceptions = false
   config.active_support.deprecation = :stderr
+  config.hosts.clear
 end

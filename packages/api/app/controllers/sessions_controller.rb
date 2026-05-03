@@ -45,7 +45,7 @@ class SessionsController < ApplicationController
 
   def show
     if current_session_user
-      render json: current_session_user.slice(:userId, :username, :avatarUrl)
+      render json: current_session_user.slice(:userId, :username, :displayName, :avatarUrl)
     else
       render json: { message: "Unauthorized" }, status: :unauthorized
     end

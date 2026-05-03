@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   postgres:
     image: postgres:18-alpine
@@ -8,10 +6,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./data/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
       - robotman_net
@@ -20,11 +23,21 @@ services:
   redis:
     image: redis:alpine
     container_name: robotman_redis
+    command: ["redis-server", "--maxmemory", "1gb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "6379:6379"
     networks:
       - robotman_net
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -32,9 +45,102 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - robotman_net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    container_name: robotman_api
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    networks:
+      - robotman_net
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: packages/gateway/Dockerfile
+    container_name: robotman_gateway
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - robotman_net
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: packages/worker/Dockerfile
+    container_name: robotman_worker
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - robotman_net
+    restart: unless-stopped
+
+  auto-response:
+    build:
+      context: .
+      dockerfile: packages/auto-response/Dockerfile
+    container_name: robotman_auto_response
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - robotman_net
+    restart: unless-stopped
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: packages/dashboard/Dockerfile
+      args:
+        DASHBOARD_API_BASE_URL: ${DASHBOARD_API_BASE_URL}
+        DASHBOARD_DISCORD_OAUTH_URL: ${DASHBOARD_DISCORD_OAUTH_URL}
+    container_name: robotman_dashboard
+    env_file:
+      - .env
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "3000:3000"
     networks:
       - robotman_net
     restart: unless-stopped

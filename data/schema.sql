@@ -33,6 +33,8 @@ CREATE TABLE history (
 
 CREATE INDEX idx_history_guild ON history(guild);
 CREATE INDEX idx_history_resource ON history(resource_type, resource_id);
+CREATE INDEX idx_auto_responses_guild ON auto_responses(guild);
+CREATE INDEX idx_ranks_guild ON ranks(guild);
 
 CREATE TABLE guild_settings (
     guild TEXT PRIMARY KEY,

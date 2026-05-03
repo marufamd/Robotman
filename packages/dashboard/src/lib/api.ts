@@ -15,6 +15,7 @@ type Parser<T> = {
 
 const GuildSummaryListSchema = GuildSummarySchema.array();
 const AutoResponseListSchema = AutoResponseSchema.array();
+let csrfTokenPromise: Promise<string> | null = null;
 
 async function readError(response: Response) {
 	try {
@@ -30,12 +31,11 @@ async function fetchJson<T>(
 	init: RequestInit,
 	schema: Parser<T>,
 ): Promise<T> {
+	const headers = await buildHeaders(init);
+
 	const response = await fetch(`${getApiBaseUrl()}${input}`, {
 		...init,
-		headers: {
-			"Content-Type": "application/json",
-			...(init.headers ?? {}),
-		},
+		headers,
 		credentials: "include",
 	});
 
@@ -46,10 +46,83 @@ async function fetchJson<T>(
 	return schema.parse(await response.json());
 }
 
+async function buildHeaders(init: RequestInit) {
+	const headers = new Headers(init.headers);
+	headers.set("Content-Type", "application/json");
+
+	if (typeof window === "undefined") {
+		try {
+			const { getRequestHeader } = await import("@tanstack/react-start/server");
+			const cookie = getRequestHeader("cookie");
+			if (cookie) {
+				headers.set("cookie", cookie);
+			}
+		} catch {
+			// ignore
+		}
+	}
+
+	const method = (init.method ?? "GET").toUpperCase();
+	if (!["GET", "HEAD"].includes(method)) {
+		headers.set("X-CSRF-Token", await getCsrfToken(headers));
+	}
+
+	return headers;
+}
+
+async function getCsrfToken(existingHeaders?: Headers) {
+	if (!csrfTokenPromise) {
+		const headers = existingHeaders ? new Headers(existingHeaders) : undefined;
+
+		csrfTokenPromise = fetch(`${getApiBaseUrl()}/csrf`, {
+			headers,
+			credentials: "include",
+		})
+			.then(async (response) => {
+				if (!response.ok) {
+					throw new Error(await readError(response));
+				}
+
+				const payload = (await response.json()) as { csrfToken?: string };
+				if (!payload.csrfToken) {
+					throw new Error("Missing CSRF token");
+				}
+
+				return payload.csrfToken;
+			})
+			.catch((error) => {
+				csrfTokenPromise = null;
+				throw error;
+			});
+	}
+
+	return csrfTokenPromise;
+}
+
 export async function getCurrentSession(): Promise<Session | null> {
-	const response = await fetch(`${getApiBaseUrl()}/session`, {
-		credentials: "include",
-	});
+	let response: Response;
+
+	try {
+		const headers = new Headers();
+		if (typeof window === "undefined") {
+			try {
+				const { getRequestHeader } = await import("@tanstack/react-start/server");
+				const cookie = getRequestHeader("cookie");
+				if (cookie) {
+					headers.set("cookie", cookie);
+				}
+			} catch (e) {
+				// ignore
+			}
+		}
+
+		response = await fetch(`${getApiBaseUrl()}/session`, {
+			headers,
+			credentials: "include",
+		});
+	} catch {
+		return null;
+	}
 
 	if (response.status === 401) {
 		return null;
@@ -116,8 +189,10 @@ export function updateAutoResponse(
 }
 
 export async function deleteAutoResponse(guildId: string, responseId: string) {
+	const headers = await buildHeaders({ method: "DELETE" });
 	const response = await fetch(`${getApiBaseUrl()}/guilds/${guildId}/auto-responses/${responseId}`, {
 		method: "DELETE",
+		headers,
 		credentials: "include",
 	});
 

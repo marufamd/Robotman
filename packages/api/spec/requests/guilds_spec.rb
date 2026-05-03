@@ -2,12 +2,38 @@ require "rails_helper"
 
 RSpec.describe "Guilds", type: :request do
   let(:client) { instance_double(Discord::OauthClient) }
+  let(:guild_payload) do
+    [
+      {
+        "id" => "guild-1",
+        "name" => "Owned Guild",
+        "icon" => "icon-1",
+        "owner" => true,
+        "permissions" => "0"
+      },
+      {
+        "id" => "guild-2",
+        "name" => "Managed Guild",
+        "icon" => nil,
+        "owner" => false,
+        "permissions" => "32"
+      },
+      {
+        "id" => "guild-3",
+        "name" => "Read Only Guild",
+        "icon" => nil,
+        "owner" => false,
+        "permissions" => "0"
+      }
+    ]
+  end
   let(:csrf_token) do
     get "/csrf"
     response.parsed_body.fetch("csrfToken")
   end
 
   before do
+    Rails.cache.clear
     allow(Discord::OauthClient).to receive(:new).and_return(client)
     allow(client).to receive(:authorization_url).and_return("https://discord.com/oauth2/authorize?state=known-state")
     allow(client).to receive(:exchange_code_for_token).and_return("access_token" => "user-token")
@@ -21,31 +47,7 @@ RSpec.describe "Guilds", type: :request do
   end
 
   it "returns only guilds the user can manage in dashboard shape" do
-    allow(client).to receive(:fetch_current_guilds).with("user-token").and_return(
-      [
-        {
-          "id" => "guild-1",
-          "name" => "Owned Guild",
-          "icon" => "icon-1",
-          "owner" => true,
-          "permissions" => "0"
-        },
-        {
-          "id" => "guild-2",
-          "name" => "Managed Guild",
-          "icon" => nil,
-          "owner" => false,
-          "permissions" => "32"
-        },
-        {
-          "id" => "guild-3",
-          "name" => "Read Only Guild",
-          "icon" => nil,
-          "owner" => false,
-          "permissions" => "0"
-        }
-      ]
-    )
+    allow(client).to receive(:fetch_current_guilds).with("user-token").and_return(guild_payload)
 
     post "/auth/discord", params: { authenticity_token: csrf_token }
     get "/auth/discord/callback", params: { code: "oauth-code", state: "known-state" }
@@ -74,5 +76,16 @@ RSpec.describe "Guilds", type: :request do
     get "/guilds"
 
     expect(response).to have_http_status(:unauthorized)
+  end
+
+  it "caches manageable guilds to avoid repeated Discord calls" do
+    expect(client).to receive(:fetch_current_guilds).once.with("user-token").and_return(guild_payload)
+
+    post "/auth/discord", params: { authenticity_token: csrf_token }
+    get "/auth/discord/callback", params: { code: "oauth-code", state: "known-state" }
+
+    2.times { get "/guilds" }
+
+    expect(response).to have_http_status(:ok)
   end
 end

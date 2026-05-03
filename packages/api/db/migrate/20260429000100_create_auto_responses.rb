@@ -1,6 +1,6 @@
 class CreateAutoResponses < ActiveRecord::Migration[6.1]
   def change
-    create_table :auto_responses, id: :uuid do |t|
+    create_table :auto_responses, id: :uuid, if_not_exists: true do |t|
       t.text :guild, null: false
       t.text :name, null: false
       t.text :type, null: false
@@ -17,6 +17,6 @@ class CreateAutoResponses < ActiveRecord::Migration[6.1]
       t.timestamps
     end
 
-    add_index :auto_responses, %i[guild name], unique: true
+    add_index :auto_responses, %i[guild name], unique: true, if_not_exists: true
   end
 end

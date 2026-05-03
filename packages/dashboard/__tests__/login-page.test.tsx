@@ -22,7 +22,7 @@ describe("LoginPage", () => {
 			expect(screen.getByDisplayValue("csrf-token-123")).toBeInTheDocument();
 		});
 
-		const form = screen.getByRole("button", { name: /continue with discord/i }).closest("form");
+		const form = screen.getByRole("button", { name: /login with discord/i }).closest("form");
 
 		expect(form).toHaveAttribute("action", "https://discord.test/oauth");
 		expect(form).toHaveAttribute("method", "post");

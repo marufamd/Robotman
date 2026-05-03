@@ -16,12 +16,33 @@ export {
 	CommandParserService,
 	type ParsedCommand,
 } from "./command-parser/command-parser.service";
+export {
+	COMMAND_HANDLERS,
+	WORKER_RABBITMQ_CLIENT,
+} from "./commands/commands.constants";
+export { InteractionCommandController } from "./commands/interaction-command.controller";
+export { MessageCommandController } from "./commands/message-command.controller";
 export { CommandsModule } from "./commands/commands.module";
+export { CommandsRegistryService } from "./commands/commands.registry";
+export {
+	type CommandArgumentDefinition,
+	type CommandArgumentDefaultValue,
+	type CommandArgumentMatch,
+	type CommandArgumentResolutionContext,
+	type CommandArgumentResolver,
+	type CommandArgumentType,
+	type CommandArgumentTypeName,
+	type CommandDefinition,
+	type PrefixCommandDefinition,
+	type PrefixCommandExecutionContext,
+	type PrefixCommandExecutionResult,
+	type SlashCommandDefinition,
+	type SlashCommandExecutionContext,
+	type SlashCommandExecutionResult,
+	type CommandHandler,
+} from "./commands/command-handler";
 export { UtilitiesCommandsModule } from "./commands/utilities/utilities-commands.module";
-export { WORKER_RABBITMQ_CLIENT } from "./commands/utilities/ping/ping.constants";
-export { PingInteractionController } from "./commands/utilities/ping/ping-interaction.controller";
-export { PingMessageController } from "./commands/utilities/ping/ping-message.controller";
-export { PingModule } from "./commands/utilities/ping/ping.module";
+export { PingCommand } from "./commands/utilities/ping/ping.command";
 export {
 	PingService,
 	type PingCommandResult,

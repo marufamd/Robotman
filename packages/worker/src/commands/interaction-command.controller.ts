@@ -15,31 +15,37 @@ import {
 	type RmqContext,
 } from "@nestjs/microservices";
 
-import { WORKER_RABBITMQ_CLIENT } from "./ping.constants";
-import { PingService } from "./ping.service";
+import { WORKER_RABBITMQ_CLIENT } from "./commands.constants";
+import { CommandsRegistryService } from "./commands.registry";
 
 @Controller()
-export class PingInteractionController {
+export class InteractionCommandController {
 	public constructor(
-		private readonly pingService: PingService,
+		private readonly commandsRegistryService: CommandsRegistryService,
 		@Inject(WORKER_RABBITMQ_CLIENT)
 		private readonly rabbitMqClient: ClientProxy,
 	) {}
 
 	@EventPattern(EventType.DISCORD_INTERACTION)
-	public handleInteraction(
+	public async handleInteraction(
 		@Payload() event: RobotmanEvent<DiscordInteractionPayload>,
 		@Ctx() _context: RmqContext,
-	): void {
-		if (event.payload.commandName !== "ping") {
+	): Promise<void> {
+		const commandHandler = this.commandsRegistryService.getSlashCommandHandler(
+			event.payload.commandName.toLowerCase(),
+		);
+
+		if (!commandHandler?.executeSlash) {
 			return;
 		}
 
-		const result = this.pingService.execute();
+		const result = await commandHandler.executeSlash({
+			event,
+		});
 		const replyEvent: RobotmanEvent<OutboundInteractionReplyPayload> = {
 			eventId: randomUUID(),
 			payload: {
-				embeds: result.embeds,
+				...result,
 				interactionId: event.payload.interactionId,
 				interactionToken: event.payload.interactionToken,
 			},

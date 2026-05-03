@@ -1,7 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
-@import "@skyra/discord-components-core/dist/style.css";
-
 @theme {
 	--font-sans: "Inter", sans-serif;
 	--font-display: "Manrope", sans-serif;
@@ -23,10 +21,7 @@
 
 :root {
 	color-scheme: dark;
-	background:
-		radial-gradient(circle at top left, rgba(255, 140, 55, 0.24), transparent 28%),
-		radial-gradient(circle at top right, rgba(253, 187, 45, 0.16), transparent 22%),
-		linear-gradient(180deg, #031427 0%, #07182c 100%);
+	background-color: #031426;
 }
 
 * {
@@ -42,10 +37,7 @@ body,
 body {
 	margin: 0;
 	font-family: var(--font-sans);
-	background:
-		radial-gradient(circle at top left, rgba(255, 140, 55, 0.2), transparent 30%),
-		radial-gradient(circle at top right, rgba(253, 187, 45, 0.18), transparent 24%),
-		linear-gradient(180deg, #031427 0%, #07182c 100%);
+	background-color: #031426;
 	color: var(--color-night-200);
 }
 
@@ -61,8 +53,60 @@ textarea {
 }
 
 .glass-panel {
-	background: linear-gradient(180deg, rgba(27, 43, 63, 0.78), rgba(11, 28, 48, 0.92));
+	background: linear-gradient(
+		180deg,
+		rgba(27, 43, 63, 0.78),
+		rgba(11, 28, 48, 0.92)
+	);
 	backdrop-filter: blur(18px);
 	border: 1px solid rgba(211, 228, 254, 0.08);
 	box-shadow: var(--shadow-sunset);
+}
+
+/* Custom Color Picker Styling */
+input[type="color"] {
+	-webkit-appearance: none;
+	appearance: none;
+	border: none;
+	cursor: pointer;
+	background: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+	padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+	border: none;
+	border-radius: 10px;
+}
+
+input[type="color"]::-moz-color-swatch {
+	border: none;
+	border-radius: 10px;
+}
+
+@font-face {
+	font-family: "Whitney";
+	src: url("https://cdn.skyra.pw/whitney-font/v2/Book.woff") format("woff");
+	font-weight: 400;
+}
+
+@font-face {
+	font-family: "Whitney";
+	src: url("https://cdn.skyra.pw/whitney-font/v2/Medium.woff") format("woff");
+	font-weight: 500;
+}
+
+@font-face {
+	font-family: "Whitney";
+	src: url("https://cdn.skyra.pw/whitney-font/v2/Semibold.woff")
+		format("woff");
+	font-weight: 600;
+}
+
+@font-face {
+	font-family: "Whitney";
+	src: url("https://cdn.skyra.pw/whitney-font/v2/Bold.woff") format("woff");
+	font-weight: 700;
 }

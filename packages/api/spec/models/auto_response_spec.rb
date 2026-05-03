@@ -5,7 +5,7 @@ RSpec.describe AutoResponse, type: :model do
     described_class.new(
       guild: "guild-1",
       name: "welcome",
-      type: "text",
+      type: "Regular",
       content: "Hello there",
       author: "user-1",
       author_username: "robotman"
@@ -60,6 +60,13 @@ RSpec.describe AutoResponse, type: :model do
   it "persists and reads the type column without STI behavior" do
     record = described_class.create!(auto_response.attributes)
 
-    expect(record.reload.type).to eq("text")
+    expect(record.reload.type).to eq("Regular")
+  end
+
+  it "rejects types outside the shared enum" do
+    auto_response.type = "regex"
+
+    expect(auto_response).not_to be_valid
+    expect(auto_response.errors[:type]).to include("is not included in the list")
   end
 end

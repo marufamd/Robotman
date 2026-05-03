@@ -1,4 +1,6 @@
-require "rspec"
+require "rspec/core"
+require "rspec/expectations"
+require "rspec/mocks"
 
 RSpec.configure do |config|
   config.disable_monkey_patching!

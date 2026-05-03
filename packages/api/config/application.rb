@@ -16,6 +16,7 @@ module RobotmanApi
     config.load_defaults 6.1
     config.api_only = true
     config.eager_load = false
+    config.cache_store = :memory_store, { size: 64 * 1024 * 1024 }
     config.autoload_paths << Rails.root.join("app/services")
     config.autoload_paths << Rails.root.join("lib")
 

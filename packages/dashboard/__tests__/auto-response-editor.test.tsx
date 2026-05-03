@@ -1,8 +1,23 @@
+import { AutoResponseType } from "@robotman/shared";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutoResponseEditor } from "../src/components/auto-response-editor";
 import { renderWithQueryClient } from "./test-utils";
+
+const session = {
+	userId: "user-1",
+	username: "maruf",
+	displayName: "Maruf",
+	avatarUrl: "https://cdn.example.com/maruf.png",
+};
+
+const guild = {
+	guildId: "guild-1",
+	name: "Robotman HQ",
+	iconUrl: null,
+	isOwner: true,
+};
 
 const createAutoResponse = vi.fn();
 const updateAutoResponse = vi.fn();
@@ -18,7 +33,8 @@ vi.mock("../src/lib/queries", async () => {
 
 	return {
 		...actual,
-		invalidateAutoResponses: (...args: unknown[]) => invalidateAutoResponses(...args),
+		invalidateAutoResponses: (...args: unknown[]) =>
+			invalidateAutoResponses(...args),
 	};
 });
 
@@ -32,12 +48,15 @@ describe("AutoResponseEditor", () => {
 			id: "2a4ddc64-6e09-4726-b14c-6cff06d7d6ee",
 			guildId: "guild-1",
 			name: "hello",
-			type: "regex",
+			trigger: "hello",
+			type: AutoResponseType.Regular,
 			content: "Pong!",
 			aliases: ["hello", "ping"],
 			wildcard: false,
 			embed: false,
 			embedColor: 16747575,
+			createdBy: "Robotman",
+			lastEditedBy: null,
 			createdAt: "2026-04-28T12:00:00.000Z",
 			updatedAt: "2026-04-28T12:00:00.000Z",
 		});
@@ -50,28 +69,43 @@ describe("AutoResponseEditor", () => {
 		renderWithQueryClient(
 			<AutoResponseEditor
 				guildId="guild-1"
-				onResetSelection={vi.fn()}
+				guild={guild}
+				onCancel={() => {}}
 				onSaved={onSaved}
+				session={session}
 			/>,
 		);
 
-		await user.type(screen.getByLabelText(/name/i), "hello");
-		await user.clear(screen.getByLabelText(/type/i));
-		await user.type(screen.getByLabelText(/type/i), "regex");
-		// Use fireEvent for the array-backed aliases input to avoid controlled re-render interference
-		fireEvent.change(screen.getByLabelText(/aliases/i), { target: { value: "hello, ping" } });
-		await user.type(screen.getByLabelText(/reply content/i), "Pong!");
+		fireEvent.change(screen.getByLabelText(/trigger/i), {
+			target: { value: "hello" },
+		});
+		await user.selectOptions(screen.getByLabelText(/^type$/i), "Regular");
+		await user.click(screen.getByRole("button", { name: /add alias/i }));
+		fireEvent.change(screen.getByLabelText(/alias 1/i), {
+			target: { value: "hello" },
+		});
+		await user.click(screen.getByRole("button", { name: /add alias/i }));
+		fireEvent.change(screen.getByLabelText(/alias 2/i), {
+			target: { value: "ping" },
+		});
+		fireEvent.change(
+			screen.getByLabelText(/response/i),
+			"Hi {username} from {server} in {channel}",
+		);
 
-		expect(screen.getAllByText("Pong!")[0]).toBeInTheDocument();
+		expect(screen.getByText("maruf")).toBeInTheDocument();
+		expect(screen.getByText("Robotman HQ")).toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: /create trigger/i }));
+		await user.click(
+			screen.getByRole("button", { name: /save response/i }),
+		);
 
 		await waitFor(() => {
 			expect(createAutoResponse).toHaveBeenCalledWith("guild-1", {
 				guildId: "guild-1",
-				name: "hello",
-				type: "regex",
-				content: "Pong!",
+				trigger: "hello",
+				type: AutoResponseType.Regular,
+				content: "Hi {username} from {server} in {channel}",
 				aliases: ["hello", "ping"],
 				wildcard: false,
 				embed: false,

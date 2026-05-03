@@ -6,4 +6,10 @@ Rails.application.routes.draw do
   get "/session", to: "sessions#show"
   delete "/session", to: "sessions#destroy"
   get "/guilds", to: "guilds#index"
+  get "/guilds/:guild_id/settings", to: "guild_settings#show"
+  patch "/guilds/:guild_id/settings", to: "guild_settings#update"
+  get "/guilds/:guild_id/auto-responses", to: "auto_responses#index"
+  post "/guilds/:guild_id/auto-responses", to: "auto_responses#create"
+  patch "/guilds/:guild_id/auto-responses/:id", to: "auto_responses#update"
+  delete "/guilds/:guild_id/auto-responses/:id", to: "auto_responses#destroy"
 end

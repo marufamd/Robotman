@@ -9,6 +9,14 @@ module Discord
     API_BASE_URL = "https://discord.com/api/v10".freeze
 
     class Error < StandardError; end
+    class RateLimited < Error
+      attr_reader :retry_after
+
+      def initialize(message = "Discord rate limit exceeded", retry_after: nil)
+        @retry_after = retry_after
+        super(message)
+      end
+    end
 
     def initialize(client_id:, client_secret:, http_client: Net::HTTP)
       @client_id = client_id
@@ -63,19 +71,35 @@ module Discord
       perform_json_request(uri, request)
     end
 
-    def perform_json_request(uri, request)
+    def perform_json_request(uri, request, attempt: 0)
       response =
         http_client.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
           http.request(request)
         end
 
-      parsed = JSON.parse(response.body)
+      parsed = response.body.to_s.empty? ? {} : JSON.parse(response.body)
       return parsed if response.is_a?(Net::HTTPSuccess)
+
+      if response.is_a?(Net::HTTPTooManyRequests)
+        retry_after = extract_retry_after(response, parsed)
+
+        if attempt.zero? && retry_after && retry_after.positive?
+          sleep(retry_after)
+          return perform_json_request(uri, request, attempt: attempt + 1)
+        end
+
+        raise RateLimited.new(retry_after: retry_after)
+      end
 
       message = parsed["error_description"] || parsed["message"] || response.message
       raise Error, message
     rescue JSON::ParserError
       raise Error, "Unexpected Discord response"
+    end
+
+    def extract_retry_after(response, parsed)
+      value = parsed["retry_after"] || response["retry-after"] || response["x-ratelimit-reset-after"]
+      value&.to_f
     end
   end
 end

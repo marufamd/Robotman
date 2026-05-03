@@ -11,12 +11,14 @@ export const sessionQueryOptions = () =>
 	queryOptions({
 		queryKey: ["session"],
 		queryFn: getCurrentSession,
+		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 
 export const guildsQueryOptions = () =>
 	queryOptions({
 		queryKey: ["guilds"],
 		queryFn: listGuilds,
+		staleTime: 5 * 60 * 1000, // 5 minutes
 	});
 
 export const guildSettingsQueryOptions = (guildId: string) =>

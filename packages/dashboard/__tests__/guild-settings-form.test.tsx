@@ -70,4 +70,31 @@ describe("GuildSettingsForm", () => {
 			auditLogChannelId: null,
 		});
 	});
+
+	it("submits synthesized default-backed settings", async () => {
+		const user = userEvent.setup();
+
+		renderWithQueryClient(
+			<GuildSettingsForm
+				initialSettings={{
+					guildId: "guild-1",
+					prefix: null,
+					isRankingEnabled: false,
+					auditLogChannelId: null,
+				}}
+			/>,
+		);
+
+		await user.type(screen.getByLabelText(/prefix/i), "!");
+		await user.click(screen.getByRole("switch", { name: /ranking system/i }));
+		await user.type(screen.getByLabelText(/audit log channel/i), "1234567890");
+		await user.click(screen.getByRole("button", { name: /save settings/i }));
+
+		expect(updateGuildSettings).toHaveBeenCalledWith("guild-1", {
+			guildId: "guild-1",
+			prefix: "!",
+			isRankingEnabled: true,
+			auditLogChannelId: "1234567890",
+		});
+	});
 });

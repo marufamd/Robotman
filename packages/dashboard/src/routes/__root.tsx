@@ -15,26 +15,31 @@ import { seo } from "~/lib/seo";
 import type { ReactNode } from "react";
 import appCss from "~/app.css?url";
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-	head: () => ({
-		meta: [
-			{ charSet: "utf-8" },
-			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			...seo(
-				"Sunset Bot Dashboard",
-				"High-performance Discord bot management built for guild operators.",
-			),
-		],
-		links: [{ rel: "stylesheet", href: appCss }],
-	}),
-	errorComponent: (props) => (
-		<RootDocument>
-			<DefaultCatchBoundary {...props} />
-		</RootDocument>
-	),
-	notFoundComponent: NotFound,
-	component: RootComponent,
-});
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
+	{
+		head: () => ({
+			meta: [
+				{ charSet: "utf-8" },
+				{
+					name: "viewport",
+					content: "width=device-width, initial-scale=1",
+				},
+				...seo(
+					"Robotman Dashboard",
+					"High-performance Discord bot management built for guild operators.",
+				),
+			],
+			links: [{ rel: "stylesheet", href: appCss }],
+		}),
+		errorComponent: (props) => (
+			<RootDocument>
+				<DefaultCatchBoundary {...props} />
+			</RootDocument>
+		),
+		notFoundComponent: NotFound,
+		component: RootComponent,
+	},
+);
 
 function RootComponent() {
 	const { queryClient } = Route.useRouteContext();

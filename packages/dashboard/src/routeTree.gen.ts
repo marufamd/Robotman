@@ -8,28 +8,217 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './file-routes/__root'
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedGuildsIndexRouteImport } from './routes/_authenticated/guilds/index'
+import { Route as AuthenticatedGuildsGuildIdSettingsRouteImport } from './routes/_authenticated/guilds/$guildId/settings'
+import { Route as AuthenticatedGuildsGuildIdAutoResponsesIndexRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/index'
+import { Route as AuthenticatedGuildsGuildIdAutoResponsesNewRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/new'
+import { Route as AuthenticatedGuildsGuildIdAutoResponsesResponseIdRouteImport } from './routes/_authenticated/guilds/$guildId/auto-responses/$responseId'
 
-export interface FileRoutesByFullPath {}
-export interface FileRoutesByTo {}
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedGuildsIndexRoute =
+  AuthenticatedGuildsIndexRouteImport.update({
+    id: '/guilds/',
+    path: '/guilds/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGuildsGuildIdSettingsRoute =
+  AuthenticatedGuildsGuildIdSettingsRouteImport.update({
+    id: '/guilds/$guildId/settings',
+    path: '/guilds/$guildId/settings',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGuildsGuildIdAutoResponsesIndexRoute =
+  AuthenticatedGuildsGuildIdAutoResponsesIndexRouteImport.update({
+    id: '/guilds/$guildId/auto-responses/',
+    path: '/guilds/$guildId/auto-responses/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGuildsGuildIdAutoResponsesNewRoute =
+  AuthenticatedGuildsGuildIdAutoResponsesNewRouteImport.update({
+    id: '/guilds/$guildId/auto-responses/new',
+    path: '/guilds/$guildId/auto-responses/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute =
+  AuthenticatedGuildsGuildIdAutoResponsesResponseIdRouteImport.update({
+    id: '/guilds/$guildId/auto-responses/$responseId',
+    path: '/guilds/$guildId/auto-responses/$responseId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+
+export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/guilds/': typeof AuthenticatedGuildsIndexRoute
+  '/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
+  '/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
+  '/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
+  '/guilds/$guildId/auto-responses/': typeof AuthenticatedGuildsGuildIdAutoResponsesIndexRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/guilds': typeof AuthenticatedGuildsIndexRoute
+  '/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
+  '/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
+  '/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
+  '/guilds/$guildId/auto-responses': typeof AuthenticatedGuildsGuildIdAutoResponsesIndexRoute
+}
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/guilds/': typeof AuthenticatedGuildsIndexRoute
+  '/_authenticated/guilds/$guildId/settings': typeof AuthenticatedGuildsGuildIdSettingsRoute
+  '/_authenticated/guilds/$guildId/auto-responses/$responseId': typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
+  '/_authenticated/guilds/$guildId/auto-responses/new': typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
+  '/_authenticated/guilds/$guildId/auto-responses/': typeof AuthenticatedGuildsGuildIdAutoResponsesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: never
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/guilds/'
+    | '/guilds/$guildId/settings'
+    | '/guilds/$guildId/auto-responses/$responseId'
+    | '/guilds/$guildId/auto-responses/new'
+    | '/guilds/$guildId/auto-responses/'
   fileRoutesByTo: FileRoutesByTo
-  to: never
-  id: '__root__'
+  to:
+    | '/'
+    | '/login'
+    | '/guilds'
+    | '/guilds/$guildId/settings'
+    | '/guilds/$guildId/auto-responses/$responseId'
+    | '/guilds/$guildId/auto-responses/new'
+    | '/guilds/$guildId/auto-responses'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/guilds/'
+    | '/_authenticated/guilds/$guildId/settings'
+    | '/_authenticated/guilds/$guildId/auto-responses/$responseId'
+    | '/_authenticated/guilds/$guildId/auto-responses/new'
+    | '/_authenticated/guilds/$guildId/auto-responses/'
   fileRoutesById: FileRoutesById
 }
-export interface RootRouteChildren {}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {}
+export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
-const rootRouteChildren: RootRouteChildren = {}
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/guilds/': {
+      id: '/_authenticated/guilds/'
+      path: '/guilds'
+      fullPath: '/guilds/'
+      preLoaderRoute: typeof AuthenticatedGuildsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/guilds/$guildId/settings': {
+      id: '/_authenticated/guilds/$guildId/settings'
+      path: '/guilds/$guildId/settings'
+      fullPath: '/guilds/$guildId/settings'
+      preLoaderRoute: typeof AuthenticatedGuildsGuildIdSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/guilds/$guildId/auto-responses/': {
+      id: '/_authenticated/guilds/$guildId/auto-responses/'
+      path: '/guilds/$guildId/auto-responses'
+      fullPath: '/guilds/$guildId/auto-responses/'
+      preLoaderRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/guilds/$guildId/auto-responses/new': {
+      id: '/_authenticated/guilds/$guildId/auto-responses/new'
+      path: '/guilds/$guildId/auto-responses/new'
+      fullPath: '/guilds/$guildId/auto-responses/new'
+      preLoaderRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/guilds/$guildId/auto-responses/$responseId': {
+      id: '/_authenticated/guilds/$guildId/auto-responses/$responseId'
+      path: '/guilds/$guildId/auto-responses/$responseId'
+      fullPath: '/guilds/$guildId/auto-responses/$responseId'
+      preLoaderRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+  }
+}
+
+interface AuthenticatedRouteChildren {
+  AuthenticatedGuildsIndexRoute: typeof AuthenticatedGuildsIndexRoute
+  AuthenticatedGuildsGuildIdSettingsRoute: typeof AuthenticatedGuildsGuildIdSettingsRoute
+  AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute
+  AuthenticatedGuildsGuildIdAutoResponsesNewRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesNewRoute
+  AuthenticatedGuildsGuildIdAutoResponsesIndexRoute: typeof AuthenticatedGuildsGuildIdAutoResponsesIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedGuildsIndexRoute: AuthenticatedGuildsIndexRoute,
+  AuthenticatedGuildsGuildIdSettingsRoute:
+    AuthenticatedGuildsGuildIdSettingsRoute,
+  AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute:
+    AuthenticatedGuildsGuildIdAutoResponsesResponseIdRoute,
+  AuthenticatedGuildsGuildIdAutoResponsesNewRoute:
+    AuthenticatedGuildsGuildIdAutoResponsesNewRoute,
+  AuthenticatedGuildsGuildIdAutoResponsesIndexRoute:
+    AuthenticatedGuildsGuildIdAutoResponsesIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
+}
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
