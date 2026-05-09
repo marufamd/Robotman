@@ -53,6 +53,7 @@ describe("PingCommand", () => {
 				guildId: "guild-1",
 				isBot: false,
 				messageId: "message-1",
+				timestamp: "2026-04-28T00:00:00.000Z",
 				userId: "user-1",
 			},
 			timestamp: "2026-04-28T00:00:00.000Z",
@@ -73,6 +74,9 @@ describe("PingCommand", () => {
 			}),
 		).toEqual({
 			embeds: [{ color: 0xffb700, title: "Pong!" }],
+		});
+		expect(pingService.execute).toHaveBeenCalledWith({
+			sourceTimestamp: "2026-04-28T00:00:00.000Z",
 		});
 	});
 
@@ -96,5 +100,8 @@ describe("PingCommand", () => {
 			embeds: [{ color: 0xffb700, title: "Pong!" }],
 		});
 		expect(pingService.execute).toHaveBeenCalledTimes(1);
+		expect(pingService.execute).toHaveBeenCalledWith({
+			sourceTimestamp: "2026-04-28T00:00:00.000Z",
+		});
 	});
 });

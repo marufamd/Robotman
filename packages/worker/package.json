@@ -16,6 +16,7 @@
     "@nestjs/microservices": "^11.1.6",
     "@robotman/shared": "file:../shared",
     "@sapphire/lexure": "^1.1.12",
+    "amqp-connection-manager": "^5.0.0",
     "amqplib": "^0.10.9",
     "ioredis": "^5.4.2",
     "reflect-metadata": "^0.2.2",

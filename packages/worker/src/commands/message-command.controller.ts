@@ -6,7 +6,7 @@ import {
 	type OutboundMessagePayload,
 	type RobotmanEvent,
 } from "@robotman/shared";
-import { Controller, Inject } from "@nestjs/common";
+import { Controller, Inject, Logger } from "@nestjs/common";
 import {
 	Ctx,
 	EventPattern,
@@ -21,6 +21,8 @@ import { CommandsRegistryService } from "./commands.registry";
 
 @Controller()
 export class MessageCommandController {
+	private readonly logger = new Logger(MessageCommandController.name);
+
 	public constructor(
 		private readonly commandParserService: CommandParserService,
 		private readonly commandsRegistryService: CommandsRegistryService,
@@ -33,6 +35,9 @@ export class MessageCommandController {
 		@Payload() event: RobotmanEvent<DiscordMessagePayload>,
 		@Ctx() _context: RmqContext,
 	): Promise<void> {
+		this.logger.log(
+			`Received discord.message.create guild=${event.payload.guildId} channel=${event.payload.channelId} user=${event.payload.userId} content=${JSON.stringify(event.payload.content)}`,
+		);
 		const parsedCommand = await this.commandParserService.parseMessage(
 			event.payload.content,
 			event.payload.guildId,
@@ -42,14 +47,23 @@ export class MessageCommandController {
 		);
 
 		if (!parsedCommand) {
+			this.logger.log(
+				`Ignored message for prefix parsing guild=${event.payload.guildId} content=${JSON.stringify(event.payload.content)}`,
+			);
 			return;
 		}
+		this.logger.log(
+			`Parsed prefix command guild=${event.payload.guildId} command=${parsedCommand.commandName} alias=${parsedCommand.alias} prefix=${parsedCommand.prefix}`,
+		);
 
 		const commandHandler = this.commandsRegistryService.getCommandHandler(
 			parsedCommand.commandName,
 		);
 
 		if (!commandHandler?.executePrefix) {
+			this.logger.warn(
+				`No prefix handler found for command=${parsedCommand.commandName}`,
+			);
 			return;
 		}
 
@@ -69,5 +83,8 @@ export class MessageCommandController {
 		};
 
 		this.rabbitMqClient.emit(EventType.DISCORD_OUTBOUND_MESSAGE, outboundEvent);
+		this.logger.log(
+			`Emitted discord.message.outbound guild=${event.payload.guildId} channel=${event.payload.channelId} command=${parsedCommand.commandName}`,
+		);
 	}
 }

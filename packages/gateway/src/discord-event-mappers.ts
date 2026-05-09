@@ -67,6 +67,7 @@ export function createDiscordMessageEvent(
 			userId: message.author.id,
 			content: message.content,
 			isBot: Boolean(message.author.bot),
+			timestamp: message.timestamp,
 		},
 	};
 }

@@ -22,9 +22,11 @@ export class PingCommand implements CommandHandler {
 	public constructor(private readonly pingService: PingService) {}
 
 	public executePrefix(
-		_context: PrefixCommandExecutionContext,
+		context: PrefixCommandExecutionContext,
 	): PrefixCommandExecutionResult {
-		const result = this.pingService.execute();
+		const result = this.pingService.execute({
+			sourceTimestamp: context.event.payload.timestamp,
+		});
 
 		return {
 			embeds: result.embeds,
@@ -32,9 +34,11 @@ export class PingCommand implements CommandHandler {
 	}
 
 	public executeSlash(
-		_context: SlashCommandExecutionContext,
+		context: SlashCommandExecutionContext,
 	): SlashCommandExecutionResult {
-		const result = this.pingService.execute();
+		const result = this.pingService.execute({
+			sourceTimestamp: context.event.timestamp,
+		});
 
 		return {
 			embeds: result.embeds,

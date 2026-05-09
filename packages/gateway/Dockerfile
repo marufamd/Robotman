@@ -2,6 +2,8 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+RUN apk add --no-cache python3 make g++
+
 COPY packages/shared ./packages/shared
 WORKDIR /app/packages/shared
 RUN npm ci

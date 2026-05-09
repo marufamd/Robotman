@@ -50,7 +50,10 @@ describe("RabbitMqPublisher", () => {
 		);
 
 		const [, , body] = (channel.publish as jest.Mock).mock.calls[0];
-		expect(JSON.parse(body.toString("utf8"))).toEqual(event);
+		expect(JSON.parse(body.toString("utf8"))).toEqual({
+			data: event,
+			pattern: EventType.DASHBOARD_SETTINGS_UPDATED,
+		});
 	});
 
 	it("throws when publish is called before connect", async () => {

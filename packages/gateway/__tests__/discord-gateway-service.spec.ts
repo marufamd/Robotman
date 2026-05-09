@@ -1,4 +1,12 @@
-import { GatewayDispatchEvents, GatewayIntentBits, Routes } from "discord-api-types/v10";
+import { WebSocketShardEvents } from "@discordjs/ws";
+import {
+	GatewayDispatchEvents,
+	type GatewayInteractionCreateDispatchData,
+	GatewayIntentBits,
+	type GatewayMessageCreateDispatchData,
+	Routes,
+	type GatewayDispatchPayload,
+} from "discord-api-types/v10";
 
 import { EventType } from "@robotman/shared";
 import {
@@ -10,17 +18,19 @@ import type { RobotmanPublisher } from "../src/rabbitmq-publisher";
 
 class MockDiscordGatewayManager implements DiscordGatewayManager {
 	public readonly listeners = new Map<
-		GatewayDispatchEvents,
-		(data: unknown, shardId: number) => void
+		WebSocketShardEvents,
+		Array<(payload: { data: GatewayDispatchPayload; shardId: number }) => void>
 	>();
 
 	public connect = jest.fn(async () => undefined);
 
 	public on(
-		event: GatewayDispatchEvents,
-		listener: (data: unknown, shardId: number) => void,
+		event: WebSocketShardEvents,
+		listener: (payload: { data: GatewayDispatchPayload; shardId: number }) => void,
 	): this {
-		this.listeners.set(event, listener);
+		const listeners = this.listeners.get(event) ?? [];
+		listeners.push(listener);
+		this.listeners.set(event, listeners);
 		return this;
 	}
 }
@@ -52,22 +62,35 @@ describe("DiscordGatewayService", () => {
 
 		await service.start();
 
-		const listener = manager.listeners.get(GatewayDispatchEvents.MessageCreate);
-		expect(listener).toBeDefined();
+		const listeners = manager.listeners.get(WebSocketShardEvents.Dispatch);
+		expect(listeners).toBeDefined();
 
-		listener?.(
+		for (const listener of listeners ?? []) {
+			listener(
 			{
-				author: {
-					bot: false,
-					id: "user-1",
+				data: {
+					d: {
+						author: {
+							avatar: null,
+							bot: false,
+							discriminator: "0",
+							global_name: "Robotman",
+							id: "user-1",
+							username: "robotman",
+						},
+						channel_id: "channel-1",
+						content: "hello world",
+						guild_id: "guild-1",
+						id: "message-1",
+					} as GatewayMessageCreateDispatchData,
+					op: 0,
+					s: 1,
+					t: GatewayDispatchEvents.MessageCreate,
 				},
-				channel_id: "channel-1",
-				content: "hello world",
-				guild_id: "guild-1",
-				id: "message-1",
+				shardId: 0,
 			},
-			0,
-		);
+			);
+		}
 
 		expect(publisher.connect).toHaveBeenCalledTimes(1);
 		expect(manager.connect).toHaveBeenCalledTimes(1);
@@ -121,34 +144,49 @@ describe("DiscordGatewayService", () => {
 
 		await service.start();
 
-		const listener = manager.listeners.get(GatewayDispatchEvents.InteractionCreate);
-		expect(listener).toBeDefined();
+		const listeners = manager.listeners.get(WebSocketShardEvents.Dispatch);
+		expect(listeners).toBeDefined();
 
-		listener?.(
+		for (const listener of listeners ?? []) {
+			listener(
 			{
-				channel_id: "channel-9",
 				data: {
-					name: "ping",
-					options: [
-						{
-							name: "target",
-							type: 3,
-							value: "robotman",
+					d: {
+						channel_id: "channel-9",
+						data: {
+							id: "command-1",
+							name: "ping",
+							options: [
+								{
+									name: "target",
+									type: 3,
+									value: "robotman",
+								},
+							],
+							type: 1,
 						},
-					],
+						guild_id: "guild-9",
+						id: "interaction-9",
+						member: {
+							user: {
+								avatar: null,
+								discriminator: "0",
+								global_name: "Robotman",
+								id: "user-9",
+								username: "robotman",
+							},
+						},
+						token: "interaction-token",
+						type: 2,
+					} as GatewayInteractionCreateDispatchData,
+					op: 0,
+					s: 1,
+					t: GatewayDispatchEvents.InteractionCreate,
 				},
-				guild_id: "guild-9",
-				id: "interaction-9",
-				member: {
-					user: {
-						id: "user-9",
-					},
-				},
-				token: "interaction-token",
-				type: 2,
+				shardId: 0,
 			},
-			0,
-		);
+			);
+		}
 
 		expect(publisher.publish).toHaveBeenCalledWith(
 			expect.objectContaining({

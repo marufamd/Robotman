@@ -3,6 +3,11 @@ import { Buffer } from "node:buffer";
 import type { EventType, RobotmanEvent } from "@robotman/shared";
 import { connect, type Options } from "amqplib";
 
+interface NestEventPacket<T> {
+	data: RobotmanEvent<T>;
+	pattern: EventType;
+}
+
 export interface RabbitMqChannel {
 	assertExchange(
 		exchange: string,
@@ -62,10 +67,15 @@ export class RabbitMqPublisher implements RobotmanPublisher {
 			throw new Error("RabbitMQ publisher is not connected");
 		}
 
+		const packet: NestEventPacket<T> = {
+			data: event,
+			pattern: event.type as EventType,
+		};
+
 		this.channel.publish(
 			this.options.exchange,
 			event.type,
-			Buffer.from(JSON.stringify(event)),
+			Buffer.from(JSON.stringify(packet)),
 			{
 				contentType: "application/json",
 				persistent: true,

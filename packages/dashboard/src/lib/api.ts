@@ -64,7 +64,8 @@ async function buildHeaders(init: RequestInit) {
 
 	if (typeof window === "undefined") {
 		try {
-			const { getRequestHeader } = await import("@tanstack/react-start/server");
+			const serverModule = "@tanstack/react-start/server";
+			const { getRequestHeader } = await import(/* @vite-ignore */ serverModule);
 			const cookie = getRequestHeader("cookie");
 			if (cookie) {
 				headers.set("cookie", cookie);
@@ -118,7 +119,8 @@ export async function getCurrentSession(): Promise<Session | null> {
 		const headers = new Headers();
 		if (typeof window === "undefined") {
 			try {
-				const { getRequestHeader } = await import("@tanstack/react-start/server");
+				const serverModule = "@tanstack/react-start/server";
+				const { getRequestHeader } = await import(/* @vite-ignore */ serverModule);
 				const cookie = getRequestHeader("cookie");
 				if (cookie) {
 					headers.set("cookie", cookie);

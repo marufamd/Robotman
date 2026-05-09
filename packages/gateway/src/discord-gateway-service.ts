@@ -1,9 +1,10 @@
 import { REST } from "@discordjs/rest";
-import { WebSocketManager } from "@discordjs/ws";
+import { WebSocketManager, WebSocketShardEvents } from "@discordjs/ws";
 import {
 	GatewayDispatchEvents,
 	GatewayIntentBits,
 	Routes,
+	type GatewayDispatchPayload,
 	type GatewayInteractionCreateDispatchData,
 	type GatewayMessageCreateDispatchData,
 	type RESTGetAPIGatewayBotResult,
@@ -14,8 +15,8 @@ import type { RobotmanPublisher } from "./rabbitmq-publisher";
 
 export interface DiscordGatewayManager {
 	on(
-		event: GatewayDispatchEvents,
-		listener: (data: unknown, shardId: number) => void,
+		event: WebSocketShardEvents,
+		listener: (payload: { data: GatewayDispatchPayload; shardId: number }) => void,
 	): this;
 	connect(): Promise<void>;
 }
@@ -37,6 +38,7 @@ export interface DiscordGatewayManagerFactory {
 
 export interface GatewayServiceOptions {
 	intents?: GatewayIntentBits | number;
+	logger?: Pick<typeof console, "error" | "info">;
 	publisher: RobotmanPublisher;
 	rest: DiscordRestClient;
 	shardCount?: number;
@@ -57,11 +59,16 @@ export class DefaultDiscordGatewayManagerFactory implements DiscordGatewayManage
 
 export class DiscordGatewayService {
 	private manager: DiscordGatewayManager | null = null;
+	private readonly logger: Pick<typeof console, "error" | "info">;
 
-	public constructor(private readonly options: GatewayServiceOptions) {}
+	public constructor(private readonly options: GatewayServiceOptions) {
+		this.logger = options.logger ?? console;
+	}
 
 	public async start(): Promise<void> {
+		this.logger.info("Gateway: connecting publisher");
 		await this.options.publisher.connect();
+		this.logger.info("Gateway: publisher connected");
 
 		const gatewayBot = (await this.options.rest.get(
 			Routes.gatewayBot(),
@@ -81,20 +88,43 @@ export class DiscordGatewayService {
 			shardCount,
 			token: this.options.token,
 		});
+		this.logger.info(`Gateway: websocket manager created with ${shardCount} shard(s)`);
 
-		this.manager.on(GatewayDispatchEvents.MessageCreate, (data) => {
-			void this.options.publisher.publish(
-				createDiscordMessageEvent(data as GatewayMessageCreateDispatchData),
+		this.manager.on(WebSocketShardEvents.Dispatch, ({ data }) => {
+			if (data.t !== GatewayDispatchEvents.MessageCreate) {
+				return;
+			}
+
+			const event = createDiscordMessageEvent(
+				data.d as GatewayMessageCreateDispatchData,
 			);
+			this.logger.info(
+				`Gateway: received message create in guild ${event.payload.guildId} channel ${event.payload.channelId}`,
+			);
+			void this.options.publisher.publish(event).catch((error: unknown) => {
+				this.logger.error("Gateway: failed to publish message create event", error);
+			});
 		});
 
-		this.manager.on(GatewayDispatchEvents.InteractionCreate, (data) => {
-			void this.options.publisher.publish(
-				createDiscordInteractionEvent(data as GatewayInteractionCreateDispatchData),
+		this.manager.on(WebSocketShardEvents.Dispatch, ({ data }) => {
+			if (data.t !== GatewayDispatchEvents.InteractionCreate) {
+				return;
+			}
+
+			const event = createDiscordInteractionEvent(
+				data.d as GatewayInteractionCreateDispatchData,
 			);
+			this.logger.info(
+				`Gateway: received interaction create ${event.payload.commandName} in guild ${event.payload.guildId}`,
+			);
+			void this.options.publisher.publish(event).catch((error: unknown) => {
+				this.logger.error("Gateway: failed to publish interaction create event", error);
+			});
 		});
 
+		this.logger.info("Gateway: connecting to Discord gateway");
 		await this.manager.connect();
+		this.logger.info("Gateway: Discord gateway connected");
 	}
 
 	public async stop(): Promise<void> {

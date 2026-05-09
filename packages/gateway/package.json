@@ -10,11 +10,13 @@
     "test": "jest --config jest.config.cjs"
   },
   "dependencies": {
-    "@robotman/shared": "file:../shared",
     "@discordjs/rest": "^2.4.3",
     "@discordjs/ws": "^1.2.3",
+    "@robotman/shared": "file:../shared",
     "amqplib": "^0.10.5",
-    "discord-api-types": "^0.38.31"
+    "bufferutil": "^4.0.9",
+    "discord-api-types": "^0.38.31",
+    "zlib-sync": "^0.1.10"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.7",

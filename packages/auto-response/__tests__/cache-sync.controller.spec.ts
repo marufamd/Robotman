@@ -1,6 +1,7 @@
 import { Test, type TestingModule } from "@nestjs/testing";
 import type { RmqContext } from "@nestjs/microservices";
 import {
+	AutoResponseType,
 	EventType,
 	type DashboardResponseUpdatedPayload,
 	type RobotmanEvent,
@@ -55,7 +56,7 @@ describe("CacheSyncController", () => {
 					embed: false,
 					embedColor: null,
 					name: "^hi$",
-					type: "text",
+					type: AutoResponseType.Regular,
 					wildcard: false,
 				},
 			},
@@ -104,7 +105,7 @@ describe("CacheSyncController", () => {
 					embed: false,
 					embedColor: null,
 					name: "hello*",
-					type: "text",
+					type: AutoResponseType.Regular,
 					wildcard: true,
 				},
 			},

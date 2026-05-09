@@ -29,7 +29,7 @@ export interface ParsedCommand<
 	remainder: string;
 }
 
-const DEFAULT_PREFIX = "!";
+const DEFAULT_PREFIX = "=";
 const QUOTES: Array<[string, string]> = [
 	['"', '"'],
 	["“", "”"],
@@ -86,7 +86,10 @@ export class CommandParserService {
 			return null;
 		}
 
-		const prefix = (await this.redisCacheService.getPrefix(guildId)) ?? DEFAULT_PREFIX;
+		const prefix =
+			(await this.redisCacheService.getPrefix(guildId)) ??
+			process.env.DISCORD_PREFIX ??
+			DEFAULT_PREFIX;
 
 		if (!content.startsWith(prefix)) {
 			return null;

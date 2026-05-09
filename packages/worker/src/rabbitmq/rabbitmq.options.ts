@@ -11,6 +11,7 @@ const DEFAULT_RABBITMQ_PASSWORD = "password";
 const DEFAULT_RABBITMQ_VHOST = "/";
 const DEFAULT_WORKER_QUEUE = "worker.queue";
 const DEFAULT_EXCHANGE = "robotman.events";
+const DEFAULT_WORKER_ROUTING_KEY = "discord.*.create";
 
 export const buildRabbitMqUrl = (): string => {
 	if (process.env.RABBITMQ_URL) {
@@ -38,8 +39,7 @@ const createWorkerRabbitMqTransportOptions = () => ({
 	wildcards: true,
 	exchange: process.env.RABBITMQ_EXCHANGE ?? DEFAULT_EXCHANGE,
 	exchangeType: "topic" as const,
-	// Broad binding for initial worker bootstrap. Narrow once feature handlers land.
-	routingKey: process.env.WORKER_ROUTING_KEY ?? "#",
+	routingKey: process.env.WORKER_ROUTING_KEY ?? DEFAULT_WORKER_ROUTING_KEY,
 });
 
 export const createMicroserviceOptions = (): MicroserviceOptions => ({

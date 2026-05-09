@@ -11,8 +11,10 @@ describe("CommandParserService", () => {
 	let redisCacheService: {
 		getPrefix: jest.Mock<Promise<string | null>, [string]>;
 	};
+	const originalDiscordPrefix = process.env.DISCORD_PREFIX;
 
 	beforeEach(async () => {
+		delete process.env.DISCORD_PREFIX;
 		redisCacheService = {
 			getPrefix: jest.fn<Promise<string | null>, [string]>(),
 		};
@@ -28,6 +30,15 @@ describe("CommandParserService", () => {
 		}).compile();
 
 		service = module.get<CommandParserService>(CommandParserService);
+	});
+
+	afterAll(() => {
+		if (originalDiscordPrefix === undefined) {
+			delete process.env.DISCORD_PREFIX;
+			return;
+		}
+
+		process.env.DISCORD_PREFIX = originalDiscordPrefix;
 	});
 
 	const commandDefinitions: readonly PrefixCommandDefinition[] = [
@@ -110,17 +121,33 @@ describe("CommandParserService", () => {
 		expect(redisCacheService.getPrefix).toHaveBeenCalledWith("guild-2");
 	});
 
-	it("falls back to ! when no cached prefix exists", async () => {
+	it("falls back to DISCORD_PREFIX when no cached prefix exists", async () => {
+		process.env.DISCORD_PREFIX = "=";
 		redisCacheService.getPrefix.mockResolvedValue(null);
 
 		await expect(
-			service.parseMessage("!ping", "guild-3", false, commandDefinitions),
+			service.parseMessage("=ping", "guild-3", false, commandDefinitions),
 		).resolves.toEqual({
 			alias: "ping",
 			args: {},
 			commandName: "ping",
 			orderedArgs: [],
-			prefix: "!",
+			prefix: "=",
+			remainder: "",
+		});
+	});
+
+	it("falls back to = when no cached prefix or DISCORD_PREFIX exists", async () => {
+		redisCacheService.getPrefix.mockResolvedValue(null);
+
+		await expect(
+			service.parseMessage("=ping", "guild-3b", false, commandDefinitions),
+		).resolves.toEqual({
+			alias: "ping",
+			args: {},
+			commandName: "ping",
+			orderedArgs: [],
+			prefix: "=",
 			remainder: "",
 		});
 	});

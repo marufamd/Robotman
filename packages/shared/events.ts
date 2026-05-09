@@ -47,6 +47,7 @@ export interface DiscordMessagePayload {
 	userId: string;
 	content: string;
 	isBot: boolean;
+	timestamp: string;
 }
 
 // ==========================================
