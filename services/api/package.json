@@ -36,6 +36,6 @@
 		"@types/cookie": "^0.4.1",
 		"@types/cors": "^2.8.12",
 		"@types/node-fetch": "^2.5.12",
-		"discord-api-types": "^0.22.0"
+		"discord-api-types": "^0.37.119"
 	}
 }

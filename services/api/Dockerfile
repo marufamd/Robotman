@@ -1,8 +1,8 @@
 # Build image for services/api
-FROM node:16-alpine3.15 AS builder
+FROM node:20-alpine AS builder
 
 # Install build dependencies for native modules (if needed)
-RUN apk add --no-cache python2 make g++
+RUN apk add --no-cache python3 make g++
 
 WORKDIR /usr/src/app
 
@@ -18,13 +18,14 @@ RUN sed -i '/"@sapphire\/type":/d' services/bot/package.json || true
 RUN npm install --no-audit --prefer-offline
 # Ensure shared types package is built first so workspace imports resolve
 RUN cd services/types && npm run build && cd ../..
-RUN cd services/api && npm run build && cd ../..
+RUN cd services/api && mkdir -p node_modules && npm run build && cd ../..
 
-FROM node:16-alpine3.15 AS runtime
+FROM node:20-alpine AS runtime
 WORKDIR /usr/src/app
 
 # Copy production deps and built code for api
 COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/services/api/node_modules ./node_modules/
 COPY --from=builder /usr/src/app/services/api/dist ./dist
 COPY --from=builder /usr/src/app/services/api/package.json ./package.json
 

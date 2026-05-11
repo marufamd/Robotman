@@ -9,6 +9,6 @@
 	},
 	"author": "marufamd",
 	"devDependencies": {
-		"discord-api-types": "^0.22.0"
+		"discord-api-types": "^0.37.119"
 	}
 }
