@@ -27,3 +27,6 @@ yarn-error.log*
 
 # Postgres
 robotdb.dump
+
+# OS Files
+.DS_Store

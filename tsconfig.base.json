@@ -15,7 +15,8 @@
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"importHelpers": true,
-		"sourceMap": true
+		"sourceMap": true,
+		"skipLibCheck": true
 	},
 	"include": [
 		"**/*.ts",
