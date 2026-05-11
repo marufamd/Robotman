@@ -157,7 +157,7 @@ export async function choosePlayer(data: Message | CommandInteraction) {
 	const editReply = isInteraction(data) ? data.editReply.bind(data) : msg.edit.bind(msg);
 
 	const option = await msg
-		.awaitMessageComponent<ButtonInteraction>({
+		.awaitMessageComponent<"BUTTON">({
 			filter: (i) => i.user.id === author.id,
 			time: 10000
 		})
@@ -193,7 +193,7 @@ export async function choosePlayer(data: Message | CommandInteraction) {
 	});
 
 	const response = await msg
-		.awaitMessageComponent<ButtonInteraction>({
+		.awaitMessageComponent<"BUTTON">({
 			filter: (i) => (i.user.id === author.id && i.customId === 'cancel') || (i.user.id !== author.id && i.customId === 'join'),
 			time: 300000
 		})
@@ -237,7 +237,7 @@ export async function raceResponse(
 			max: 1,
 			time
 		}),
-		message.awaitMessageComponent<ButtonInteraction>({
+		message.awaitMessageComponent<"BUTTON">({
 			filter: buttonFilter,
 			time: time + 10
 		})

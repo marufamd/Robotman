@@ -4,7 +4,7 @@ import { Colors, ConnectFour, Emojis } from '#util/constants';
 import { ConnectFourGame } from '#util/games';
 import { choosePlayer, getUser, pluralize } from '#util/misc';
 import { Connect4AI } from 'connect4-ai';
-import type { CommandInteraction, Message, MessageComponentInteraction } from 'discord.js';
+import type { ButtonInteraction, CommandInteraction, Message, MessageComponentInteraction } from 'discord.js';
 import { MessageActionRow, MessageButton } from 'discord.js';
 
 const { WAIT_TIME, INDICATORS } = ConnectFour;
@@ -80,10 +80,10 @@ export default class implements Command {
 				components: this.generateButtons()
 			});
 
-			const filter = (i: MessageComponentInteraction) =>
+			const filter = (i: ButtonInteraction) =>
 				i.user.id === player.id && (game.addPiece(Number(i.customId), piece) || i.customId === 'stop');
 
-			const move = await playerData.message.awaitMessageComponent({ filter, time: WAIT_TIME * 60000 }).catch(() => null);
+			const move = await playerData.message.awaitMessageComponent<"BUTTON">({ filter, time: WAIT_TIME * 60000 }).catch(() => null);
 
 			if (!move) {
 				skipMove = true;

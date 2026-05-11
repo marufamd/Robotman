@@ -1,9 +1,8 @@
-# Build image for services/bot
-FROM node:16-alpine3.15 AS builder
+FROM node:20-alpine AS builder
 
 # Install build dependencies for native modules (canvas, skia-canvas, etc.)
 RUN apk add --no-cache \
-  python2 make g++ pkgconfig \
+  python3 make g++ pkgconfig \
   cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev pixman-dev
 
 WORKDIR /usr/src/app
@@ -26,7 +25,7 @@ RUN wget -O /tmp/skia-canvas.tar.gz https://github.com/samizdatco/skia-canvas/re
 RUN cd services/types && npm run build && cd ../..
 RUN cd services/bot && npm run build && cd ../..
 
-FROM node:16-alpine3.15 AS runtime
+FROM node:20-alpine AS runtime
 
 # Install runtime dependencies for canvas/skia
 RUN apk add --no-cache \

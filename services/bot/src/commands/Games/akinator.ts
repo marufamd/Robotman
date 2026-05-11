@@ -79,7 +79,7 @@ export default class implements Command {
 				msg = (await (isInteraction(data) ? data.editReply.bind(data) : msg.edit.bind(msg))(options)) as Message;
 			}
 
-			response = await msg.awaitMessageComponent({ filter, time: Akinator.MAX_TIME }).catch(() => null);
+			response = await msg.awaitMessageComponent<"BUTTON">({ filter, time: Akinator.MAX_TIME }).catch(() => null);
 
 			if (!response) {
 				status = GameStatus.TIMEOUT;
@@ -131,7 +131,7 @@ export default class implements Command {
 					components: this.generateYesNoButtons()
 				});
 
-				const newResponse = await msg.awaitMessageComponent<ButtonInteraction>({ filter, time: Akinator.MAX_TIME }).catch(() => null);
+				const newResponse = await msg.awaitMessageComponent<"BUTTON">({ filter, time: Akinator.MAX_TIME }).catch(() => null);
 
 				if (!newResponse) {
 					status = GameStatus.TIMEOUT;
@@ -154,7 +154,7 @@ export default class implements Command {
 						});
 
 						const nextResponse = await msg
-							.awaitMessageComponent<ButtonInteraction>({ filter, time: Akinator.MAX_TIME })
+							.awaitMessageComponent<"BUTTON">({ filter, time: Akinator.MAX_TIME })
 							.catch(() => null);
 
 						if (!nextResponse || nextResponse.customId === 'no') {

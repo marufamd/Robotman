@@ -3,7 +3,7 @@ import { log } from '#util/logger';
 import { codeBlock } from '@discordjs/builders';
 import { reply } from '@skyra/editable-commands';
 import { exec as execSync } from 'child_process';
-import type { Message, MessageOptions } from 'discord.js';
+import type { Message, MessageOptions, MessageEditOptions } from 'discord.js';
 import { performance } from 'node:perf_hooks';
 import { promisify } from 'util';
 
@@ -55,7 +55,7 @@ export default class implements Command {
 
 		content += `\nExecuted in ${executionTime}ms.`;
 
-		const options: MessageOptions = { content, files: [] };
+		const options: MessageEditOptions = { content, files: [] };
 
 		if (str.length > 2000) {
 			options.files.push({

@@ -14,7 +14,7 @@ export default class implements Listener {
 		if (!interaction.isCommand()) return;
 
 		try {
-			if (interaction.channel.type === 'DM') {
+			if (!interaction.guildId) {
 				return interaction.reply({
 					content: 'Slash commands are not available in Direct Messages.',
 					ephemeral: true

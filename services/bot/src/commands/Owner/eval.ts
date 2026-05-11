@@ -4,7 +4,7 @@ import * as util from '#util/misc';
 import { request as Request } from '#util/request';
 import { codeBlock } from '@discordjs/builders';
 import { Type } from '@sapphire/type';
-import type { Message, MessageOptions } from 'discord.js';
+import type { Message, MessageOptions, MessageEditOptions } from 'discord.js';
 import { Client } from 'discord.js';
 import { performance } from 'node:perf_hooks';
 import { inject, injectable } from 'tsyringe';
@@ -93,7 +93,7 @@ export default class implements Command {
 		content += `\n**Type**\n${codeBlock('ts', type.toString())}`;
 		content += `\nExecuted in ${executionTime}ms`;
 
-		const options: MessageOptions = { content, files: [] };
+		const options: MessageEditOptions = { content, files: [] };
 
 		if (file) {
 			options.files.push({

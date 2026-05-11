@@ -184,7 +184,7 @@ export class TicTacToeGame {
 
 		const opponent = this.getOtherPlayer(player);
 
-		const move = await this.message.awaitMessageComponent({ filter, time: 20000 }).catch(() => null);
+		const move = await this.message.awaitMessageComponent<"BUTTON">({ filter, time: 20000 }).catch(() => null);
 
 		if (!move) {
 			await this.interaction.editReply({

@@ -1,31 +1,31 @@
 {
-    "name": "robotman",
-    "description": "Monorepo for Robotman services",
-    "private": true,
-    "version": "6.0.0",
-    "license": "MIT",
-    "author": "marufamd",
-    "workspaces": [
-        "services/*"
-    ],
-    "scripts": {
-        "start": "pm2 start ecosystem.config.js",
-        "restart": "pm2 restart ecosystem.config.js",
-        "restart:api": "pm2 restart ecosystem.config.js --only api",
-        "restart:bot": "pm2 restart ecosystem.config.js --only robotman",
-        "restart:dashboard": "pm2 restart ecosystem.config.js --only dashboard"
-    },
-    "devDependencies": {
-        "@types/node": "^16.7.8",
-        "@typescript-eslint/eslint-plugin": "^4.30.0",
-        "@typescript-eslint/parser": "^4.30.0",
-        "eslint": "^7.32.0",
-        "eslint-config-marine": "^9.0.6",
-        "eslint-config-next": "^11.1.1",
-        "eslint-config-prettier": "^8.3.0",
-        "eslint-plugin-prettier": "^4.0.0",
-        "prettier": "^2.3.2",
-        "rimraf": "^3.0.2",
-        "typescript": "^4.9.5"
-    }
+	"name": "robotman",
+	"description": "Monorepo for Robotman services",
+	"private": true,
+	"version": "6.0.0",
+	"license": "MIT",
+	"author": "marufamd",
+	"workspaces": [
+		"services/*"
+	],
+	"scripts": {
+		"start": "pm2 start ecosystem.config.js",
+		"restart": "pm2 restart ecosystem.config.js",
+		"restart:api": "pm2 restart ecosystem.config.js --only api",
+		"restart:bot": "pm2 restart ecosystem.config.js --only robotman",
+		"restart:dashboard": "pm2 restart ecosystem.config.js --only dashboard"
+	},
+	"devDependencies": {
+		"@types/node": "^16.7.8",
+		"@typescript-eslint/eslint-plugin": "^4.30.0",
+		"@typescript-eslint/parser": "^4.30.0",
+		"eslint": "^7.32.0",
+		"eslint-config-marine": "^9.0.6",
+		"eslint-config-next": "^11.1.1",
+		"eslint-config-prettier": "^8.3.0",
+		"eslint-plugin-prettier": "^4.0.0",
+		"prettier": "^2.3.2",
+		"rimraf": "^3.0.2",
+		"typescript": "^4.5.5"
+	}
 }
