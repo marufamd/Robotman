@@ -2,6 +2,7 @@ import { Test, type TestingModule } from "@nestjs/testing";
 
 import {
 	buildGuildPrefixCacheKey,
+	buildGuildRankingEnabledCacheKey,
 	CacheService,
 	type RedisKeyValueStore,
 } from "../src/redis/cache.service";
@@ -13,8 +14,9 @@ describe("CacheService", () => {
 
 	beforeEach(async () => {
 		redisClient = {
-			del: jest.fn<Promise<number>, [string]>(),
+			del: jest.fn<Promise<number>, string[]>(),
 			get: jest.fn<Promise<string | null>, [string]>(),
+			keys: jest.fn<Promise<string[]>, [string]>(),
 			quit: jest.fn<Promise<"OK">, []>().mockResolvedValue("OK"),
 			set: jest.fn<Promise<"OK">, [string, string]>(),
 		};
@@ -78,6 +80,43 @@ describe("CacheService", () => {
 		await expect(service.deletePrefix("guild-123")).resolves.toBe(1);
 		expect(redisClient.del).toHaveBeenCalledWith(
 			buildGuildPrefixCacheKey("guild-123"),
+		);
+	});
+
+	it("checks whether ranking is enabled for a guild", async () => {
+		redisClient.get.mockResolvedValue("1");
+
+		await expect(service.isRankingEnabled("guild-777")).resolves.toBe(true);
+		expect(redisClient.get).toHaveBeenCalledWith(
+			buildGuildRankingEnabledCacheKey("guild-777"),
+		);
+	});
+
+	it("stores a guild ranking-enabled flag", async () => {
+		redisClient.set.mockResolvedValue("OK");
+
+		await expect(service.setRankingEnabled("guild-888")).resolves.toBe("OK");
+		expect(redisClient.set).toHaveBeenCalledWith(
+			buildGuildRankingEnabledCacheKey("guild-888"),
+			"1",
+		);
+	});
+
+	it("clears worker-managed guild settings cache namespaces", async () => {
+		redisClient.keys
+			.mockResolvedValueOnce(["guild:prefix:guild-1"])
+			.mockResolvedValueOnce(["guild:ranking-enabled:guild-1"]);
+		redisClient.del.mockResolvedValue(2);
+
+		await expect(service.clearGuildSettingsCache()).resolves.toBe(2);
+		expect(redisClient.keys).toHaveBeenNthCalledWith(1, "guild:prefix:*");
+		expect(redisClient.keys).toHaveBeenNthCalledWith(
+			2,
+			"guild:ranking-enabled:*",
+		);
+		expect(redisClient.del).toHaveBeenCalledWith(
+			"guild:prefix:guild-1",
+			"guild:ranking-enabled:guild-1",
 		);
 	});
 

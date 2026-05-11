@@ -103,7 +103,7 @@ export function GuildSettingsForm({
 					</div>
 					<p className="text-[14px] leading-relaxed text-night-200/70">
 						Enable automated XP distribution and leveling for
-						members based on their text and voice activity.
+						members based on their text activity.
 					</p>
 				</div>
 				<div className="flex items-center justify-between bg-night-900 p-6 pt-7 md:w-2/3">

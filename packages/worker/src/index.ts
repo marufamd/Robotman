@@ -42,11 +42,25 @@ export {
 	type CommandHandler,
 } from "./commands/command-handler";
 export { UtilitiesCommandsModule } from "./commands/utilities/utilities-commands.module";
+export {
+	formatHexColor,
+	parseLeaderboardColorArgument,
+	resolveAssetPath,
+	trimText,
+} from "./commands/utilities/leaderboard/color-utils";
+export { LeaderboardCommand } from "./commands/utilities/leaderboard/leaderboard.command";
+export {
+	LeaderboardRendererService,
+	type LeaderboardRenderEntry,
+} from "./commands/utilities/leaderboard/leaderboard-renderer.service";
+export { SetColorCommand } from "./commands/utilities/leaderboard/set-color.command";
 export { PingCommand } from "./commands/utilities/ping/ping.command";
 export {
 	PingService,
 	type PingCommandResult,
 } from "./commands/utilities/ping/ping.service";
+export { POSTGRES_POOL } from "./database/database.constants";
+export { DatabaseModule } from "./database/database.module";
 export {
 	HealthController,
 	HEALTH_PING_PATTERN,
@@ -54,16 +68,29 @@ export {
 } from "./health/health.controller";
 export { HealthModule } from "./health/health.module";
 export {
+	GuildSettingsHydrationService,
+} from "./hydration/guild-settings-hydration.service";
+export { HydrationModule } from "./hydration/hydration.module";
+export {
 	CacheSyncController,
 } from "./redis/cache-sync.controller";
 export {
 	buildGuildPrefixCacheKey,
+	buildGuildRankingEnabledCacheKey,
 	CacheService,
 	RedisCacheService,
 	type RedisKeyValueStore,
 } from "./redis/cache.service";
 export { REDIS_CLIENT } from "./redis/redis.constants";
 export { RedisModule } from "./redis/redis.module";
+export {
+	type LeaderboardRow,
+	type RankedUserRow,
+	type RecordRankMessageInput,
+	RankingRepository,
+} from "./ranking/ranking.repository";
+export { RankingModule } from "./ranking/ranking.module";
+export { RankingService } from "./ranking/ranking.service";
 export {
 	EventType,
 	type DashboardResponseUpdatedPayload,

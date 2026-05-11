@@ -34,6 +34,8 @@ export interface DiscordInteractionPayload {
 	interactionId: string;
 	interactionToken: string;
 	guildId: string;
+	guildIconUrl: string;
+	guildName: string;
 	channelId: string;
 	userId: string;
 	commandName: string;
@@ -43,21 +45,34 @@ export interface DiscordInteractionPayload {
 export interface DiscordMessagePayload {
 	messageId: string;
 	guildId: string;
+	guildIconUrl: string;
+	guildName: string;
 	channelId: string;
 	userId: string;
+	memberDisplayName: string;
 	content: string;
 	isBot: boolean;
+	isSystem: boolean;
 	timestamp: string;
+	webhookId: string | null;
 }
 
 // ==========================================
 // 3. Outbound Payloads (RabbitMQ -> Gateway)
 // ==========================================
 
+export interface OutboundFilePayload {
+	contentType?: string;
+	dataBase64: string;
+	description?: string;
+	name: string;
+}
+
 export interface OutboundMessagePayload {
 	channelId: string;
 	content?: string;
 	embeds?: Array<Record<string, unknown>>; // Raw Discord Embed objects
+	files?: OutboundFilePayload[];
 	replyToMessageId?: string;
 }
 
@@ -66,6 +81,7 @@ export interface OutboundInteractionReplyPayload {
 	interactionToken: string;
 	content?: string;
 	embeds?: Array<Record<string, unknown>>;
+	files?: OutboundFilePayload[];
 	isEphemeral?: boolean;
 }
 

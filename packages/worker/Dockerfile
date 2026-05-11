@@ -29,6 +29,7 @@ WORKDIR /app/packages/worker
 
 COPY --from=builder /app/packages/worker/package.json ./package.json
 COPY --from=builder /app/packages/worker/node_modules ./node_modules
+COPY --from=builder /app/packages/worker/assets ./assets
 COPY --from=builder /app/packages/worker/dist ./dist
 
 CMD ["npm", "run", "start"]

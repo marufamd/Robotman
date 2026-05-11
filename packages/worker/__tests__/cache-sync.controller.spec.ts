@@ -13,6 +13,8 @@ describe("CacheSyncController", () => {
 	let controller: CacheSyncController;
 	let cacheService: {
 		deletePrefix: jest.Mock<Promise<number>, [string]>;
+		deleteRankingEnabled: jest.Mock<Promise<number>, [string]>;
+		setRankingEnabled: jest.Mock<Promise<"OK">, [string]>;
 		setPrefix: jest.Mock<Promise<"OK">, [string, string]>;
 	};
 
@@ -23,6 +25,8 @@ describe("CacheSyncController", () => {
 	beforeEach(async () => {
 		cacheService = {
 			deletePrefix: jest.fn<Promise<number>, [string]>(),
+			deleteRankingEnabled: jest.fn<Promise<number>, [string]>(),
+			setRankingEnabled: jest.fn<Promise<"OK">, [string]>(),
 			setPrefix: jest.fn<Promise<"OK">, [string, string]>(),
 		};
 
@@ -54,9 +58,12 @@ describe("CacheSyncController", () => {
 			type: EventType.DASHBOARD_SETTINGS_UPDATED,
 		};
 
-		await controller.syncGuildPrefix(event, rmqContext);
+		cacheService.setRankingEnabled.mockResolvedValue("OK");
+
+		await controller.syncGuildSettings(event, rmqContext);
 
 		expect(cacheService.setPrefix).toHaveBeenCalledWith("guild-123", "!");
+		expect(cacheService.setRankingEnabled).toHaveBeenCalledWith("guild-123");
 		expect(cacheService.deletePrefix).not.toHaveBeenCalled();
 	});
 
@@ -75,9 +82,13 @@ describe("CacheSyncController", () => {
 			type: EventType.DASHBOARD_SETTINGS_UPDATED,
 		};
 
-		await controller.syncGuildPrefix(event, rmqContext);
+		cacheService.deleteRankingEnabled.mockResolvedValue(1);
+
+		await controller.syncGuildSettings(event, rmqContext);
 
 		expect(cacheService.deletePrefix).toHaveBeenCalledWith("guild-456");
+		expect(cacheService.deleteRankingEnabled).toHaveBeenCalledWith("guild-456");
 		expect(cacheService.setPrefix).not.toHaveBeenCalled();
+		expect(cacheService.setRankingEnabled).not.toHaveBeenCalled();
 	});
 });

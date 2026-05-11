@@ -1,5 +1,6 @@
 import "reflect-metadata";
 
+import { TriggerHydrationService } from "./hydration/trigger-hydration.service";
 import { NestFactory } from "@nestjs/core";
 import type { MicroserviceOptions } from "@nestjs/microservices";
 
@@ -12,5 +13,6 @@ export const bootstrap = async (): Promise<void> => {
 		createMicroserviceOptions(),
 	);
 
+	await app.get(TriggerHydrationService).hydrate();
 	await app.listen();
 };

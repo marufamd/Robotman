@@ -6,4 +6,8 @@ Rails.application.configure do
   config.consider_all_requests_local = true
   config.action_controller.perform_caching = false
   config.active_support.deprecation = :log
+
+  ENV.fetch("ALLOWED_HOSTS", "api").split(",").map(&:strip).reject(&:empty?).each do |host|
+    config.hosts << host
+  end
 end

@@ -18,17 +18,23 @@ export class CacheSyncController {
 	public constructor(private readonly cacheService: CacheService) {}
 
 	@EventPattern(EventType.DASHBOARD_SETTINGS_UPDATED)
-	public async syncGuildPrefix(
+	public async syncGuildSettings(
 		@Payload() event: RobotmanEvent<DashboardSettingsUpdatedPayload>,
 		@Ctx() _context: RmqContext,
 	): Promise<void> {
-		const { guildId, prefix } = event.payload;
+		const { guildId, isRankingEnabled, prefix } = event.payload;
 
 		if (prefix === null) {
 			await this.cacheService.deletePrefix(guildId);
+		} else {
+			await this.cacheService.setPrefix(guildId, prefix);
+		}
+
+		if (isRankingEnabled) {
+			await this.cacheService.setRankingEnabled(guildId);
 			return;
 		}
 
-		await this.cacheService.setPrefix(guildId, prefix);
+		await this.cacheService.deleteRankingEnabled(guildId);
 	}
 }

@@ -16,6 +16,7 @@ import { WORKER_RABBITMQ_CLIENT } from "../src/commands/commands.constants";
 import type { CommandHandler, PrefixCommandDefinition } from "../src/commands/command-handler";
 import { MessageCommandController } from "../src/commands/message-command.controller";
 import { CommandsRegistryService } from "../src/commands/commands.registry";
+import { RankingService } from "../src/ranking/ranking.service";
 
 describe("MessageCommandController", () => {
 	let controller: MessageCommandController;
@@ -31,6 +32,9 @@ describe("MessageCommandController", () => {
 	};
 	let rabbitMqClient: {
 		emit: jest.Mock;
+	};
+	let rankingService: {
+		trackMessage: jest.Mock<Promise<void>, [RobotmanEvent<DiscordMessagePayload>]>;
 	};
 
 	const rmqContext = {} as RmqContext;
@@ -57,6 +61,9 @@ describe("MessageCommandController", () => {
 		rabbitMqClient = {
 			emit: jest.fn().mockReturnValue(of(void 0)),
 		};
+		rankingService = {
+			trackMessage: jest.fn().mockResolvedValue(undefined),
+		};
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [MessageCommandController],
@@ -72,6 +79,10 @@ describe("MessageCommandController", () => {
 				{
 					provide: WORKER_RABBITMQ_CLIENT,
 					useValue: rabbitMqClient,
+				},
+				{
+					provide: RankingService,
+					useValue: rankingService,
 				},
 			],
 		}).compile();
@@ -105,10 +116,15 @@ describe("MessageCommandController", () => {
 				channelId: "channel-9",
 				content: "!pong",
 				guildId: "guild-9",
+				guildIconUrl: "",
+				guildName: "Guild Nine",
 				isBot: false,
+				isSystem: false,
+				memberDisplayName: "User Nine",
 				messageId: "message-9",
 				timestamp: "2026-04-28T00:00:00.000Z",
 				userId: "user-9",
+				webhookId: null,
 			},
 			timestamp: "2026-04-28T00:00:00.000Z",
 			traceparent: "00-abc-def-01",
@@ -117,6 +133,7 @@ describe("MessageCommandController", () => {
 
 		await controller.handleMessage(event, rmqContext);
 
+		expect(rankingService.trackMessage).toHaveBeenCalledWith(event);
 		expect(commandParserService.parseMessage).toHaveBeenCalledWith(
 			"!pong",
 			"guild-9",
@@ -157,10 +174,15 @@ describe("MessageCommandController", () => {
 				channelId: "channel-9",
 				content: "hello",
 				guildId: "guild-9",
+				guildIconUrl: "",
+				guildName: "Guild Nine",
 				isBot: false,
+				isSystem: false,
+				memberDisplayName: "User Nine",
 				messageId: "message-9",
 				timestamp: "2026-04-28T00:00:00.000Z",
 				userId: "user-9",
+				webhookId: null,
 			},
 			timestamp: "2026-04-28T00:00:00.000Z",
 			type: EventType.DISCORD_MESSAGE,
@@ -189,10 +211,15 @@ describe("MessageCommandController", () => {
 				channelId: "channel-9",
 				content: "!ghost",
 				guildId: "guild-9",
+				guildIconUrl: "",
+				guildName: "Guild Nine",
 				isBot: false,
+				isSystem: false,
+				memberDisplayName: "User Nine",
 				messageId: "message-9",
 				timestamp: "2026-04-28T00:00:00.000Z",
 				userId: "user-9",
+				webhookId: null,
 			},
 			timestamp: "2026-04-28T00:00:00.000Z",
 			type: EventType.DISCORD_MESSAGE,
@@ -226,10 +253,15 @@ describe("MessageCommandController", () => {
 				channelId: "channel-9",
 				content: "!ghost",
 				guildId: "guild-9",
+				guildIconUrl: "",
+				guildName: "Guild Nine",
 				isBot: false,
+				isSystem: false,
+				memberDisplayName: "User Nine",
 				messageId: "message-9",
 				timestamp: "2026-04-28T00:00:00.000Z",
 				userId: "user-9",
+				webhookId: null,
 			},
 			timestamp: "2026-04-28T00:00:00.000Z",
 			type: EventType.DISCORD_MESSAGE,

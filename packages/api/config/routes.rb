@@ -13,4 +13,6 @@ Rails.application.routes.draw do
   post "/guilds/:guild_id/auto-responses", to: "auto_responses#create"
   patch "/guilds/:guild_id/auto-responses/:id", to: "auto_responses#update"
   delete "/guilds/:guild_id/auto-responses/:id", to: "auto_responses#destroy"
+  get "/internal/auto-responses/cache-snapshot", to: "internal/auto_responses#index"
+  get "/internal/guild-settings/cache-snapshot", to: "internal/guild_settings#index"
 end

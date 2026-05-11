@@ -5,6 +5,7 @@ import { bootstrap } from "./main";
 void bootstrap();
 
 export { bootstrap } from "./main";
+export { TriggerHydrationService } from "./hydration/trigger-hydration.service";
 export {
 	buildRabbitMqUrl,
 	createMicroserviceOptions,

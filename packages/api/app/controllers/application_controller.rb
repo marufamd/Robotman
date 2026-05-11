@@ -27,6 +27,20 @@ class ApplicationController < ActionController::API
     render json: { message: "Unauthorized" }, status: :unauthorized
   end
 
+  def authenticate_internal_request!
+    expected_token = ENV.fetch("INTERNAL_SERVICE_TOKEN", "").to_s
+    provided_token = request.headers["X-Internal-Service-Token"].to_s
+
+    authorized =
+      expected_token.present? &&
+      provided_token.present? &&
+      ActiveSupport::SecurityUtils.secure_compare(provided_token, expected_token)
+
+    return if authorized
+
+    render json: { message: "Unauthorized" }, status: :unauthorized
+  end
+
   def current_user_id
     current_session_user[:userId] || current_session_user[:user_id] || current_session_user[:id]
   end

@@ -1,3 +1,5 @@
+import { Buffer } from "node:buffer";
+
 import { REST } from "@discordjs/rest";
 import {
 	InteractionResponseType,
@@ -6,16 +8,18 @@ import {
 	type APIEmbed,
 	type RESTPostAPIChannelMessageJSONBody,
 } from "discord-api-types/v10";
+import type { RawFile, RequestData } from "@discordjs/rest";
 
 import {
 	EventType,
+	type OutboundFilePayload,
 	type OutboundInteractionReplyPayload,
 	type OutboundMessagePayload,
 	type RobotmanEvent,
 } from "@robotman/shared";
 
 export interface DiscordRestWriter {
-	post(route: string, options: { body: unknown }): Promise<unknown>;
+	post(route: string, options: RequestData): Promise<unknown>;
 }
 
 export interface DiscordOutboundServiceOptions {
@@ -29,6 +33,23 @@ type OutboundGatewayEvent =
 
 const toEmbeds = (embeds?: Array<Record<string, unknown>>): APIEmbed[] | undefined =>
 	embeds as APIEmbed[] | undefined;
+
+const toAttachments = (
+	files?: OutboundFilePayload[],
+): RESTPostAPIChannelMessageJSONBody["attachments"] | undefined =>
+	files?.map((file, index) => ({
+		description: file.description,
+		filename: file.name,
+		id: index.toString(),
+	}));
+
+const toFiles = (files?: OutboundFilePayload[]): RawFile[] | undefined =>
+	files?.map((file, index) => ({
+		contentType: file.contentType,
+		data: Buffer.from(file.dataBase64, "base64"),
+		key: `files[${index}]`,
+		name: file.name,
+	}));
 
 export class DiscordOutboundService {
 	private readonly logger: Pick<typeof console, "error" | "info">;
@@ -56,6 +77,7 @@ export class DiscordOutboundService {
 		event: RobotmanEvent<OutboundMessagePayload>,
 	): Promise<void> {
 		const body: RESTPostAPIChannelMessageJSONBody = {
+			attachments: toAttachments(event.payload.files),
 			content: event.payload.content,
 			embeds: toEmbeds(event.payload.embeds),
 			message_reference: event.payload.replyToMessageId
@@ -67,6 +89,7 @@ export class DiscordOutboundService {
 
 		await this.options.rest.post(Routes.channelMessages(event.payload.channelId), {
 			body,
+			files: toFiles(event.payload.files),
 		});
 		this.logger.info(`Gateway: sent outbound message to channel ${event.payload.channelId}`);
 	}
@@ -76,6 +99,7 @@ export class DiscordOutboundService {
 	): Promise<void> {
 		const body = {
 			data: {
+				attachments: toAttachments(event.payload.files),
 				content: event.payload.content,
 				embeds: toEmbeds(event.payload.embeds),
 				flags: event.payload.isEphemeral ? MessageFlags.Ephemeral : undefined,
@@ -88,7 +112,11 @@ export class DiscordOutboundService {
 				event.payload.interactionId,
 				event.payload.interactionToken,
 			),
-			{ body },
+			{
+				auth: false,
+				body,
+				files: toFiles(event.payload.files),
+			},
 		);
 		this.logger.info(
 			`Gateway: sent interaction reply for ${event.payload.interactionId}`,

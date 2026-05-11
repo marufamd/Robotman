@@ -5,12 +5,18 @@ import {
 	GatewayIntentBits,
 	Routes,
 	type GatewayDispatchPayload,
+	type GatewayGuildCreateDispatchData,
+	type GatewayGuildUpdateDispatchData,
 	type GatewayInteractionCreateDispatchData,
 	type GatewayMessageCreateDispatchData,
 	type RESTGetAPIGatewayBotResult,
 } from "discord-api-types/v10";
 
-import { createDiscordInteractionEvent, createDiscordMessageEvent } from "./discord-event-mappers";
+import {
+	createDiscordInteractionEvent,
+	createDiscordMessageEvent,
+	type GuildMetadata,
+} from "./discord-event-mappers";
 import type { RobotmanPublisher } from "./rabbitmq-publisher";
 
 export interface DiscordGatewayManager {
@@ -59,6 +65,7 @@ export class DefaultDiscordGatewayManagerFactory implements DiscordGatewayManage
 
 export class DiscordGatewayService {
 	private manager: DiscordGatewayManager | null = null;
+	private readonly guildMetadataById = new Map<string, GuildMetadata>();
 	private readonly logger: Pick<typeof console, "error" | "info">;
 
 	public constructor(private readonly options: GatewayServiceOptions) {
@@ -91,12 +98,23 @@ export class DiscordGatewayService {
 		this.logger.info(`Gateway: websocket manager created with ${shardCount} shard(s)`);
 
 		this.manager.on(WebSocketShardEvents.Dispatch, ({ data }) => {
+			if (data.t === GatewayDispatchEvents.GuildCreate) {
+				this.cacheGuildMetadata(data.d as GatewayGuildCreateDispatchData);
+				return;
+			}
+
+			if (data.t === GatewayDispatchEvents.GuildUpdate) {
+				this.cacheGuildMetadata(data.d as GatewayGuildUpdateDispatchData);
+				return;
+			}
+
 			if (data.t !== GatewayDispatchEvents.MessageCreate) {
 				return;
 			}
 
 			const event = createDiscordMessageEvent(
 				data.d as GatewayMessageCreateDispatchData,
+				this.getGuildMetadata((data.d as GatewayMessageCreateDispatchData).guild_id),
 			);
 			this.logger.info(
 				`Gateway: received message create in guild ${event.payload.guildId} channel ${event.payload.channelId}`,
@@ -113,6 +131,9 @@ export class DiscordGatewayService {
 
 			const event = createDiscordInteractionEvent(
 				data.d as GatewayInteractionCreateDispatchData,
+				this.getGuildMetadata(
+					(data.d as GatewayInteractionCreateDispatchData).guild_id,
+				),
 			);
 			this.logger.info(
 				`Gateway: received interaction create ${event.payload.commandName} in guild ${event.payload.guildId}`,
@@ -129,5 +150,32 @@ export class DiscordGatewayService {
 
 	public async stop(): Promise<void> {
 		await this.options.publisher.close();
+	}
+
+	private cacheGuildMetadata(
+		guild: Pick<GatewayGuildCreateDispatchData, "id" | "icon" | "name">,
+	): void {
+		this.guildMetadataById.set(guild.id, {
+			guildIconUrl: guild.icon
+				? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=256`
+				: "",
+			guildName: guild.name,
+		});
+	}
+
+	private getGuildMetadata(guildId: string | undefined): GuildMetadata {
+		if (!guildId) {
+			return {
+				guildIconUrl: "",
+				guildName: "",
+			};
+		}
+
+		return (
+			this.guildMetadataById.get(guildId) ?? {
+				guildIconUrl: "",
+				guildName: "",
+			}
+		);
 	}
 }

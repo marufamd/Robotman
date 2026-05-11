@@ -4,6 +4,7 @@ import type {
 	GatewayInteractionCreateDispatchData,
 	GatewayMessageCreateDispatchData,
 } from "discord-api-types/v10";
+import { MessageType } from "discord-api-types/v10";
 
 import {
 	EventType,
@@ -13,6 +14,11 @@ import {
 } from "@robotman/shared";
 
 type JsonObject = Record<string, unknown>;
+
+export interface GuildMetadata {
+	guildIconUrl: string;
+	guildName: string;
+}
 
 function isRecord(value: unknown): value is JsonObject {
 	return typeof value === "object" && value !== null;
@@ -53,8 +59,26 @@ function readOptions(value: unknown): Record<string, unknown> {
 	}, {});
 }
 
+const readMemberDisplayName = (
+	message: GatewayMessageCreateDispatchData,
+): string => {
+	if (typeof message.member?.nick === "string" && message.member.nick.length > 0) {
+		return message.member.nick;
+	}
+
+	if (typeof message.author.global_name === "string" && message.author.global_name.length > 0) {
+		return message.author.global_name;
+	}
+
+	return message.author.username;
+};
+
 export function createDiscordMessageEvent(
 	message: GatewayMessageCreateDispatchData,
+	guildMetadata: GuildMetadata = {
+		guildIconUrl: "",
+		guildName: "",
+	},
 ): RobotmanEvent<DiscordMessagePayload> {
 	return {
 		eventId: randomUUID(),
@@ -65,15 +89,26 @@ export function createDiscordMessageEvent(
 			guildId: message.guild_id ?? "",
 			channelId: message.channel_id,
 			userId: message.author.id,
+			memberDisplayName: readMemberDisplayName(message),
 			content: message.content,
 			isBot: Boolean(message.author.bot),
+			isSystem:
+				typeof message.type === "number" &&
+				message.type !== MessageType.Default,
+			guildIconUrl: guildMetadata.guildIconUrl,
+			guildName: guildMetadata.guildName,
 			timestamp: message.timestamp,
+			webhookId: message.webhook_id ?? null,
 		},
 	};
 }
 
 export function createDiscordInteractionEvent(
 	interaction: GatewayInteractionCreateDispatchData,
+	guildMetadata: GuildMetadata = {
+		guildIconUrl: "",
+		guildName: "",
+	},
 ): RobotmanEvent<DiscordInteractionPayload> {
 	const memberUser =
 		isRecord(interaction.member) && isRecord(interaction.member.user)
@@ -91,6 +126,8 @@ export function createDiscordInteractionEvent(
 				interactionId: interaction.id,
 				interactionToken: interaction.token,
 				guildId: interaction.guild_id ?? "",
+				guildIconUrl: guildMetadata.guildIconUrl,
+				guildName: guildMetadata.guildName,
 				channelId: interaction.channel_id ?? "",
 				userId: readString(memberUser?.id) || readString(interaction.user?.id),
 				commandName: readString(interactionData.name),

@@ -70,6 +70,21 @@ describe("DiscordGatewayService", () => {
 			{
 				data: {
 					d: {
+						icon: "icon-1",
+						id: "guild-1",
+						name: "Guild One",
+					},
+					op: 0,
+					s: 0,
+					t: GatewayDispatchEvents.GuildCreate,
+				} as unknown as GatewayDispatchPayload,
+				shardId: 0,
+			},
+			);
+			listener(
+			{
+				data: {
+					d: {
 						author: {
 							avatar: null,
 							bot: false,
@@ -82,6 +97,7 @@ describe("DiscordGatewayService", () => {
 						content: "hello world",
 						guild_id: "guild-1",
 						id: "message-1",
+						timestamp: "2026-05-09T12:00:00.000Z",
 					} as GatewayMessageCreateDispatchData,
 					op: 0,
 					s: 1,
@@ -112,9 +128,15 @@ describe("DiscordGatewayService", () => {
 					channelId: "channel-1",
 					content: "hello world",
 					guildId: "guild-1",
+					guildIconUrl: "https://cdn.discordapp.com/icons/guild-1/icon-1.png?size=256",
+					guildName: "Guild One",
 					isBot: false,
+					isSystem: false,
+					memberDisplayName: "Robotman",
 					messageId: "message-1",
+					timestamp: "2026-05-09T12:00:00.000Z",
 					userId: "user-1",
+					webhookId: null,
 				},
 			}),
 		);
@@ -148,6 +170,21 @@ describe("DiscordGatewayService", () => {
 		expect(listeners).toBeDefined();
 
 		for (const listener of listeners ?? []) {
+			listener(
+			{
+				data: {
+					d: {
+						icon: "icon-9",
+						id: "guild-9",
+						name: "Guild Nine",
+					},
+					op: 0,
+					s: 0,
+					t: GatewayDispatchEvents.GuildCreate,
+				} as unknown as GatewayDispatchPayload,
+				shardId: 0,
+			},
+			);
 			listener(
 			{
 				data: {
@@ -195,6 +232,8 @@ describe("DiscordGatewayService", () => {
 					channelId: "channel-9",
 					commandName: "ping",
 					guildId: "guild-9",
+					guildIconUrl: "https://cdn.discordapp.com/icons/guild-9/icon-9.png?size=256",
+					guildName: "Guild Nine",
 					interactionId: "interaction-9",
 					interactionToken: "interaction-token",
 					options: {

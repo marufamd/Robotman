@@ -16,6 +16,7 @@ import {
 } from "@nestjs/microservices";
 
 import { CommandParserService } from "../command-parser/command-parser.service";
+import { RankingService } from "../ranking/ranking.service";
 import { WORKER_RABBITMQ_CLIENT } from "./commands.constants";
 import { CommandsRegistryService } from "./commands.registry";
 
@@ -26,6 +27,7 @@ export class MessageCommandController {
 	public constructor(
 		private readonly commandParserService: CommandParserService,
 		private readonly commandsRegistryService: CommandsRegistryService,
+		private readonly rankingService: RankingService,
 		@Inject(WORKER_RABBITMQ_CLIENT)
 		private readonly rabbitMqClient: ClientProxy,
 	) {}
@@ -38,6 +40,12 @@ export class MessageCommandController {
 		this.logger.log(
 			`Received discord.message.create guild=${event.payload.guildId} channel=${event.payload.channelId} user=${event.payload.userId} content=${JSON.stringify(event.payload.content)}`,
 		);
+		void this.rankingService.trackMessage(event).catch((error: unknown) => {
+			this.logger.error(
+				`Failed ranking update guild=${event.payload.guildId} user=${event.payload.userId}`,
+				error instanceof Error ? error.stack : String(error),
+			);
+		});
 		const parsedCommand = await this.commandParserService.parseMessage(
 			event.payload.content,
 			event.payload.guildId,

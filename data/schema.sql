@@ -34,7 +34,6 @@ CREATE TABLE history (
 CREATE INDEX idx_history_guild ON history(guild);
 CREATE INDEX idx_history_resource ON history(resource_type, resource_id);
 CREATE INDEX idx_auto_responses_guild ON auto_responses(guild);
-CREATE INDEX idx_ranks_guild ON ranks(guild);
 
 CREATE TABLE guild_settings (
     guild TEXT PRIMARY KEY,
@@ -48,7 +47,12 @@ CREATE TABLE guild_settings (
 CREATE TABLE ranks (
     guild TEXT NOT NULL,
     user_id TEXT NOT NULL,
+    display_name TEXT NOT NULL DEFAULT '',
     score INTEGER DEFAULT 0,
+    color INTEGER,
     last_message_at TIMESTAMPTZ,
     PRIMARY KEY (guild, user_id)
 );
+
+CREATE INDEX idx_ranks_guild ON ranks(guild);
+CREATE INDEX idx_ranks_leaderboard ON ranks(guild, score DESC, user_id);
