@@ -4,8 +4,17 @@
 import FormData from 'form-data';
 import type { Agent } from 'http';
 import { METHODS } from 'http';
+import https from 'https';
+import fs from 'fs';
 import type { BodyInit, Headers, HeadersInit } from 'node-fetch';
 import fetch from 'node-fetch';
+
+// node-fetch does not respect NODE_EXTRA_CA_CERTS; explicitly load the system
+// CA bundle so Alpine container HTTPS requests can verify certificates.
+const CA_BUNDLE = '/etc/ssl/certs/ca-certificates.crt';
+const defaultAgent = fs.existsSync(CA_BUNDLE)
+	? new https.Agent({ ca: fs.readFileSync(CA_BUNDLE) })
+	: undefined;
 
 interface RequestOptions {
 	url: string;
@@ -82,12 +91,16 @@ class Request implements Promise<RequestResponse> {
 	}
 
 	private async request(): Promise<RequestResponse> {
+		// Use the explicit HTTPS agent (with system CA bundle) for HTTPS URLs,
+		// falling back to any user-supplied agent or the default undefined.
+		const agent = this.httpAgent ?? (this.url.protocol === 'https:' ? defaultAgent : undefined);
+
 		const response = await fetch(this.url.toString(), {
 			method: this.method,
 			headers: this.headers,
 			follow: this.follow,
 			body: this.body,
-			agent: this.httpAgent
+			agent
 		});
 
 		const buffer = await response.buffer();

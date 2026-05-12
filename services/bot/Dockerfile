@@ -32,6 +32,8 @@ RUN apk add --no-cache \
   cairo pango jpeg giflib librsvg pixman \
   gcompat libstdc++
 
+RUN apk add --no-cache --upgrade ca-certificates-bundle
+
 WORKDIR /usr/src/app
 
 # Copy production deps and built code for bot
@@ -47,6 +49,7 @@ COPY --from=builder /usr/src/app/services/bot/fonts ./fonts
 COPY --from=builder /usr/src/app/services/types ./services/types
 
 ENV NODE_ENV=production
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
 
 # Use non-root user
 RUN addgroup -S robotman && adduser -S -G robotman robotman
