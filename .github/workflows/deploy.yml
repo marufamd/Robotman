@@ -33,7 +33,7 @@ jobs:
           POSTGRES_URL=postgres://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}
 
           # API Service
-          PORT=3000
+          PORT=${{ secrets.PORT }}
           WEB_URL=${{ secrets.WEB_URL }}
           BOT_WEBHOOK_URL=${{ secrets.BOT_WEBHOOK_URL }}
           API_WEBHOOK_URL=${{ secrets.API_WEBHOOK_URL }}
