@@ -240,7 +240,8 @@ export const Shows = new Set<number>([
 	60920, // The Penguin
 	61066, // Kite Man Hell Yeah's
 	66738, // Creature Commandos
-	73090 // Suicide Squad Isekai
+	73090, // Suicide Squad Isekai
+	77795  // Get Jiro
 ]);
 
 export const Recommendations = {
