@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-robotman}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-robotman}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    environment:
+      DISCORD_PUBLIC_KEY: ${DISCORD_PUBLIC_KEY:?Set DISCORD_PUBLIC_KEY}
+      DATABASE_URL: postgres://${POSTGRES_USER:-robotman}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-robotman}
+      PORT: 3001
+      NODE_ENV: production
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DASHBOARD_ORIGIN: ${DASHBOARD_ORIGIN:-}
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      COMICVINE_API_KEY: ${COMICVINE_API_KEY:-}
+      OMDB_API_KEY: ${OMDB_API_KEY:-}
+      GOOGLE_CSE_API_KEY: ${GOOGLE_CSE_API_KEY:-}
+      GOOGLE_CSE_ENGINE_ID: ${GOOGLE_CSE_ENGINE_ID:-}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      RELEASE_LIST_CHANNEL_ID: ${RELEASE_LIST_CHANNEL_ID:-}
+      RELEASE_LIST_TIMEZONE: ${RELEASE_LIST_TIMEZONE:-UTC}
+      RELEASE_LIST_DAY_OF_WEEK: ${RELEASE_LIST_DAY_OF_WEEK:-0}
+      RELEASE_LIST_HOUR: ${RELEASE_LIST_HOUR:-0}
+      RELEASE_LIST_MINUTE: ${RELEASE_LIST_MINUTE:-0}
+      TVMAZE_SHOW_IDS: ${TVMAZE_SHOW_IDS:-}
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  postgres_data:

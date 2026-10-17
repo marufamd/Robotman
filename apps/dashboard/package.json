@@ -1,0 +1,28 @@
+{
+  "name": "@robotman/dashboard",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "dev": "node --env-file=../../.env ./node_modules/vite/bin/vite.js --port 3000"
+  },
+  "devDependencies": {
+    "@robotman/typescript-config": "workspace:*",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "nitro": "3.0.260903-beta",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "@tanstack/history": "^1.162.5",
+    "@tanstack/react-router": "^1.170.42",
+    "@tanstack/react-start": "^1.168.61",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}
