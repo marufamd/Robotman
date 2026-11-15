@@ -8,12 +8,14 @@ export interface CommandContext {
   startedAt: number;
   applicationId?: string;
   botToken?: string;
+  now?: () => Date;
   queueFollowup?(data: Record<string, unknown>): void;
 }
 export interface CommandModule {
   commands: RESTPostAPIChatInputApplicationCommandsJSONBody[];
   matches(interaction: CommandInteraction): boolean;
   handle(interaction: CommandInteraction, context: CommandContext): Promise<APIInteractionResponse>;
+  deferEphemeral?(interaction: CommandInteraction): boolean;
   start?(context: CommandContext): Promise<void>;
-  close?(): Promise<void>;
+  close?(context: CommandContext): Promise<void>;
 }

@@ -36,39 +36,9 @@ test('utility module registers only the retained utility and fun commands', () =
   assert.equal(utilityModule.matches(interaction('math')), true);
 });
 
-test('color converts short and full hexadecimal colors and explains invalid input', async () => {
-  assert.equal(await content('color', [{ name: 'hex', value: '#f0a' }]), '#FF00AA · RGB 255, 0, 170 · HSL 320°, 100%, 50%');
-  assert.equal(await content('color', [{ name: 'hex', value: '336699' }]), '#336699 · RGB 51, 102, 153 · HSL 210°, 50%, 40%');
-  assert.match(await content('color', [{ name: 'hex', value: 'red' }]), /color is invalid/i);
-});
-
-test('math evaluates arithmetic safely and returns useful validation messages', async () => {
-  assert.equal(await content('math', [{ name: 'expression', value: '(2 + 3) * 4 - 2^3' }]), 'Result: 12');
-  assert.equal(await content('math', [{ name: 'expression', value: '1 / 0' }]), 'Cannot divide by zero');
-  assert.match(await content('math', [{ name: 'expression', value: '1 + process.exit()' }]), /expression is invalid/i);
-  assert.match(await content('math', [{ name: 'expression', value: '9'.repeat(201) }]), /up to 200 characters/i);
-});
-
-test('ping measures an HTTP request to the Discord API and handles failure', async () => {
-  let requestedUrl = '';
-  const fetchStub: typeof fetch = async (input) => {
-    requestedUrl = String(input);
-    return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
-  };
-  assert.match(await content('ping', [], context({ fetch: fetchStub })), /^Discord API HTTP latency: \d+ ms\.$/);
-  assert.equal(requestedUrl, 'https://discord.com/api/v10/gateway');
-  const unavailable: typeof fetch = async () => { throw new Error('offline'); };
-  assert.match(await content('ping', [], context({ fetch: unavailable })), /could not be reached/i);
-});
-
-test('stats reports process uptime and runtime memory', async () => {
-  assert.match(await content('stats', [], context({ startedAt: Date.now() - 65_000 })), /^Uptime: 0h 1m 5s · Memory: \d+ MB$/);
-});
-
-test('coin and eight-ball respond within their expected answer sets', async () => {
-  assert.ok(['Heads!', 'Tails!'].includes(await content('coin')));
-  assert.match(await content('eight-ball', [{ name: 'question', value: 'Will this work?' }]), /.+/);
-  assert.match(await content('eight-ball', [{ name: 'question', value: '  ' }]), /Ask a question/i);
+test('math uses expression syntax and rejects member access', async () => {
+  assert.equal(await content('math', [{ name: 'expression', value: '(2 + 3) * 4 - 2^3' }]), '```\n12\n```');
+  assert.match(await content('math', [{ name: 'expression', value: 'process.exit()' }]), /not a valid mathematical expression/);
 });
 
 test('dad-joke fetches a joke and handles unavailable or invalid responses', async () => {

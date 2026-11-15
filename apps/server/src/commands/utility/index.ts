@@ -1,3 +1,7 @@
+import { readFileSync, readdirSync } from 'node:fs';
+import { PNG } from 'pngjs';
+import { Worker } from 'node:worker_threads';
+import { createRequire } from 'node:module';
 import type {
   APIApplicationCommandInteraction,
   APIInteractionResponse,
@@ -8,13 +12,13 @@ import type { CommandContext, CommandInteraction, CommandModule } from '../types
 const commandDefinitions = [
   {
     name: 'color',
-    description: 'Convert a hexadecimal color to RGB and HSL',
-    options: [{ name: 'hex', description: 'A 3 or 6 digit hexadecimal color, such as #8b5cf6', type: 3, required: true }],
+    description: 'Display a color, its values and a color swatch',
+    options: [{ name: 'color', description: 'A color name, hex code, decimal integer, or RGB triple', type: 3, required: true }],
   },
   {
     name: 'math',
-    description: 'Evaluate a basic arithmetic expression',
-    options: [{ name: 'expression', description: 'Use numbers, +, -, *, /, %, ^, and parentheses', type: 3, required: true, max_length: 200 }],
+    description: 'Evaluate a mathematical expression',
+    options: [{ name: 'expression', description: 'Expression with arithmetic, functions and constants', type: 3, required: true, max_length: 4000 }],
   },
   { name: 'ping', description: 'Measure the HTTP response time of the Discord API' },
   { name: 'stats', description: 'Show Robotman server runtime statistics' },
@@ -39,122 +43,45 @@ function getStringOption(interaction: APIApplicationCommandInteraction, name: st
   return option?.type === 3 ? option.value : undefined;
 }
 
-function formatColor(input: string): string | null {
-  const match = /^#?([\da-f]{3}|[\da-f]{6})$/i.exec(input.trim());
-  if (!match) return null;
-  const digits = match[1]!;
-  const value = digits.length === 3 ? [...digits].map((part) => part + part).join('') : digits;
-  const red = Number.parseInt(value.slice(0, 2), 16);
-  const green = Number.parseInt(value.slice(2, 4), 16);
-  const blue = Number.parseInt(value.slice(4, 6), 16);
-  const r = red / 255, g = green / 255, b = blue / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  const lightness = (max + min) / 2;
-  const saturation = delta === 0 ? 0 : delta / (1 - Math.abs(2 * lightness - 1));
-  let hue = 0;
-  if (delta !== 0) {
-    if (max === r) hue = ((g - b) / delta) % 6;
-    else if (max === g) hue = (b - r) / delta + 2;
-    else hue = (r - g) / delta + 4;
-    hue *= 60;
-    if (hue < 0) hue += 360;
+const colors: Record<string, number> = JSON.parse(readFileSync(new URL('../../../assets/colors.json', import.meta.url), 'utf8'));
+function colorReply(input: string): APIInteractionResponse {
+  const text = input.trim();
+  const named = text.toUpperCase().replace(/[ -]+/g, '_');
+  let value: number | undefined;
+  if (named === 'RANDOM') value = Math.floor(Math.random() * 0x1000000);
+  else if (named === 'DEFAULT') value = 0;
+  else if (Object.hasOwn(colors, named)) value = colors[named];
+  else if (/^\d+$/.test(text)) value = Number(text);
+  else {
+    const hex = /^(?:#|0x)([a-f\d]{3}|[a-f\d]{6})$/i.exec(text) ?? /^([a-f\d]{6})$/i.exec(text);
+    if (hex) value = parseInt(hex[1]!.length === 3 ? [...hex[1]!].map(ch => ch + ch).join('') : hex[1]!, 16);
+    else {
+      const rgb = /^(?:rgb\s*)?\(?\s*(\d+)\s*[, ]\s*(\d+)\s*[, ]\s*(\d+)\s*\)?$/i.exec(text);
+      if (rgb) { const channels = rgb.slice(1).map(Number); if (channels.every(channel => channel <= 255)) value = channels[0]! * 65536 + channels[1]! * 256 + channels[2]!; }
+    }
   }
-  return `#${value.toUpperCase()} · RGB ${red}, ${green}, ${blue} · HSL ${Math.round(hue)}°, ${Math.round(saturation * 100)}%, ${Math.round(lightness * 100)}%`;
+  if (value === undefined || !Number.isInteger(value) || value < 0 || value > 0xffffff) return { type: 4, data: { content: 'Invalid color. Use a color name, #hex, decimal integer, or RGB channels from 0 to 255.', flags: 64 } };
+  const rgb = [value >> 16 & 255, value >> 8 & 255, value & 255];
+  const image = new PNG({ width: 300, height: 300 });
+  for (let i = 0; i < image.data.length; i += 4) { image.data[i] = rgb[0]!; image.data[i + 1] = rgb[1]!; image.data[i + 2] = rgb[2]!; image.data[i + 3] = 255; }
+  return { type: 4, data: { embeds: [{ color: value === 0xffffff ? 16777200 : value, description: `• Hex: #${value.toString(16).padStart(6, '0')}\n• RGB: (${rgb.join(', ')})\n• Integer: ${value}`, image: { url: 'attachment://color.png' } }], files: [{ name: 'color.png', content: PNG.sync.write(image), contentType: 'image/png' }] } } as APIInteractionResponse;
 }
 
-class MathParser {
-  private cursor = 0;
-
-  constructor(private readonly source: string) {}
-
-  parse(): number {
-    const value = this.expression();
-    this.skipSpaces();
-    if (this.cursor !== this.source.length) throw new Error('Unexpected input');
-    if (!Number.isFinite(value) || Math.abs(value) > 1e100) throw new Error('Result is too large');
-    return value;
-  }
-
-  private expression(): number {
-    let left = this.term();
-    while (true) {
-      this.skipSpaces();
-      const operator = this.source[this.cursor];
-      if (operator !== '+' && operator !== '-') return left;
-      this.cursor += 1;
-      const right = this.term();
-      left = operator === '+' ? left + right : left - right;
-    }
-  }
-
-  private term(): number {
-    let left = this.unary();
-    while (true) {
-      this.skipSpaces();
-      const operator = this.source[this.cursor];
-      if (operator !== '*' && operator !== '/' && operator !== '%') return left;
-      this.cursor += 1;
-      const right = this.unary();
-      if ((operator === '/' || operator === '%') && right === 0) throw new Error('Cannot divide by zero');
-      left = operator === '*' ? left * right : operator === '/' ? left / right : left % right;
-    }
-  }
-
-  private unary(): number {
-    this.skipSpaces();
-    const operator = this.source[this.cursor];
-    if (operator === '+' || operator === '-') {
-      this.cursor += 1;
-      const value = this.unary();
-      return operator === '-' ? -value : value;
-    }
-    return this.power();
-  }
-
-  private power(): number {
-    let left = this.primary();
-    this.skipSpaces();
-    if (this.source[this.cursor] === '^') {
-      this.cursor += 1;
-      left **= this.unary();
-    }
-    return left;
-  }
-
-  private primary(): number {
-    this.skipSpaces();
-    if (this.source[this.cursor] === '(') {
-      this.cursor += 1;
-      const value = this.expression();
-      this.skipSpaces();
-      if (this.source[this.cursor] !== ')') throw new Error('Missing closing parenthesis');
-      this.cursor += 1;
-      return value;
-    }
-    const match = /^(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?/i.exec(this.source.slice(this.cursor));
-    if (!match) throw new Error('Expected a number');
-    this.cursor += match[0].length;
-    const value = Number(match[0]);
-    if (!Number.isFinite(value)) throw new Error('Number is too large');
-    return value;
-  }
-
-  private skipSpaces(): void {
-    while (/\s/.test(this.source[this.cursor] ?? '')) this.cursor += 1;
-  }
-}
-
-function calculate(input: string): number | string {
-  if (!input.trim() || input.length > 200) return 'Enter an expression up to 200 characters long.';
+const evaluatorPath = createRequire(import.meta.url).resolve('expr-eval');
+async function calculate(input: string): Promise<APIInteractionResponse> {
   try {
-    const result = new MathParser(input).parse();
-    return Number(result.toPrecision(12));
-  } catch (error) {
-    if (error instanceof Error && error.message === 'Cannot divide by zero') return error.message;
-    return 'That expression is invalid. Use numbers, +, -, *, /, %, ^, and parentheses.';
-  }
+    if (!input.trim() || input.length > 4000) throw new Error('Invalid expression length');
+    // Keep the original expression language, including user functions, off the HTTP thread.
+    const answer = await new Promise<string>((resolve, reject) => {
+      const worker = new Worker(`const { parentPort, workerData } = require('node:worker_threads'); const { Parser } = require(workerData.path); try { parentPort.postMessage({ answer: new Parser({ allowMemberAccess: false }).evaluate(workerData.input).toString() }); } catch { parentPort.postMessage({ error: true }); }`, { eval: true, workerData: { input, path: evaluatorPath }, resourceLimits: { maxOldGenerationSizeMb: 32, stackSizeMb: 2 } });
+      const timer = setTimeout(() => { void worker.terminate(); reject(new Error('Expression timed out')); }, 1000);
+      worker.once('message', (message: { answer?: string; error?: boolean }) => { clearTimeout(timer); void worker.terminate(); if (message.error || message.answer === undefined) reject(new Error('Invalid expression')); else resolve(message.answer); });
+      worker.once('error', error => { clearTimeout(timer); reject(error); });
+      worker.once('exit', code => { clearTimeout(timer); if (code !== 0) reject(new Error('Evaluator stopped')); });
+    });
+    if (answer.length > 1015) return { type: 4, data: { content: 'Output was uploaded as a file.', files: [{ name: 'result.txt', content: answer }] } } as APIInteractionResponse;
+    return respond('```\n' + answer + '\n```');
+  } catch { return { type: 4, data: { content: 'That is not a valid mathematical expression, or it took too long to evaluate.', flags: 64 } }; }
 }
 
 async function measureDiscordApi(context: CommandContext): Promise<string> {
@@ -166,7 +93,7 @@ async function measureDiscordApi(context: CommandContext): Promise<string> {
     });
     const elapsed = Math.max(0, Math.round(performance.now() - start));
     if (!response.ok) return `Discord API responded with HTTP ${response.status}.`;
-    return `Discord API HTTP latency: ${elapsed} ms.`;
+    return `${elapsed} ms.`;
   } catch {
     return 'The Discord API could not be reached right now.';
   }
@@ -189,12 +116,30 @@ async function getDadJoke(context: CommandContext): Promise<string> {
   }
 }
 
-const eightBallAnswers = [
-  'It is certain.', 'Without a doubt.', 'You may rely on it.', 'Yes, definitely.', 'Most likely.',
-  'Outlook good.', 'Signs point to yes.', 'Reply hazy, try again.', 'Ask again later.',
-  'Better not tell you now.', 'Cannot predict now.', 'Concentrate and ask again.',
-  "Don't count on it.", 'My reply is no.', 'Outlook not so good.', 'Very doubtful.',
-];
+function imageReply(folder: 'coins' | 'eight-balls'): APIInteractionResponse {
+  const root = new URL(`../../../assets/${folder}/`, import.meta.url);
+  const images = readdirSync(root).filter(name => name.endsWith('.png'));
+  const name = images[Math.floor(Math.random() * images.length)]!;
+  return { type: 4, data: { files: [{ name, content: readFileSync(new URL(name, root)), contentType: 'image/png' }] } } as APIInteractionResponse;
+}
+const manifest = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')) as { version: string; dependencies: Record<string, string> };
+
+const avatarCache = new Map<string, { url: string; expires: number }>();
+async function botAvatar(context: CommandContext): Promise<string> {
+  const fallback = 'https://cdn.discordapp.com/embed/avatars/0.png';
+  if (!context.botToken) return fallback;
+  const cached = avatarCache.get(context.botToken);
+  if (cached && cached.expires > Date.now()) return cached.url;
+  try {
+    const response = await context.fetch('https://discord.com/api/v10/users/@me', { headers: { authorization: `Bot ${context.botToken}` }, signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return fallback;
+    const user = await response.json() as { id?: string; avatar?: string };
+    if (!user.id || !user.avatar) return fallback;
+    const url = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${user.avatar.startsWith('a_') ? 'gif' : 'png'}`;
+    avatarCache.set(context.botToken, { url, expires: Date.now() + 300_000 });
+    return url;
+  } catch { return fallback; }
+}
 
 export const utilityModule: CommandModule = {
   commands: commandDefinitions,
@@ -206,31 +151,30 @@ export const utilityModule: CommandModule = {
     const command = interaction as APIApplicationCommandInteraction;
     switch (command.data.name) {
       case 'color': {
-        const color = getStringOption(command, 'hex');
-        if (!color) return respond('Enter a hexadecimal color such as #8b5cf6.');
-        return respond(formatColor(color) ?? 'That color is invalid. Use 3 or 6 hexadecimal digits, with an optional #.');
+        return colorReply(getStringOption(command, 'color') ?? getStringOption(command, 'hex') ?? '');
       }
       case 'math': {
         const expression = getStringOption(command, 'expression');
         if (expression === undefined) return respond('Enter an arithmetic expression to calculate.');
-        const result = calculate(expression);
-        return respond(typeof result === 'number' ? `Result: ${result}` : result);
+        return calculate(expression);
       }
-      case 'ping': return respond(await measureDiscordApi(context));
+      case 'ping': { const measured = await measureDiscordApi(context); return { type: 4, data: { embeds: [{ title: '🏓 Pong!', color: colors.ROBOTMAN, fields: [{ name: 'Latency', value: measured, inline: true }] }] } }; }
       case 'stats': {
         const uptimeSeconds = Math.max(0, Math.floor((Date.now() - context.startedAt) / 1000));
-        const hours = Math.floor(uptimeSeconds / 3600);
-        const minutes = Math.floor((uptimeSeconds % 3600) / 60);
-        const seconds = uptimeSeconds % 60;
-        const memoryMb = Math.round(process.memoryUsage().rss / 1024 / 1024);
-        return respond(`Uptime: ${hours}h ${minutes}m ${seconds}s · Memory: ${memoryMb} MB`);
+        const hours = Math.floor(uptimeSeconds / 3600), minutes = Math.floor(uptimeSeconds % 3600 / 60), seconds = uptimeSeconds % 60;
+        const cpu = process.cpuUsage();
+        const cpuPercent = ((cpu.user + cpu.system) / 1000 / Math.max(1, process.uptime() * 1000) * 100).toFixed(2);
+        return { type: 4, data: { embeds: [{ title: 'Statistics', color: colors.ROBOTMAN, thumbnail: { url: await botAvatar(context) }, fields: [
+          ['Version', manifest.version], ['Dependencies', String(Object.keys(manifest.dependencies).length)], ['Node.js Version', process.version],
+          ['Memory Usage', `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`], ['CPU Usage', `${cpuPercent}%`], ['Uptime', `${Math.floor(hours / 24)}d, ${hours % 24}h, ${minutes}m, ${seconds}s`],
+        ].map(([name, value]) => ({ name: name!, value: value!, inline: true })) }] } };
       }
-      case 'coin': return respond(Math.random() < 0.5 ? 'Heads!' : 'Tails!');
+      case 'coin': return imageReply('coins');
       case 'dad-joke': return respond(await getDadJoke(context));
       case 'eight-ball': {
         const question = getStringOption(command, 'question');
         if (!question?.trim()) return respond('Ask a question to consult the magic eight ball.');
-        return respond(eightBallAnswers[Math.floor(Math.random() * eightBallAnswers.length)]!);
+        return imageReply('eight-balls');
       }
       default: return respond('This command is not supported.');
     }

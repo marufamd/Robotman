@@ -7,8 +7,8 @@ function required(name: string): string {
   if (!value) throw new Error(`${name} is required`);
   return value;
 }
-const port = Number(process.env.PORT ?? 3001);
-if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid PORT');
+const port = Number(process.env.SERVER_PORT ?? 3001);
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid SERVER_PORT');
 const application = createApplication({
   publicKey: required('DISCORD_PUBLIC_KEY'), databaseUrl: required('DATABASE_URL'),
   modules: commandModules,

@@ -9,6 +9,7 @@
   "scripts": {
     "build": "turbo run build --cache-dir=.turbo/cache",
     "dev": "turbo run dev --cache-dir=.turbo/cache",
+    "dev:local": "sh scripts/dev-local.sh",
     "typecheck": "turbo run typecheck --cache-dir=.turbo/cache",
     "test": "node scripts/test-integration.mjs",
     "test:docker": "node --test test/docker.test.mjs",

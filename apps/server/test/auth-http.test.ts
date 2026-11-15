@@ -6,9 +6,10 @@ import { createAuth } from '../src/auth/index.js';
 
 test('OAuth, guild GraphQL, and CSRF-protected logout work through the same-origin HTTP routes', async () => {
   const keys = generateKeyPairSync('ed25519');
-  const upstream: typeof fetch = async input => {
+  const upstream: typeof fetch = async (input, init) => {
     const path = new URL(String(input)).pathname;
     if (path.endsWith('/oauth2/token')) return Response.json({ access_token: 'access', refresh_token: 'refresh', expires_in: 3600 });
+    if (path.endsWith('/users/@me/guilds') && new Headers(init?.headers).get('authorization') === 'Bot bot') return Response.json([{ id: 'guild-one' }]);
     if (path.endsWith('/users/@me/guilds')) return Response.json([
       { id: 'guild-one', name: 'Installed', owner: true, permissions: '0', icon: null },
       { id: 'guild-two', name: 'Invite', owner: false, permissions: '32', icon: null },
@@ -23,6 +24,7 @@ test('OAuth, guild GraphQL, and CSRF-protected logout work through the same-orig
     databaseUrl: process.env.TEST_DATABASE_URL ?? 'postgres://localhost/test',
     auth: createAuth({ clientId: 'app', clientSecret: 'secret', botToken: 'bot', sessionSecret: 'long-test-session-secret-for-HTTP', secureCookies: false, publicOrigin: 'http://dashboard.test', fetch: upstream }),
   });
+  await app.initialize();
   await new Promise<void>((resolve, reject) => { app.server.once('error', reject); app.server.listen(0, '127.0.0.1', resolve); });
   const address = app.server.address();
   if (!address || typeof address === 'string') throw new Error('TCP address required');

@@ -16,7 +16,7 @@ RUN pnpm --filter=@robotman/server deploy --legacy --prod /runtime
 
 FROM node:22-alpine AS runtime
 WORKDIR /app
-ENV NODE_ENV=production PORT=3001
+ENV NODE_ENV=production SERVER_PORT=3001
 COPY --from=builder --chown=node:node /runtime/ ./
 USER node
 EXPOSE 3001

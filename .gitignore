@@ -36,3 +36,7 @@ robotdb.dump
 .vercel/
 apps/dashboard/src/routeTree.gen.ts
 out/
+
+# Browser tests
+**/test-results/
+**/playwright-report/

@@ -1,3 +1,8 @@
+import { randomUUID } from 'node:crypto';
+import { fetchSearchResults, fetchReleases, fetchPulls, fetchUser, CollectionTypes, FilterTypes, SortTypes } from 'comicgeeks';
+import { readFileSync } from 'node:fs';
+import TurndownService from 'turndown';
+import { parseDate } from 'chrono-node';
 import type {
   APIApplicationCommandInteraction,
   APIEmbed,
@@ -10,32 +15,30 @@ const LOCG = 'https://leagueofcomicgeeks.com';
 const COMIC_VINE = 'https://comicvine.gamespot.com/api';
 const TVMAZE = 'https://api.tvmaze.com';
 const POKEAPI = 'https://pokeapi.co/api/v2';
-const GOOGLE_API = 'https://www.googleapis.com';
+const YOUTUBE_API = 'https://www.googleapis.com';
 const MAX_QUERY_LENGTH = 180;
-const DEFAULT_COLOR = 0x5865f2;
+const colors: Record<string, number> = JSON.parse(readFileSync(new URL('../../../assets/colors.json', import.meta.url), 'utf8'));
+const DEFAULT_COLOR = colors.ROBOTMAN!;
+const markdown = new TurndownService();
 
-const publishers = [
-  ['dc', 'DC Comics', 1], ['marvel', 'Marvel Comics', 2], ['dark-horse', 'Dark Horse Comics', 5],
-  ['image', 'Image Comics', 7], ['idw', 'IDW Publishing', 6], ['boom', 'BOOM! Studios', 13],
-  ['archie', 'Archie Comics', 21], ['dynamite', 'Dynamite', 12], ['valiant', 'Valiant', 34], ['oni', 'Oni Press', 29],
-] as const;
+const publisherData: Record<string, { id: number; name: string; color: number; thumbnail: string }> = JSON.parse(readFileSync(new URL('../../../assets/publishers.json', import.meta.url), 'utf8'));
+const publishers = Object.entries(publisherData).map(([code, item]) => [code, item.name, item.id] as const);
 
 const definitions = [
   simpleQuery('character', 'Search Comic Vine for a comic character.', 'Character name'),
-  simpleQuery('comic', 'Search League of Comic Geeks for a comic or series.', 'Comic title'),
   simpleQuery('locg', 'Search League of Comic Geeks for a comic series.', 'Series name'),
   {
     name: 'pull', description: 'View a publisher’s League of Comic Geeks releases for a Wednesday week.',
     options: [
       { name: 'publisher', description: 'Publisher (defaults to DC Comics)', type: 3, required: false, choices: publishers.map(([value, name]) => ({ name, value })) },
-      { name: 'date', description: 'A date in the release week, YYYY-MM-DD (defaults to the next Wednesday)', type: 3, required: false },
+      { name: 'date', description: 'A date in the release week, e.g. YYYY-MM-DD or December 2 2020', type: 3, required: false },
     ],
   },
   {
     name: 'pull-user', description: 'View a League of Comic Geeks user’s pull list for a Wednesday week.',
     options: [
       { name: 'user', description: 'League of Comic Geeks username', type: 3, required: true },
-      { name: 'date', description: 'A date in the release week, YYYY-MM-DD (defaults to the next Wednesday)', type: 3, required: false },
+      { name: 'date', description: 'A date in the release week, e.g. YYYY-MM-DD or December 2 2020', type: 3, required: false },
     ],
   },
   {
@@ -48,13 +51,6 @@ const definitions = [
   simpleQuery('movie', 'Search OMDb for a movie.', 'Movie title'),
   simpleQuery('show', 'Search TVmaze for a television show.', 'Show title'),
   simpleQuery('pokemon', 'Look up a Pokémon by name or Pokédex number.', 'Pokémon name or number'),
-  {
-    name: 'google', description: 'Search Google for web pages.',
-    options: [
-      { name: 'query', description: 'What to search for', type: 3, required: true, max_length: MAX_QUERY_LENGTH },
-      { name: 'amount', description: 'Number of results (1–5, defaults to 3)', type: 4, required: false, min_value: 1, max_value: 5 },
-    ],
-  },
   simpleQuery('youtube', 'Search YouTube for videos.', 'What to search for'),
 ] satisfies RESTPostAPIChatInputApplicationCommandsJSONBody[];
 
@@ -154,47 +150,6 @@ function escapeHtml(value: string): string {
   return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll('&#39;', "'").replaceAll('&#x27;', "'");
 }
 
-function plainText(value: string): string {
-  return escapeHtml(value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim())
-    .replaceAll('&amp;', '&').replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"');
-}
-
-function tagContent(html: string, tag: string, className?: string): string {
-  const safeTag = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const classPattern = className ? `(?=[^>]*class=["'][^"']*\\b${className}\\b[^"']*["'])` : '';
-  const match = new RegExp(`<${safeTag}\\b${classPattern}[^>]*>([\\s\\S]*?)<\\/${safeTag}>`, 'i').exec(html);
-  return match ? plainText(match[1] ?? '') : '';
-}
-
-function attribute(html: string, name: string): string | undefined {
-  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = new RegExp(`\\b${escapedName}=["']([^"']*)["']`, 'i').exec(html);
-  return match?.[1]?.replaceAll('&amp;', '&');
-}
-
-function locgCards(html: string): Array<{ name: string; publisher?: string; url?: string; cover?: string; description?: string; price?: string }> {
-  const cards = html.match(/<li\b[\s\S]*?<\/li>/gi) ?? [];
-  return cards.map((card) => {
-    const titleLink = /<a\b[^>]*class=["'][^"']*\btitle\b[^"']*["'][^>]*>[\s\S]*?<\/a>/i.exec(card)?.[0];
-    const anchor = titleLink ?? /<a\b[^>]*href=["'][^"']+["'][^>]*>/i.exec(card)?.[0] ?? '';
-    const name = tagContent(card, 'a', 'title') || tagContent(card, 'div', 'title');
-    const image = /<img\b[^>]*>/i.exec(card)?.[0] ?? '';
-    const cover = attribute(image, 'data-src') ?? attribute(image, 'src');
-    const details = tagContent(card, 'div', 'comic-details').split('·')[0]?.trim();
-    const description = tagContent(card, 'div', 'comic-description');
-    const rawUrl = attribute(anchor, 'href') ?? attribute(card, 'data-href');
-    const rawCover = cover?.replace('medium', 'large');
-    return {
-      name,
-      publisher: details || undefined,
-      url: rawUrl ? safeUrl(rawUrl.startsWith('http') ? rawUrl : `${LOCG}${rawUrl}`) : undefined,
-      cover: rawCover ? safeUrl(rawCover.startsWith('http') ? rawCover : `${LOCG}${rawCover}`) : undefined,
-      description: description || undefined,
-      price: tagContent(card, 'span', 'price') || undefined,
-    };
-  }).filter(({ name }) => name.length > 0);
-}
-
 async function comicVine(context: CommandContext, resource: 'characters' | 'issues', query: string): Promise<Record<string, unknown> | null> {
   const key = process.env.COMICVINE_API_KEY;
   if (!key) throw new ProviderConfigurationError('COMICVINE_API_KEY');
@@ -219,97 +174,85 @@ async function character(context: CommandContext, query: string): Promise<APIInt
   const firstIssue = nested(result, 'first_appeared_in_issue');
   const origin = nested(result, 'origin');
   const image = nested(result, 'image');
-  const resultEmbed = embed(string(result.name) ?? query, string(result.site_detail_url) ?? 'https://comicvine.gamespot.com/', string(result.deck), 0x2b4b75);
-  resultEmbed.thumbnail = safeUrl(image?.medium_url) ? { url: safeUrl(image?.medium_url)! } : undefined;
-  resultEmbed.fields = [
-    field('Real name', string(result.real_name)),
-    field('First appearance', string(firstIssue?.name)),
-    field('Origin', string(origin?.name)),
-    field('Publisher', string(publisher?.name)),
-    field('Aliases', string(result.aliases)?.replaceAll('\r', '').replaceAll('\n', ', '), false),
-  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const description = [string(result.deck), '', ...[
+    ['Real Name', string(result.real_name)], ['First Appearance', string(firstIssue?.name) ? `'${string(firstIssue?.name)!.split(' / ')[0]}'` : undefined],
+    ['Origin', string(origin?.name)], ['Published by', string(publisher?.name)],
+  ].filter(([, value]) => value).map(([label, value]) => `• **${label}:** ${value}`)].filter(value => value !== undefined).join('\n');
+  const resultEmbed = embed(string(result.name) ?? query, string(result.site_detail_url) ?? 'https://comicvine.gamespot.com/', description, colors.COMICVINE);
+  resultEmbed.author = { name: 'Comic Vine', icon_url: 'https://i.imgur.com/AgMseb9.png', url: 'https://comicvine.gamespot.com/' };
+  const cover = safeUrl(image?.original_url) ?? safeUrl(image?.medium_url);
+  if (cover) resultEmbed.thumbnail = { url: cover };
+  resultEmbed.fields = [field('Aliases', string(result.aliases)?.replaceAll('\r', '').replaceAll('\n', ', '), false)].filter((item): item is NonNullable<typeof item> => Boolean(item));
   return embedResponse(resultEmbed);
 }
 
-async function comicSearch(context: CommandContext, query: string, seriesOnly = false): Promise<APIInteractionResponse> {
-  const url = new URL(`${LOCG}/comic/get_comics`);
-  url.searchParams.set('list', 'search');
-  url.searchParams.set('title', query);
-  url.searchParams.set('list_option', seriesOnly ? 'series' : 'issue');
-  const payload = record(await fetchJson(context, url.toString()));
-  const cards = typeof payload?.list === 'string' ? locgCards(payload.list) : [];
+async function comicSearch(context: CommandContext, query: string): Promise<APIInteractionResponse> {
+  const cards = await fetchSearchResults(query, CollectionTypes.Series);
   if (!cards.length) return response(`No League of Comic Geeks results found for “${query}”.`);
-  const resultEmbed = embed(`League of Comic Geeks results for ${query}`, `${LOCG}/search?keyword=${encodeURIComponent(query)}`);
-  resultEmbed.description = cards.slice(0, 5).map((item) => {
-    const title = item.url ? `[${item.name}](${item.url})` : item.name;
-    return `**${title}**${item.publisher ? ` · ${item.publisher}` : ''}${item.description ? `\n${item.description}` : ''}`;
-  }).join('\n\n').slice(0, 4000);
-  const cover = cards.find((item) => item.cover)?.cover;
+  const resultEmbed = embed(`Top results for '${query}'`, `${LOCG}/search?keyword=${encodeURIComponent(query)}`, undefined, colors.LOCG);
+  resultEmbed.author = { name: 'League of Comic Geeks', icon_url: `${LOCG}/assets/images/user-menu-logo-icon.png`, url: LOCG };
+  const formatted = cards.slice(0, 8).map(item => `**[${item.name}](${item.url})**\n${item.publisher ?? ''} | [Cover](${item.cover})`);
+  resultEmbed.fields = [field('Page 1', formatted.slice(0, 4).join('\n')), field('Page 2', formatted.slice(4).join('\n'))].filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const cover = cards[0]?.cover;
   if (cover) resultEmbed.thumbnail = { url: cover };
   return embedResponse(resultEmbed);
 }
 
 function releaseWednesday(date: string | undefined): string {
   const now = new Date();
-  const parsed = date ? new Date(`${date}T12:00:00Z`) : new Date(now);
-  if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date)) {
-    throw new Error('Date must be a valid YYYY-MM-DD date.');
+  const parsed = date ? parseDate(date, now) : now;
+  if (!parsed || Number.isNaN(parsed.getTime())) throw new Error('Date must be a recognizable date, such as YYYY-MM-DD or December 2 2020.');
+  parsed.setDate(parsed.getDate() + (3 - parsed.getDay() + 7) % 7);
+  return `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+}
+
+function completeList(context: CommandContext, base: APIEmbed, text: string): APIInteractionResponse {
+  const chunks: string[] = [];
+  for (const line of text.split('\n')) {
+    if (!chunks.length || chunks[chunks.length - 1]!.length + line.length + 1 > 3900) chunks.push(line);
+    else chunks[chunks.length - 1] += '\n' + line;
   }
-  if (!date) {
-    const daysUntilWednesday = (3 - parsed.getUTCDay() + 7) % 7 || 7;
-    parsed.setUTCDate(parsed.getUTCDate() + daysUntilWednesday);
-  }
-  parsed.setUTCDate(parsed.getUTCDate() + ((3 - parsed.getUTCDay() + 7) % 7));
-  return parsed.toISOString().slice(0, 10);
+  const embeds = chunks.map((description, index) => ({ ...base, ...(index ? { fields: undefined } : {}), description }));
+  // Separate messages keep Discord's aggregate 6,000-character embed limit intact.
+  embeds.slice(1).forEach(embed => context.queueFollowup?.({ embeds: [embed], allowed_mentions: { parse: [] } }));
+  return embedResponse(embeds[0] ?? base);
 }
 
 function htmlDecode(value: string): string {
   return value.replaceAll('&amp;', '&').replaceAll('&quot;', '"').replaceAll('&#39;', "'").replaceAll('&lt;', '<').replaceAll('&gt;', '>');
 }
 
-async function locgPulls(context: CommandContext, date: string, publisherId?: number, userId?: number): Promise<Array<{ name: string; publisher?: string; url?: string; cover?: string; price?: string }>> {
-  const url = new URL(`${LOCG}/comic/get_comics`);
-  url.searchParams.set('list', userId ? '1' : 'releases');
-  url.searchParams.set('list_option', 'thumbs');
-  url.searchParams.set('view', 'list');
-  url.searchParams.set('date', date);
-  url.searchParams.set('date_type', 'week');
-  if (userId) url.searchParams.set('user_id', String(userId));
-  if (publisherId) url.searchParams.set('publisher[]', String(publisherId));
-  const body = record(await fetchJson(context, url.toString()));
-  return typeof body?.list === 'string' ? locgCards(body.list) : [];
-}
-
 async function pull(context: CommandContext, publisher: string | undefined, date: string | undefined): Promise<APIInteractionResponse> {
-  const publication = publishers.find(([code]) => code === publisher?.toLowerCase()) ?? publishers[0];
-  if (publisher && !publishers.some(([code]) => code === publisher.toLowerCase())) {
-    return response(`Unknown publisher “${publisher}”. Choose DC, Marvel, Dark Horse, Image, IDW, BOOM!, Archie, Dynamite, Valiant, or Oni.`);
-  }
+  const code = publisher?.toLowerCase().replace('dark-horse', 'darkhorse') ?? 'dc';
+  const publication = publisherData[code];
+  if (!publication) return response('Unknown publisher. Choose a publisher from the command options.', true);
   const week = releaseWednesday(date);
-  const id = publication[2];
-  const results = await locgPulls(context, week, id);
-  const resultEmbed = embed(`${publication[1]} pull list · week of ${week}`, `${LOCG}/comics/releases?date=${week}`);
-  resultEmbed.color = 0x366596;
-  resultEmbed.description = results.length ? results.slice(0, 35).map(({ name }) => name).join('\n').slice(0, 4000) : 'No releases found for this publisher and week.';
-  const shown = Math.min(results.length, 35);
-  resultEmbed.footer = { text: `${shown} issue${shown === 1 ? '' : 's'} shown · Data from League of Comic Geeks` };
-  return embedResponse(resultEmbed);
+  const results = await fetchReleases(week, { publishers: [publication.id], filter: [FilterTypes.Regular, FilterTypes.Digital, FilterTypes.Annual], sort: SortTypes.AlphaAsc });
+  const headingDate = new Date(`${week}T12:00:00Z`);
+  if (publication.id === 1) headingDate.setUTCDate(headingDate.getUTCDate() - 1);
+  const resultEmbed = embed(`${publication.name} Pull List for the Week of ${headingDate.toISOString().slice(0, 10)}`, `${LOCG}/comics/releases?date=${week}`, undefined, publication.color);
+  resultEmbed.thumbnail = { url: publication.thumbnail };
+  return completeList(context, resultEmbed, results.length ? results.map(item => item.name).join('\n') : 'No comics for this week (yet).');
+
 }
 
 async function pullUser(context: CommandContext, username: string, date: string | undefined): Promise<APIInteractionResponse> {
   if (!/^[\w.-]{1,40}$/.test(username)) return response('Enter a valid League of Comic Geeks username.', true);
-  const profileUrl = `${LOCG}/profile/${encodeURIComponent(username.toLowerCase())}/pull-list`;
-  const html = await fetchText(context, profileUrl);
-  const id = Number(/id=["']comic-list-block["'][^>]*data-user=["'](\d+)/i.exec(html)?.[1]
-    ?? /data-user=["'](\d+)["'][^>]*id=["']comic-list-block["']/i.exec(html)?.[1]);
-  if (!Number.isInteger(id) || id <= 0) return response(`I could not find League of Comic Geeks user “${username}”.`, true);
-  const heading = plainText(/<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? '') || username;
+  const user = await fetchUser(username.toLowerCase());
+  if (!user || !Number.isInteger(user.id) || user.id <= 0) return response(`I could not find League of Comic Geeks user “${username}”.`, true);
+  const profileUrl = `${user.url}/pull-list`;
+  const heading = user.name || username;
   const week = releaseWednesday(date);
-  const results = await locgPulls(context, week, undefined, id);
-  const resultEmbed = embed(`${heading}’s pull list · week of ${week}`, `${LOCG}/profile/${encodeURIComponent(username.toLowerCase())}/pull-list`);
-  resultEmbed.description = results.length ? results.slice(0, 35).map(({ name, price }) => price ? `${name} · ${price}` : name).join('\n').slice(0, 4000) : 'No comics on this pull list for the selected week.';
-  resultEmbed.footer = { text: 'Data from League of Comic Geeks' };
-  return embedResponse(resultEmbed);
+  const results = await fetchPulls(user.id, week, { sort: SortTypes.AlphaAsc });
+  const resultEmbed = embed(`${heading.split(' - ')[0]}'s Pull List for the Week of ${week}`, profileUrl, undefined, colors.LOCG);
+  const avatar = user.avatar;
+  resultEmbed.author = { name: resultEmbed.title!, url: profileUrl, ...(safeUrl(avatar) ? { icon_url: safeUrl(avatar)! } : {}) };
+  delete resultEmbed.title; delete resultEmbed.url;
+  resultEmbed.footer = { text: 'League of Comic Geeks', icon_url: `${LOCG}/assets/images/user-menu-logo-icon.png` };
+  const total = results.reduce((sum, item) => sum + (Number((item.price ?? '').replace(/[^\d.]/g, '')) || 0), 0);
+  if (results.length) resultEmbed.fields = [{ name: 'Total', value: `$${total.toFixed(2)} USD` }];
+  return completeList(context, resultEmbed, results.length ? results.map(item => item.name).join('\n') : 'No pulls for this week');
+
 }
 
 function xmlTag(text: string, tag: string): string {
@@ -324,7 +267,7 @@ function rawXmlTag(text: string, tag: string): string {
   return match?.[1]?.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1') ?? '';
 }
 
-interface DiaryItem { title: string; year?: string; filmUrl: string; url: string; rating?: string; summary?: string; image?: string }
+interface DiaryItem { published?: string; watched?: string; spoiler?: boolean; title: string; year?: string; filmUrl: string; url: string; rating?: string; summary?: string; image?: string }
 
 function parseLetterboxdFeed(xml: string): { title: string; url: string; items: DiaryItem[] } | null {
   const channel = /<channel\b[^>]*>([\s\S]*?)<\/channel>/i.exec(xml)?.[1];
@@ -337,34 +280,79 @@ function parseLetterboxdFeed(xml: string): { title: string; url: string; items: 
     const ratingRaw = /<letterboxd:memberRating>([\d.]+)<\/letterboxd:memberRating>/i.exec(raw)?.[1];
     const rawDescription = rawXmlTag(raw, 'description');
     const image = /<img\b[^>]*src=["']([^"']+)["']/i.exec(rawDescription)?.[1];
-    return { title, year, filmUrl, url: safeUrl(xmlTag(raw, 'guid')) ?? filmUrl, rating: ratingRaw ? `${ratingRaw} / 5` : undefined, summary: xmlTag(raw, 'description'), image };
-  }).filter((item) => item.title && item.filmUrl);
+    return { title, year, filmUrl, url: safeUrl(xmlTag(raw, 'guid')) ?? filmUrl, rating: ratingRaw ? '★'.repeat(Math.floor(Number(ratingRaw))) + (Number(ratingRaw) % 1 ? '½' : '') : undefined, summary: markdown.turndown(rawDescription.replace(/<p>\s*<img[^>]*>\s*<\/p>/gi, '').replace(/<p>\s*<em>This review may contain spoilers\.<\/em>\s*<\/p>/gi, '')), published: xmlTag(raw, 'pubDate'), watched: xmlTag(raw, 'letterboxd:watchedDate'), spoiler: /may contain spoilers/i.test(rawDescription) || /\(contains spoilers\)/i.test(xmlTag(raw, 'title')), image };
+  }).filter((item) => item.title && item.filmUrl && !item.filmUrl.includes('/list/'));
   return { title: xmlTag(channel, 'title'), url: xmlTag(channel, 'link'), items };
 }
 
-async function letterboxd(context: CommandContext, username: string, film: string | undefined): Promise<APIInteractionResponse> {
+function similarity(a: string, b: string) {
+  a = a.toLowerCase(); b = b.toLowerCase();
+  if (a === b) return 1;
+  const pairs = (text: string) => Array.from({ length: Math.max(0, text.length - 1) }, (_, i) => text.slice(i, i + 2));
+  const left = pairs(a), right = pairs(b); let common = 0;
+  for (const pair of left) { const i = right.indexOf(pair); if (i >= 0) { common++; right.splice(i, 1); } }
+  return 2 * common / Math.max(1, a.length + b.length - 2);
+}
+type LetterboxdSnapshot = { requester: string; guildId: string; channelId: string; expiresAt: number; embed: APIEmbed; pages: string[] };
+const letterboxdSnapshots = new Map<string, LetterboxdSnapshot>();
+const snapshotLifetime = 5 * 60_000;
+function letterboxdPage(id: string, snapshot: LetterboxdSnapshot, page: number, update: boolean): APIInteractionResponse {
+  const last = snapshot.pages.length - 1;
+  return { type: update ? 7 : 4, data: {
+    embeds: [{ ...snapshot.embed, description: snapshot.pages[page], footer: { text: `Page ${page + 1} of ${snapshot.pages.length}` } }],
+    components: last ? [{ type: 1, components: [
+      { type: 2, style: 2, label: 'Previous', custom_id: `letterboxd:${id}:${Math.max(0, page - 1)}`, disabled: page === 0 },
+      { type: 2, style: 2, label: 'Next', custom_id: `letterboxd:${id}:${Math.min(last, page + 1)}`, disabled: page === last },
+    ] }] : [], allowed_mentions: { parse: [] },
+  } } as APIInteractionResponse;
+}
+function makeLetterboxdPages(items: DiaryItem[]): string[] {
+  const pages: string[] = []; let lines: string[] = [];
+  for (const item of items) {
+    const target = safeUrl(item.url);
+    if (!target) throw new Error('Letterboxd provided an invalid review link.');
+    const suffix = `](${target})${item.rating ? ` ${item.rating}` : ''}`;
+    const available = 4000 - suffix.length - 1;
+    if (available < 1) throw new Error('A Letterboxd review link is too long to display.');
+    const label = `${item.title}${item.year ? ` (${item.year})` : ''}`.replace(/[\[\]\\]/g, '\\$&').replace(/[\r\n]+/g, ' ');
+    const shown = label.length > available ? `${label.slice(0, Math.max(0, available - 1))}…` : label;
+    const line = `[${shown}${suffix}`;
+    if (lines.length === 10 || lines.join('\n').length + line.length + (lines.length ? 1 : 0) > 4000) { pages.push(lines.join('\n')); lines = []; }
+    lines.push(line);
+  }
+  if (lines.length) pages.push(lines.join('\n'));
+  return pages;
+}
+async function letterboxd(context: CommandContext, username: string, film: string | undefined, interaction: APIApplicationCommandInteraction): Promise<APIInteractionResponse> {
   if (!/^[\w-]{1,40}$/.test(username)) return response('Enter a valid Letterboxd username.', true);
   const feed = parseLetterboxdFeed(await fetchText(context, `https://letterboxd.com/${encodeURIComponent(username)}/rss/`));
-  if (!feed) return response('Letterboxd returned an unreadable diary feed. Try again shortly.');
-  if (!feed.items.length) return response(`No recent film diary entries found for ${username}.`);
-  const title = film?.trim();
-  if (title) {
-    const item = ['latest', 'recent'].includes(title.toLowerCase())
-      ? feed.items.at(0)
-      : feed.items.find((entry) => entry.title.toLowerCase() === title.toLowerCase())
-        ?? feed.items.find((entry) => entry.title.toLowerCase().includes(title.toLowerCase()));
-    if (!item) return response(`No recent Letterboxd entry found for “${title}” on ${username}’s diary.`);
-    const resultEmbed = embed(`${item.title}${item.year ? ` (${item.year})` : ''}`, item.url, item.summary?.slice(0, 3500), 0x00d735);
-    resultEmbed.author = { name: `${username} on Letterboxd`, url: feed.url || `https://letterboxd.com/${username}/` };
-    if (item.rating) resultEmbed.fields = [field('Rating', item.rating)].filter((value): value is NonNullable<typeof value> => Boolean(value));
-    if (item.image && safeUrl(item.image)) resultEmbed.thumbnail = { url: safeUrl(item.image)! };
-    return embedResponse(resultEmbed);
+  if (!feed?.items.length) return response('That user does not have any recent reviews.', true);
+  const resultEmbed: APIEmbed = { color: [colors.LETTERBOXD_BLUE!, colors.LETTERBOXD_GREEN!, colors.LETTERBOXD_ORANGE!][Math.floor(Math.random() * 3)]!, author: { name: 'Letterboxd', icon_url: 'https://i.imgur.com/2nQftA2.png', url: 'https://letterboxd.com/' } };
+  const user = feed.title.replace(/^Letterboxd - /, '').replace(/['’]s.*$/, '') || username;
+  if (!film || film.toLowerCase() === 'all') {
+    resultEmbed.title = `${user}'s Latest Reviews`; resultEmbed.url = `https://letterboxd.com/${username}/films/reviews/`;
+    const requester = interaction.member?.user?.id ?? interaction.user?.id;
+    if (!requester || !interaction.guild_id || !interaction.channel_id) return response('Could not identify the requester or channel.', true);
+    const pages = makeLetterboxdPages(feed.items);
+    const id = randomUUID();
+    const snapshot: LetterboxdSnapshot = { requester, guildId: interaction.guild_id, channelId: interaction.channel_id, expiresAt: (context.now?.().getTime() ?? Date.now()) + snapshotLifetime, embed: resultEmbed, pages };
+    if (pages.length > 1) {
+      letterboxdSnapshots.set(id, snapshot);
+      const timer = setTimeout(() => letterboxdSnapshots.delete(id), snapshotLifetime); timer.unref();
+    }
+    return letterboxdPage(id, snapshot, 0, false);
   }
-  const resultEmbed = embed(`${username}’s recent Letterboxd diary`, feed.url || `https://letterboxd.com/${username}/`, undefined, 0x00d735);
-  resultEmbed.description = feed.items.slice(0, 10).map((item) => {
-    const label = `${item.title}${item.year ? ` (${item.year})` : ''}`;
-    return `${item.url ? `[${label}](${item.url})` : label}${item.rating ? ` · ${item.rating}` : ''}`;
-  }).join('\n').slice(0, 4000);
+  const item = ['latest', 'recent'].includes(film.toLowerCase()) ? feed.items[0]! : [...feed.items].sort((a, b) => similarity(film, b.title) - similarity(film, a.title))[0]!;
+  resultEmbed.title = `${item.title}${item.year ? ` (${item.year})` : ''}`; resultEmbed.url = item.url;
+  let review = item.summary ?? '';
+  if (item.spoiler) review = review.split(/\n+/).filter(Boolean).map(line => `||${line.replaceAll('||', '')}||`).join('\n');
+  if (review) resultEmbed.description = review.slice(0, 3800);
+  resultEmbed.footer = { text: `Review by ${user}` };
+  if (item.published && Number.isFinite(Date.parse(item.published))) resultEmbed.timestamp = new Date(item.published).toISOString();
+  resultEmbed.fields = [];
+  if (item.watched && Number.isFinite(Date.parse(item.watched))) { const unix = Math.floor(Date.parse(item.watched) / 1000); resultEmbed.fields.push({ name: 'Watched On', value: `<t:${unix}:f> (<t:${unix}:R>)` }); }
+  if (item.rating) resultEmbed.fields.push({ name: 'Rating', value: item.rating });
+  if (safeUrl(item.image)) resultEmbed.thumbnail = { url: safeUrl(item.image)! };
   return embedResponse(resultEmbed);
 }
 
@@ -379,15 +367,10 @@ async function movie(context: CommandContext, query: string): Promise<APIInterac
   if (result?.Response === 'False') return response(`No movie results found for “${query}”.`);
   if (!result || typeof result.Title !== 'string') throw new Error('The movie provider returned an invalid response.');
   const resultEmbed = embed(`${result.Title}${string(result.Year) ? ` (${result.Year})` : ''}`, typeof result.imdbID === 'string' ? `https://www.imdb.com/title/${result.imdbID}/` : 'https://www.omdbapi.com/', string(result.Plot), 0x428bca);
-  const fields = [
-    field('Genres', string(result.Genre)), field('Rated', string(result.Rated)), field('Runtime', string(result.Runtime)),
-    field('Directed by', string(result.Director), false), field('Written by', string(result.Writer), false), field('Starring', string(result.Actors), false),
-    field('Ratings', Array.isArray(result.Ratings) ? result.Ratings.flatMap((rating) => {
-      const item = record(rating);
-      return item && string(item.Source) && string(item.Value) ? [`${string(item.Source)}: ${string(item.Value)}`] : [];
-    }).join('\n') : undefined, false),
-  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
-  resultEmbed.fields = fields;
+  resultEmbed.color = colors.OPEN_MOVIE_DB;
+  resultEmbed.description = [string(result.Plot), '', ...[['Genres', 'Genre'], ['Age Rating', 'Rated'], ['Country', 'Country'], ['Runtime', 'Runtime'], ['', ''], ['Directed by', 'Director'], ['Credits', 'Writer'], ['Starring', 'Actors'], ['Production Companies', 'Production']].map(([label, key]) => label ? `**${label}:** ${(string(result[key!]) ?? 'N/A').replace(key === 'Writer' ? / by/g : /$^/, '')}` : '')].join('\n');
+  resultEmbed.footer = { text: 'Open Movie Database' };
+  resultEmbed.fields = Array.isArray(result.Ratings) && result.Ratings.length ? [{ name: 'Ratings', value: result.Ratings.map(item => { const rating = record(item); return `**${string(rating?.Source)}:** ${string(rating?.Value)}`; }).join('\n') }] : [];
   if (typeof result.Poster === 'string' && result.Poster !== 'N/A' && safeUrl(result.Poster)) resultEmbed.thumbnail = { url: safeUrl(result.Poster)! };
   return embedResponse(resultEmbed);
 }
@@ -402,12 +385,12 @@ async function show(context: CommandContext, query: string): Promise<APIInteract
   if (!show) throw new Error('TVmaze returned an invalid response.');
   const image = nested(show, 'image');
   const network = nested(show, 'network') ?? nested(show, 'webChannel');
-  const resultEmbed = embed(string(show.name) ?? query, string(show.url) ?? 'https://www.tvmaze.com/', string(show.summary)?.replace(/<[^>]+>/g, ' '), 0xe6a83c);
-  resultEmbed.author = { name: 'TVmaze', url: 'https://www.tvmaze.com/' };
+  const resultEmbed = embed(string(show.name) ?? query, string(show.url) ?? 'https://www.tvmaze.com/', markdown.turndown(string(show.summary) ?? ''), colors.TV_MAZE);
+  resultEmbed.author = { name: 'TVmaze', url: 'https://www.tvmaze.com/', icon_url: 'https://i.imgur.com/ExggnTB.png' };
   const fields = [
     field('Language', string(show.language)), field('Premiered', string(show.premiered)), field('Status', string(show.status)),
-    field('Genres', Array.isArray(show.genres) ? show.genres.filter((item): item is string => typeof item === 'string').join(', ') : undefined, false),
-    field('Network', string(network?.name)), field('Official site', string(show.officialSite), false),
+    field('Genres', Array.isArray(show.genres) ? show.genres.filter((item): item is string => typeof item === 'string').join(', ') : undefined),
+    field('Network', string(network?.name)), field('Website', safeUrl(show.officialSite) ? `[Click Here](${safeUrl(show.officialSite)})` : undefined),
   ].filter((item): item is NonNullable<typeof item> => Boolean(item));
   resultEmbed.fields = fields;
   if (safeUrl(image?.original) ?? safeUrl(image?.medium)) resultEmbed.thumbnail = { url: safeUrl(image?.original) ?? safeUrl(image?.medium)! };
@@ -415,83 +398,38 @@ async function show(context: CommandContext, query: string): Promise<APIInteract
 }
 
 async function pokemon(context: CommandContext, query: string): Promise<APIInteractionResponse> {
-  const normalized = query.toLowerCase().replace(/^#/, '').replaceAll(' ', '-');
-  let pokemonResponse: unknown;
-  try { pokemonResponse = await fetchJson(context, `${POKEAPI}/pokemon/${encodeURIComponent(normalized)}`); }
-  catch (error) {
-    if (error instanceof UpstreamStatusError && error.status === 404) return response(`No Pokémon found for “${query}”.`);
-    throw error;
+  let title = query.trim();
+  if (/^#?\d+$/.test(title)) {
+    try { const dex = record(await fetchJson(context, `${POKEAPI}/pokemon/${Number(title.replace('#', ''))}`)); if (string(dex?.name)) title = string(dex?.name)!; } catch { /* Try the original article query if the dex lookup fails. */ }
   }
-  const entry = record(pokemonResponse);
-  if (!entry || typeof entry.id !== 'number' || typeof entry.name !== 'string') return response(`No Pokémon found for “${query}”.`);
-  const speciesUrl = string(nested(entry, 'species')?.url);
-  let species: Record<string, unknown> | null = null;
-  if (speciesUrl) {
-    try { species = record(await fetchJson(context, speciesUrl)); } catch { species = null; }
-  }
-  const flavor = Array.isArray(species?.flavor_text_entries)
-    ? species.flavor_text_entries.map(record).find((item) => string(record(item?.language)?.name) === 'en')
-    : undefined;
-  const dex = String(entry.id).padStart(4, '0');
-  const title = `#${dex} · ${entry.name.replaceAll('-', ' ')}`;
-  const resultEmbed = embed(title, `${POKEAPI}/pokemon/${encodeURIComponent(normalized)}`, string(flavor?.flavor_text)?.replace(/[\n\f]+/g, ' '), 0xef5350);
-  const types = Array.isArray(entry.types) ? entry.types.flatMap((item) => {
-    const type = string(nested(item, 'type')?.name);
-    return type ? [type] : [];
-  }).join(', ') : '';
-  const abilities = Array.isArray(entry.abilities) ? entry.abilities.flatMap((item) => {
-    const ability = string(nested(item, 'ability')?.name);
-    return ability ? [ability] : [];
-  }).join(', ') : '';
-  const stats = Array.isArray(entry.stats) ? entry.stats.flatMap((item) => {
-    const detail = record(item);
-    const stat = string(nested(item, 'stat')?.name);
-    return stat && typeof detail?.base_stat === 'number' ? [`${stat.replaceAll('-', ' ')}: ${detail.base_stat}`] : [];
-  }).join(' · ') : '';
-  const genus = Array.isArray(species?.genera) ? species.genera.map(record).find((item) => string(record(item?.language)?.name) === 'en') : undefined;
-  resultEmbed.fields = [
-    field('Type', types), field('Abilities', abilities, false), field('Height', typeof entry.height === 'number' ? `${entry.height / 10} m` : undefined),
-    field('Weight', typeof entry.weight === 'number' ? `${entry.weight / 10} kg` : undefined), field('Category', string(genus?.genus)), field('Base stats', stats, false),
-  ].filter((item): item is NonNullable<typeof item> => Boolean(item));
-  const sprite = nested(entry, 'sprites');
-  if (safeUrl(sprite?.front_default)) resultEmbed.thumbnail = { url: safeUrl(sprite?.front_default)! };
-  return embedResponse(resultEmbed);
-}
-
-async function google(context: CommandContext, query: string, count: number): Promise<APIInteractionResponse> {
-  const key = process.env.GOOGLE_CSE_API_KEY;
-  const engine = process.env.GOOGLE_CSE_ENGINE_ID;
-  if (!key || !engine) throw new ProviderConfigurationError('GOOGLE_CSE_API_KEY and GOOGLE_CSE_ENGINE_ID');
-  const url = new URL(`${GOOGLE_API}/customsearch/v1`);
-  url.searchParams.set('key', key);
-  url.searchParams.set('cx', engine);
-  url.searchParams.set('q', query);
-  url.searchParams.set('num', String(Math.min(5, Math.max(1, count))));
-  url.searchParams.set('safe', 'active');
-  const result = record(await fetchJson(context, url.toString()));
-  const items = Array.isArray(result?.items) ? result.items.map(record).filter((item): item is Record<string, unknown> => Boolean(item)) : [];
-  if (!items.length) return response(`No Google results found for “${query}”.`);
-  const resultEmbed = embed(`Google results for ${query}`, `https://www.google.com/search?q=${encodeURIComponent(query)}`);
-  resultEmbed.description = items.slice(0, 5).flatMap((item) => {
-    const title = string(item.title);
-    const link = safeUrl(item.link);
-    if (!title || !link) return [];
-    return [`[${title}](${link})${string(item.snippet) ? `\n${string(item.snippet)}` : ''}`];
-  }).join('\n\n').slice(0, 4000);
-  if (!resultEmbed.description) return response(`No usable Google results found for “${query}”.`);
-  const total = string(nested(result, 'searchInformation')?.formattedTotalResults);
-  if (total) resultEmbed.footer = { text: `About ${total} results · Google Custom Search` };
-  return embedResponse(resultEmbed);
+  title = title.replace(/\b(mr|mrs|ms|jr)\.?(?=[ -]|$)/gi, '$1.');
+  if (!['ho-oh', 'kommo-o', 'hakamo-o', 'jangmo-o', 'porygon-z'].includes(title.toLowerCase())) title = title.replaceAll('-', ' ');
+  title = title.replace(/\b\w/g, value => value.toUpperCase());
+  const url = new URL('https://bulbapedia.bulbagarden.net/w/api.php');
+  for (const [key, value] of Object.entries({ action: 'query', titles: title, prop: 'extracts|pageimages|links', format: 'json', formatversion: '2', exintro: 'true', redirects: 'true', explaintext: 'true', pithumbsize: '1000' })) url.searchParams.set(key, value);
+  const body = record(await fetchJson(context, url.toString()));
+  const pages = nested(body, 'query')?.pages;
+  const page = Array.isArray(pages) ? record(pages[0]) : null;
+  if (!page || page.missing || !string(page.title)) return response(`No Pokémon found for “${query}”.`, true);
+  const linkFor = (name: string) => `https://bulbapedia.bulbagarden.net/wiki/${encodeURIComponent(name.replaceAll(' ', '_'))}`;
+  let description = (string(page.extract) ?? '').split('\n\n')[0]!.trimEnd().slice(0, 2048);
+  if (/(several\s)?refer(rals)?/i.test(description) && Array.isArray(page.links)) description += '\n' + page.links.map(record).filter(Boolean).map(link => `[${string(link?.title)}](${linkFor(string(link?.title) ?? '')})`).join('\n');
+  const dex = /^(\d{3})/.exec(string(page.pageimage) ?? '')?.[1];
+  const result = embed(`${dex ? `#${dex} - ` : ''}${page.title}`, linkFor(page.title as string), description, colors.BULBAPEDIA);
+  result.author = { name: 'Bulbapedia', icon_url: 'https://www.google.com/s2/favicons?domain=bulbapedia.bulbagarden.net&sz=128', url: 'https://bulbapedia.bulbagarden.net/wiki/Main_Page' };
+  const image = safeUrl(nested(page, 'thumbnail')?.source);
+  if (image) result.image = { url: image };
+  return embedResponse(result);
 }
 
 async function youtube(context: CommandContext, query: string): Promise<APIInteractionResponse> {
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) throw new ProviderConfigurationError('YOUTUBE_API_KEY');
-  const url = new URL(`${GOOGLE_API}/youtube/v3/search`);
+  const url = new URL(`${YOUTUBE_API}/youtube/v3/search`);
   url.searchParams.set('part', 'snippet');
   url.searchParams.set('type', 'video');
   url.searchParams.set('maxResults', '1');
-  url.searchParams.set('safeSearch', 'strict');
+  url.searchParams.set('safeSearch', 'none');
   url.searchParams.set('q', query);
   url.searchParams.set('key', key);
   const result = record(await fetchJson(context, url.toString()));
@@ -501,24 +439,27 @@ async function youtube(context: CommandContext, query: string): Promise<APIInter
   const snippet = nested(first, 'snippet');
   const videoId = string(id?.videoId);
   if (!videoId || !snippet) return response(`No YouTube videos found for “${query}”.`);
-  const resultEmbed = embed(string(snippet.title) ?? query, `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`, string(snippet.description), 0xff0000);
-  resultEmbed.author = { name: string(snippet.channelTitle) ?? 'YouTube', url: string(snippet.channelId) ? `https://www.youtube.com/channel/${encodeURIComponent(string(snippet.channelId)!)}` : undefined };
-  const thumbnails = nested(snippet, 'thumbnails');
-  for (const size of ['high', 'medium', 'default']) {
-    const thumb = nested(thumbnails, size);
-    const thumbUrl = safeUrl(thumb?.url);
-    if (thumbUrl) { resultEmbed.thumbnail = { url: thumbUrl }; break; }
-  }
-  return embedResponse(resultEmbed);
+  return response(`Showing top result for **${query}**\nhttps://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`);
 }
 
 export const lookupModule: CommandModule = {
   commands: definitions,
   matches(interaction: CommandInteraction): boolean {
-    return interaction.type === 2 && interaction.data.type === 1 && names.has(interaction.data.name);
+    return interaction.type === 3 ? interaction.data.custom_id.startsWith('letterboxd:') : interaction.type === 2 && interaction.data.type === 1 && names.has(interaction.data.name);
   },
   async handle(interaction: CommandInteraction, context: CommandContext): Promise<APIInteractionResponse> {
     if (!this.matches(interaction)) return response('This command is not supported.');
+    if (interaction.type === 3) {
+      const match = /^letterboxd:([\da-f-]{36}):(\d+)$/.exec(interaction.data.custom_id);
+      const snapshot = match ? letterboxdSnapshots.get(match[1]!) : undefined;
+      const time = context.now?.().getTime() ?? Date.now();
+      if (snapshot && snapshot.expiresAt <= time) letterboxdSnapshots.delete(match![1]!);
+      const requester = interaction.member?.user?.id ?? interaction.user?.id;
+      if (!match || !snapshot || snapshot.expiresAt <= time || requester !== snapshot.requester || interaction.guild_id !== snapshot.guildId || interaction.channel_id !== snapshot.channelId) return { type: 6 } as APIInteractionResponse;
+      const page = Number(match[2]);
+      if (!Number.isSafeInteger(page) || page < 0 || page >= snapshot.pages.length) return { type: 6 } as APIInteractionResponse;
+      return letterboxdPage(match[1]!, snapshot, page, true);
+    }
     const command = interaction as APIApplicationCommandInteraction;
     const options = getOptions(command);
     try {
@@ -527,10 +468,9 @@ export const lookupModule: CommandModule = {
           const query = inputText(options.get('query'), 'character');
           return query ? await character(context, query) : response('Enter a character name to search for.');
         }
-        case 'comic':
         case 'locg': {
           const query = inputText(options.get('query'), 'comic');
-          return query ? await comicSearch(context, query, command.data.name === 'locg') : response('Enter a comic title to search for.');
+          return query ? await comicSearch(context, query) : response('Enter a comic title to search for.');
         }
         case 'pull': return await pull(context, options.get('publisher') as string | undefined, options.get('date') as string | undefined);
         case 'pull-user': {
@@ -539,7 +479,7 @@ export const lookupModule: CommandModule = {
         }
         case 'letterboxd': {
           const username = inputText(options.get('username'), 'username');
-          return username ? await letterboxd(context, username, options.get('film') as string | undefined) : response('Enter a Letterboxd username.');
+          return username ? await letterboxd(context, username, options.get('film') as string | undefined, command) : response('Enter a Letterboxd username.');
         }
         case 'movie': {
           const query = inputText(options.get('query'), 'movie');
@@ -553,11 +493,6 @@ export const lookupModule: CommandModule = {
           const query = inputText(options.get('query'), 'pokemon');
           return query ? await pokemon(context, query) : response('Enter a Pokémon name or Pokédex number.');
         }
-        case 'google': {
-          const query = inputText(options.get('query'), 'query');
-          const amount = options.get('amount');
-          return query ? await google(context, query, typeof amount === 'number' ? amount : 3) : response('Enter something to search for.');
-        }
         case 'youtube': {
           const query = inputText(options.get('query'), 'query');
           return query ? await youtube(context, query) : response('Enter something to search for.');
@@ -568,6 +503,7 @@ export const lookupModule: CommandModule = {
       const message = error instanceof Error ? error.message : '';
       if (error instanceof ProviderConfigurationError) return response('This lookup is not available right now.');
       if (message.includes('Date must')) return response(message);
+      if (message.startsWith('A Letterboxd review link') || message.startsWith('Letterboxd provided an invalid')) return response(message, true);
       return response('The lookup provider is unavailable right now. Please try again shortly.');
     }
   },

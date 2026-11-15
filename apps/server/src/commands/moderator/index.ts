@@ -1,3 +1,4 @@
+import { fetchReleases, FilterTypes, SortTypes } from 'comicgeeks';
 import { migrateDatabase } from '../../database/migrate.js';
 import {
   ApplicationCommandOptionType,
@@ -10,6 +11,7 @@ import type {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import type { CommandContext, CommandInteraction, CommandModule } from '../types.js';
+import { getGuildModeratorSettings } from '../../moderator-settings/index.js';
 
 type ComicRelease = {
   name: string;
@@ -29,15 +31,9 @@ type TvEpisode = {
   show?: TvShow;
   _embedded?: { show?: TvShow };
 };
-type ScheduleConfig = { channelId: string; timeZone: string; dayOfWeek: number; hour: number; minute: number };
+type ScheduleConfig = { timeZone: string; dayOfWeek: number; hour: number; minute: number };
 
-const locgBaseUrl = 'https://leagueofcomicgeeks.com';
 const tvmazeBaseUrl = 'https://api.tvmaze.com';
-const defaultShows = [
-  13, 689, 706, 1850, 1851, 1859, 20683, 27557, 33452, 36745, 36774, 37776,
-  37809, 39764, 40884, 42668, 42827, 44751, 44776, 44777, 45844, 47261, 50603,
-  51042, 52243, 55414, 55415, 57400, 59492, 60920, 61066, 66738, 73090,
-];
 const commands: RESTPostAPIChatInputApplicationCommandsJSONBody[] = [
   {
     type: 1,
@@ -166,33 +162,6 @@ export function nextReleaseScheduleTime(after: Date, config: Pick<ScheduleConfig
   return localTimeToUtc(date, config.hour, config.minute, config.timeZone);
 }
 
-function scheduleConfig(): ScheduleConfig | undefined {
-  const channelId = process.env.RELEASE_LIST_CHANNEL_ID?.trim();
-  if (!channelId) return undefined;
-  const timeZone = process.env.RELEASE_LIST_TIMEZONE?.trim() || 'UTC';
-  const numberFromEnv = (key: string, fallback: number, min: number, max: number) => {
-    const value = process.env[key];
-    if (!value) return fallback;
-    const parsed = Number(value);
-    if (!Number.isInteger(parsed) || parsed < min || parsed > max) throw new Error(`${key} must be an integer between ${min} and ${max}`);
-    return parsed;
-  };
-  const config = {
-    channelId,
-    timeZone,
-    dayOfWeek: numberFromEnv('RELEASE_LIST_DAY_OF_WEEK', 0, 0, 6),
-    hour: numberFromEnv('RELEASE_LIST_HOUR', 0, 0, 23),
-    minute: numberFromEnv('RELEASE_LIST_MINUTE', 0, 0, 59),
-  };
-  // Validate the IANA time zone before creating a timer that would otherwise fail later.
-  zonedParts(new Date(), config.timeZone);
-  return config;
-}
-
-function nextScheduleDate(now: Date, config: ScheduleConfig) {
-  return nextReleaseScheduleTime(now, config);
-}
-
 function decodeHtml(value: string) {
   return value
     .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")
@@ -206,57 +175,9 @@ function textContent(html: string) {
     .replace(/[\t\r ]+/g, ' ').replace(/\n\s*\n+/g, '\n').trim();
 }
 
-function findByClass(html: string, classNames: string) {
-  const names = classNames.split(/\s+/).map(name => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const requiredClasses = names.map(name => `(?=[^"']*\\b${name}\\b)`).join('');
-  const match = new RegExp(`<([a-z][a-z0-9]*)\\b[^>]*class=["']${requiredClasses}[^"']*["'][^>]*>([\\s\\S]*?)<\\/\\1>`, 'i').exec(html);
-  return match?.[2] ?? '';
-}
-
-function attributes(tag: string) {
-  const result: Record<string, string> = {};
-  for (const match of tag.matchAll(/([\w-]+)\s*=\s*(["'])(.*?)\2/g)) result[match[1] ?? ''] = decodeHtml(match[3] ?? '');
-  return result;
-}
-
-export function parseLocgReleaseList(html: string): ComicRelease[] {
-  const releases: ComicRelease[] = [];
-  const listItems = html.match(/<li\b[^>]*>[\s\S]*?<\/li>/gi) ?? [];
-  for (const item of listItems) {
-    const titleMarkup = findByClass(item, 'title color-primary');
-    if (!titleMarkup) continue;
-    const descriptionMarkup = findByClass(item, 'comic-description col-feed-max');
-    const anchor = /<a\b[^>]*href=["']([^"']+)["'][^>]*>/i.exec(descriptionMarkup)?.[0] ?? '';
-    const href = attributes(anchor).href ?? '';
-    const coverTag = /<img\b[^>]*>/i.exec(findByClass(item, 'comic-cover-art'))?.[0] ?? '';
-    const coverAttributes = attributes(coverTag);
-    const details = findByClass(item, 'comic-details');
-    const publisher = textContent(details).split('·')[0]?.trim() ?? '';
-    const price = textContent(findByClass(item, 'price'));
-    const cover = coverAttributes['data-src'] ?? coverAttributes.src ?? '';
-    const title = textContent(titleMarkup);
-    if (!title || !href) continue;
-    releases.push({
-      name: title,
-      url: new URL(href, locgBaseUrl).toString(),
-      description: textContent(descriptionMarkup.replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, '')),
-      cover: cover ? new URL(cover.replace('medium', 'large'), locgBaseUrl).toString() : '',
-      price,
-    });
-  }
-  return releases.sort((left, right) => left.name.localeCompare(right.name));
-}
-
-export async function fetchReleaseList(fetcher: typeof globalThis.fetch, date: string): Promise<ComicRelease[]> {
-  const url = new URL('/comic/get_comics', locgBaseUrl);
-  for (const [key, value] of Object.entries({ list: 'releases', list_option: 'thumbs', view: 'list', date, date_type: 'week' })) url.searchParams.set(key, value);
-  for (const publisher of [1, 59]) url.searchParams.append('publisher[]', String(publisher));
-  for (const format of [1, 5, 6]) url.searchParams.append('format[]', String(format));
-  const response = await fetcher(url, { headers: { 'user-agent': 'Robotman/7.0 (weekly release list)' }, signal: AbortSignal.timeout(15_000) });
-  if (!response.ok) throw new Error(`League of Comic Geeks returned HTTP ${response.status}`);
-  const payload = await response.json() as { list?: unknown };
-  if (typeof payload.list !== 'string') throw new Error('League of Comic Geeks returned an unexpected release list response');
-  return parseLocgReleaseList(payload.list);
+export async function fetchReleaseList(date: string): Promise<ComicRelease[]> {
+  const releases = await fetchReleases(date, { publishers: [1, 59], filter: [FilterTypes.Regular, FilterTypes.Digital, FilterTypes.Annual], sort: SortTypes.AlphaAsc });
+  return releases.map(item => ({ name: item.name, url: item.url, description: item.description ?? '', cover: item.cover, price: item.price ?? '' }));
 }
 
 function releaseEmbeds(releases: ComicRelease[]) {
@@ -331,34 +252,50 @@ function episodeTemplate(entry: { episode: TvEpisode; show: TvShow; streaming: b
   ].join('\n');
 }
 
-function showEmbeds(weekDate: string, entries: Array<{ episode: TvEpisode; show: TvShow; streaming: boolean }>) {
-  const templates = entries.map(episodeTemplate);
-  const embeds: Array<Record<string, unknown>> = [];
-  let current: string[] = [];
-  let length = 0;
-  for (const template of templates) {
-    if (template.length > 3900) throw new Error('An episode summary exceeds the Discord embed limit');
-    if (length + template.length + (current.length ? 2 : 0) > 3900 && current.length) {
-      embeds.push({ title: 'Scheduled DC episodes', description: current.join('\n\n'), color: 0x438fcb, footer: { text: 'Episode data provided by TVmaze' } });
-      current = [];
-      length = 0;
-    }
-    current.push(template);
-    length += template.length + (current.length > 1 ? 2 : 0);
-  }
-  if (current.length) embeds.push({ title: 'Scheduled DC episodes', description: current.join('\n\n'), color: 0x438fcb, footer: { text: 'Episode data provided by TVmaze' } });
-  return {
-    content: `Episode comments for the week of ${weekMonday(weekDate)}`,
-    pages: releaseEmbedPages(embeds),
-  };
+function formatEpisodeCommentTemplates(weekDate: string, entries: Array<{ episode: TvEpisode; show: TvShow; streaming: boolean }>) {
+  return `# Episode Comment Templates for the week of ${weekMonday(weekDate)}\n\n${entries.map(episodeTemplate).join('\n\n')}`;
 }
 
-function showIdsFromEnvironment(): ReadonlySet<number> {
-  const input = process.env.TVMAZE_SHOW_IDS?.trim();
-  if (!input) return new Set(defaultShows);
-  const ids = input.split(',').map(value => Number(value.trim()));
-  if (!ids.length || ids.some(value => !Number.isSafeInteger(value) || value < 1)) throw new Error('TVMAZE_SHOW_IDS must be a comma-separated list of positive integers');
-  return new Set(ids);
+async function sendTemplateFile(context: CommandContext, weekDate: string, content: string) {
+  context.queueFollowup?.({
+    content: 'Episode Comment Templates are attached as a text file.',
+    allowed_mentions: { parse: [] },
+    files: [{ name: `episode-comment-templates-${weekMonday(weekDate)}.txt`, content }],
+  });
+}
+
+async function publishTemplates(context: CommandContext, weekDate: string, content: string) {
+  const key = process.env.PASTEE_KEY?.trim();
+  if (!key) {
+    await sendTemplateFile(context, weekDate, content);
+    return reply('Episode Comment Templates are attached as a text file.');
+  }
+  try {
+    const response = await context.fetch('https://api.paste.ee/v1/pastes', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'X-Auth-Token': key },
+      body: JSON.stringify({
+        description: `Episode Comment Templates for the week of ${weekMonday(weekDate)}`,
+        expiration: 'never',
+        sections: [{ name: 'Comment Templates', syntax: 'markdown', contents: content }],
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) throw new Error(`Paste.ee returned HTTP ${response.status}`);
+    const payload = await response.json() as { link?: unknown };
+    if (typeof payload.link !== 'string' || !/^https:\/\/paste\.ee\//.test(payload.link)) throw new Error('Paste.ee did not return a valid paste link');
+    return {
+      type: InteractionResponseType.ChannelMessageWithSource,
+      data: {
+        content: 'Episode Comment Templates are ready.',
+        components: [{ type: 1, components: [{ type: 2, style: 5, label: 'Comment Templates', url: payload.link }] }],
+        allowed_mentions: { parse: [] },
+      },
+    } as APIInteractionResponse;
+  } catch {
+    await sendTemplateFile(context, weekDate, content);
+    return reply('Episode Comment Templates are attached as a text file.');
+  }
 }
 
 function apiUrl(path: string) { return `https://discord.com/api/v10${path}`; }
@@ -436,62 +373,74 @@ async function deliverReleaseList(context: CommandContext, channelId: string, da
 
 export async function runScheduledReleaseList(
   context: CommandContext,
-  input: { channelId: string; releaseDate: string; now?: Date },
+  input: { guildId: string; channelId: string; releaseDate: string; now?: Date },
 ): Promise<'posted' | 'already-posted' | 'in-progress'> {
   const date = validateDate(input.releaseDate);
   if (!date) throw new Error('Release date must be a valid YYYY-MM-DD date');
+  const attemptedAt = (input.now ?? new Date()).toISOString();
   const claimed = await context.sql.begin(async tx => {
-    await tx`SELECT pg_advisory_xact_lock(hashtext(${'robotman-release-list:' + date}))`;
+    await tx`SELECT pg_advisory_xact_lock(hashtext(${'robotman-release-list:' + input.guildId + ':' + date}))`;
     const [inserted] = await tx<{ release_date: string }[]>`
-      INSERT INTO robotman_release_list_runs (release_date, channel_id, status, attempted_at)
-      VALUES (${date}, ${input.channelId}, 'running', ${input.now ?? new Date()})
-      ON CONFLICT (release_date) DO NOTHING
+      INSERT INTO robotman_release_list_runs (guild_id, release_date, channel_id, status, attempted_at)
+      VALUES (${input.guildId}, ${date}, ${input.channelId}, 'running', ${attemptedAt}::timestamptz)
+      ON CONFLICT (guild_id, release_date) DO NOTHING
       RETURNING release_date`;
     if (inserted) return 'claimed' as const;
     const [existing] = await tx<{ status: string; attempted_at: Date | string }[]>`
-      SELECT status, attempted_at FROM robotman_release_list_runs WHERE release_date = ${date} FOR UPDATE`;
+      SELECT status, attempted_at FROM robotman_release_list_runs WHERE guild_id = ${input.guildId} AND release_date = ${date} FOR UPDATE`;
     if (!existing) return 'claimed' as const;
     if (existing.status === 'posted') return 'already-posted' as const;
-    const age = (input.now ?? new Date()).getTime() - new Date(existing.attempted_at).getTime();
+    const age = new Date(attemptedAt).getTime() - new Date(existing.attempted_at).getTime();
     if (existing.status === 'running' && age < 15 * 60 * 1000) return 'in-progress' as const;
-    await tx`UPDATE robotman_release_list_runs SET channel_id = ${input.channelId}, status = 'running', attempted_at = ${input.now ?? new Date()}, error_text = NULL WHERE release_date = ${date}`;
+    await tx`UPDATE robotman_release_list_runs SET channel_id = ${input.channelId}, status = 'running', attempted_at = ${attemptedAt}::timestamptz, error_text = NULL WHERE guild_id = ${input.guildId} AND release_date = ${date}`;
     return 'claimed' as const;
   });
   if (claimed === 'already-posted') return claimed;
   if (claimed === 'in-progress') return claimed;
   try {
-    const releases = await fetchReleaseList(context.fetch, date);
+    const releases = await fetchReleaseList(date);
     await deliverReleaseList(context, input.channelId, date, releases);
-    await context.sql`UPDATE robotman_release_list_runs SET status = 'posted', posted_at = ${input.now ?? new Date()}, error_text = NULL WHERE release_date = ${date}`;
+    await context.sql`UPDATE robotman_release_list_runs SET status = 'posted', posted_at = ${attemptedAt}::timestamptz, error_text = NULL WHERE guild_id = ${input.guildId} AND release_date = ${date}`;
     return 'posted';
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown scheduled release-list error';
-    await context.sql`UPDATE robotman_release_list_runs SET status = 'failed', error_text = ${message.slice(0, 1000)} WHERE release_date = ${date}`;
+    await context.sql`UPDATE robotman_release_list_runs SET status = 'failed', error_text = ${message.slice(0, 1000)} WHERE guild_id = ${input.guildId} AND release_date = ${date}`;
     throw error;
   }
 }
 
-function makeScheduler(context: CommandContext, config: ScheduleConfig) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
+export async function runScheduledReleaseLists(context: CommandContext, now = new Date()) {
+  if (!context.botToken) return [];
+  const settings = await context.sql<{
+    guild_id: string; release_list_channel_id: string | null; release_list_day_of_week: number;
+    release_list_hour: number; release_list_minute: number; release_list_time_zone: string;
+  }[]>`SELECT guild_id, release_list_channel_id, release_list_day_of_week, release_list_hour, release_list_minute, release_list_time_zone
+      FROM robotman_moderator_settings WHERE release_list_channel_id IS NOT NULL`;
+  const due = settings.flatMap(setting => {
+    const local = zonedParts(now, setting.release_list_time_zone);
+    const matches = local.dayOfWeek === setting.release_list_day_of_week
+      && local.hour * 60 + local.minute === setting.release_list_hour * 60 + setting.release_list_minute;
+    return matches && setting.release_list_channel_id
+      ? [{ guildId: setting.guild_id, channelId: setting.release_list_channel_id, releaseDate: nextTuesday(now, setting.release_list_time_zone) }]
+      : [];
+  });
+  return Promise.all(due.map(async input => ({ ...input, result: await runScheduledReleaseList(context, { ...input, now }) })));
+}
+
+function makeScheduler(context: CommandContext) {
   let stopped = false;
-  const schedule = () => {
-    if (stopped) return;
-    const when = nextScheduleDate(new Date(), config);
-    const delay = Math.min(Math.max(when.getTime() - Date.now(), 0), 2_147_000_000);
-    timer = setTimeout(() => {
-      const releaseDate = nextTuesday(when, config.timeZone);
-      activeScheduleRun = runScheduledReleaseList(context, { channelId: config.channelId, releaseDate })
-        .then(() => undefined)
-        .catch(error => console.error('[moderator] Weekly release-list posting failed:', error))
-        .finally(() => { activeScheduleRun = undefined; schedule(); });
-    }, delay);
-    timer.unref?.();
+  let timer: ReturnType<typeof setInterval> | undefined;
+  const tick = () => {
+    if (stopped || activeScheduleRun) return;
+    activeScheduleRun = runScheduledReleaseLists(context)
+      .then(() => undefined)
+      .catch(error => console.error('[moderator] Weekly release-list posting failed:', error))
+      .finally(() => { activeScheduleRun = undefined; });
   };
-  schedule();
-  return () => {
-    stopped = true;
-    if (timer) clearTimeout(timer);
-  };
+  tick();
+  timer = setInterval(tick, 30_000);
+  timer.unref?.();
+  return () => { stopped = true; if (timer) clearInterval(timer); };
 }
 
 export const moderatorModule: CommandModule = {
@@ -499,23 +448,16 @@ export const moderatorModule: CommandModule = {
   matches(interaction) {
     return isCommand(interaction) && (interaction.data.name === 'release-list' || interaction.data.name === 'shows');
   },
+  deferEphemeral(interaction) {
+    return isCommand(interaction) && interaction.data.name === 'release-list';
+  },
   async start(context) {
     await migrateDatabase(context.sql);
-    const channelId = process.env.RELEASE_LIST_CHANNEL_ID?.trim();
-    if (!channelId) {
-      console.warn('[moderator] RELEASE_LIST_CHANNEL_ID is unset; weekly release-list posting is disabled.');
-      return;
-    }
     if (!context.botToken) {
       console.warn('[moderator] Bot token is unset; weekly release-list posting is disabled.');
       return;
     }
-    try {
-      const config = scheduleConfig();
-      if (config) closeScheduler = makeScheduler(context, config);
-    } catch (error) {
-      console.warn('[moderator] Invalid release-list schedule configuration; weekly posting is disabled:', error);
-    }
+    closeScheduler = makeScheduler(context);
   },
   async close() {
     closeScheduler?.();
@@ -527,37 +469,26 @@ export const moderatorModule: CommandModule = {
     if (!interaction.guild_id) return reply('Moderator commands can only be used in a server.', true);
     if (!hasModeratorPermission(interaction)) return reply('You need Manage Server permission to use this command.', true);
     const dateInput = optionValue(interaction, 'date');
-    const configuredTimeZone = process.env.RELEASE_LIST_TIMEZONE?.trim() || 'UTC';
     if (dateInput && !validateDate(dateInput)) return reply('Enter a valid date in YYYY-MM-DD format.', true);
+    const settings = await getGuildModeratorSettings(context.sql, interaction.guild_id);
 
     if (interaction.data.name === 'release-list') {
-      const date = dateInput ?? nextTuesday(new Date(), configuredTimeZone);
+      if (!settings.releaseListChannelId) return reply('Configure a release-list channel in the dashboard before requesting a Release List.', true);
+      const date = dateInput ?? nextTuesday(context.now?.() ?? new Date(), settings.releaseListTimeZone);
       try {
-        const releases = await fetchReleaseList(context.fetch, date);
-        const formatted = formatReleaseList(date, releases);
-        const pages = releaseEmbedPages(formatted.embeds as Array<Record<string, unknown>>);
-        if (pages.length > 1 && !context.queueFollowup) return reply('This release list needs follow-up messages, but follow-ups are unavailable right now.', true);
-        for (const page of pages.slice(1)) context.queueFollowup?.({ embeds: page, allowed_mentions: { parse: [] } });
-        return {
-          type: InteractionResponseType.ChannelMessageWithSource,
-          data: { content: formatted.content, ...(pages[0] ? { embeds: pages[0] } : {}), allowed_mentions: { parse: [] } },
-        } as APIInteractionResponse;
+        const releases = await fetchReleaseList(date);
+        await deliverReleaseList(context, settings.releaseListChannelId, date, releases);
+        return reply(`The Release List for ${date} was sent to <#${settings.releaseListChannelId}>.`, true);
       } catch {
-        return reply('The League of Comic Geeks release list is unavailable right now. Try again later.', true);
+        return reply('The Release List could not be delivered. Try again later.', true);
       }
     }
 
-    const date = dateInput ?? zonedParts(new Date(), configuredTimeZone).date;
+    const date = dateInput ?? zonedParts(context.now?.() ?? new Date(), settings.releaseListTimeZone).date;
     try {
-      const episodes = await fetchShowSchedule(context.fetch, date, showIdsFromEnvironment());
+      const episodes = await fetchShowSchedule(context.fetch, date, new Set(settings.tvmazeShowIds));
       if (!episodes.length) return reply(`There are no episodes scheduled for the week of ${weekMonday(date)}.`);
-      const formatted = showEmbeds(date, episodes);
-      if (formatted.pages.length > 1 && !context.queueFollowup) return reply('This schedule needs follow-up messages, but follow-ups are unavailable right now.', true);
-      for (const page of formatted.pages.slice(1)) context.queueFollowup?.({ embeds: page, allowed_mentions: { parse: [] } });
-      return {
-        type: InteractionResponseType.ChannelMessageWithSource,
-        data: { content: formatted.content, ...(formatted.pages[0] ? { embeds: formatted.pages[0] } : {}), allowed_mentions: { parse: [] } },
-      } as APIInteractionResponse;
+      return await publishTemplates(context, date, formatEpisodeCommentTemplates(date, episodes));
     } catch {
       return reply('TVmaze schedules are unavailable right now. Try again later.', true);
     }

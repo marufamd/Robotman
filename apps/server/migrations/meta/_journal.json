@@ -29,6 +29,48 @@
       "when": 1792202941872,
       "tag": "0003_response_change_history",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792339176431,
+      "tag": "0004_moderator_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792466983997,
+      "tag": "0005_response_authorship",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793644766716,
+      "tag": "0006_dashboard_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793644804769,
+      "tag": "0007_dashboard_oauth_states",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793675658966,
+      "tag": "0008_rich_recommendations",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793675762358,
+      "tag": "0009_recommendation_settings",
+      "breakpoints": true
     }
   ]
 }

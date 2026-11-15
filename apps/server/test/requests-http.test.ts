@@ -55,8 +55,15 @@ test('signed /response looks up a complete trigger or alias case-insensitively a
     const selected = await send({ type: 2, data: { type: 1, name: 'recs', options: [{ type: 1, name: 'lookup', options: [{ type: 3, name: 'name', value: writer.value }] }] } });
     assert.deepEqual((await selected.json()).data.embeds[0], { title: 'Shared name · Writer', url: 'https://example.com/writer', description: 'A writer pick.' });
 
-    const directory = await send({ type: 2, data: { type: 1, name: 'recs', options: [{ type: 1, name: 'list', options: [{ type: 3, name: 'category', value: 'booster' }] }] } });
-    assert.deepEqual((await directory.json()).data.embeds[0], { title: 'Recommendation Directory', description: '**Booster**\n[Another pick](https://example.com/booster) — A booster pick.\n[Shared name](https://example.com/booster-choice) — A booster choice.' });
+    const tasteTest = (await (await send({ type: 2, data: { type: 1, name: 'recs', options: [{ type: 1, name: 'taste-test' }] } })).json()).data.embeds[0];
+    assert.equal(tasteTest.title, 'Taste Test');
+    assert.deepEqual(tasteTest.fields, [{ name: 'Mods', value: 'Shared name' }, { name: 'Boosters', value: 'Another pick\nShared name' }]);
+    assert.doesNotMatch(JSON.stringify(tasteTest), /A booster pick|https:\/\/example/);
+    const characters = (await (await send({ type: 2, data: { type: 1, name: 'recs', options: [{ type: 1, name: 'characters' }] } })).json()).data.embeds[0];
+    assert.match(characters.description, /Shared Name/);
+    assert.doesNotMatch(characters.description, /Another pick/);
+    const writers = (await (await send({ type: 2, data: { type: 1, name: 'recs', options: [{ type: 1, name: 'writers' }] } })).json()).data.embeds[0];
+    assert.equal(writers.title, 'Writer Recommendations');
 
     const dmBody = JSON.stringify({ type: 2, id: '101', application_id: '200', token: 'token', channel_id: 'channel-7', data: { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: 'Long Trigger' }] } });
     const timestamp = String(Math.floor(Date.now() / 1000));

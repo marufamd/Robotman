@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { test, after } from 'node:test';
+import { mockComicGeeks } from './comicgeeks-fixtures.js';
+let transport: ReturnType<typeof mockComicGeeks> | undefined;
+after(() => transport?.restore());
 import type { Sql } from 'postgres';
 import type { APIApplicationCommandInteraction } from 'discord.js';
 import type { CommandContext, CommandInteraction } from '../src/commands/types.js';
@@ -17,6 +20,7 @@ function interaction(name: string, options: Array<{ name: string; value: string 
 }
 
 function context(fetchImpl: typeof fetch = globalThis.fetch): CommandContext {
+  transport?.restore(); transport = mockComicGeeks(fetchImpl);
   return { sql: {} as Sql, fetch: fetchImpl, startedAt: Date.now() };
 }
 
@@ -54,9 +58,10 @@ async function withEnv(values: Record<string, string>, action: () => Promise<voi
 
 test('lookup module only registers the selected lookup commands', () => {
   assert.deepEqual(lookupModule.commands.map((command) => command.name), [
-    'character', 'comic', 'locg', 'pull', 'pull-user', 'letterboxd', 'movie', 'show', 'pokemon', 'google', 'youtube',
+    'character', 'locg', 'pull', 'pull-user', 'letterboxd', 'movie', 'show', 'pokemon', 'youtube',
   ]);
   assert.equal(lookupModule.matches(interaction('wiki')), false);
+  assert.equal(lookupModule.matches(interaction('comic')), false);
   assert.equal(lookupModule.matches(interaction('pokemon')), true);
 });
 
@@ -79,7 +84,7 @@ test('character uses Comic Vine’s character list endpoint and formats a useful
     assert.match(requestUrl, /^https:\/\/comicvine\.gamespot\.com\/api\/characters\//);
     assert.equal(new URL(requestUrl).searchParams.get('filter'), 'name:Spider-Man');
     assert.equal(embed(answer).title, 'Spider-Man');
-    assert.equal((embed(answer).fields as Array<{ name: string }>)[0]?.name, 'Real name');
+    assert.match(String(embed(answer).description), /Real Name:\*\* Peter Parker/);
   });
 });
 
@@ -92,7 +97,7 @@ test('Comic Vine configuration and no-result cases are explained', async () => {
   });
 });
 
-test('comic and locg search the public League of Comic Geeks search endpoint', async () => {
+test('locg searches the public League of Comic Geeks search endpoint', async () => {
   let requests = 0;
   const fetchStub: typeof fetch = async (input) => {
     const url = new URL(String(input));
@@ -103,18 +108,16 @@ test('comic and locg search the public League of Comic Geeks search endpoint', a
     requests += 1;
     return Response.json({ list: `<li><div class="cover"><a href="/comic/123/batman-1"><img data-src="https://s3.amazonaws.com/comicgeeks/comics/covers/medium-123.jpg"></a></div><div class="comic-details">DC Comics · 2024</div><div class="title color-primary">Batman #1</div><div class="comic-description col-feed-max">A new series begins.</div><span class="price">$4.99</span></li>` });
   };
-  const comicResult = await result('comic', [{ name: 'query', value: 'Batman' }], context(fetchStub));
   const seriesResult = await result('locg', [{ name: 'query', value: 'Batman' }], context(fetchStub));
-  assert.equal(requests, 2);
-  assert.match(String(embed(comicResult).description), /Batman #1/);
-  assert.match(String(embed(seriesResult).description), /A new series begins/);
+  assert.equal(requests, 1);
+  assert.match(JSON.stringify(embed(seriesResult).fields), /Batman #1/);
 });
 
 test('publisher pull list sends a Wednesday week and real League of Comic Geeks publisher id', async () => {
   let requested: URL | undefined;
   const fetchStub: typeof fetch = async (input) => {
     requested = new URL(String(input));
-    return Response.json({ list: '<li><div class="title color-primary">Daredevil #1</div></li>' });
+    return Response.json({ list: '<li><div class="comic-cover-art"><img data-src="https://example.com/cover.jpg"></div><div class="comic-description col-feed-max"><a href="/comic/daredevil">Details</a></div><div class="title color-primary">Daredevil #1</div></li>' });
   };
   const answer = await result('pull', [
     { name: 'publisher', value: 'valiant' }, { name: 'date', value: '2026-10-12' },
@@ -123,7 +126,7 @@ test('publisher pull list sends a Wednesday week and real League of Comic Geeks 
   assert.equal(requested?.searchParams.get('publisher[]'), '34');
   assert.equal(requested?.searchParams.get('date'), '2026-10-14');
   assert.match(String(embed(answer).description), /Daredevil #1/);
-  assert.match(content(await result('pull', [{ name: 'date', value: 'not-a-date' }], context(fetchStub))), /valid YYYY-MM-DD/);
+  assert.match(content(await result('pull', [{ name: 'date', value: 'not-a-date' }], context(fetchStub))), /recognizable date/);
 });
 
 test('pull-user resolves a public profile then reads the user’s pull list', async () => {
@@ -134,7 +137,7 @@ test('pull-user resolves a public profile then reads the user’s pull list', as
     if (url.pathname === '/profile/example/pull-list') {
       return new Response('<html><title>Example User - League of Comic Geeks</title><div id="comic-list-block" data-user="12345"></div></html>', { status: 200 });
     }
-    return Response.json({ list: '<li><div class="title color-primary">Amazing Spider-Man #1</div><span class="price">$4.99</span></li>' });
+    return Response.json({ list: '<li><div class="comic-cover-art"><img data-src="https://example.com/cover.jpg"></div><div class="comic-description col-feed-max"><a href="/comic/spider-man">Details</a></div><div class="title color-primary">Amazing Spider-Man #1</div><span class="price">$4.99</span></li>' });
   };
   const answer = await result('pull-user', [{ name: 'user', value: 'Example' }, { name: 'date', value: '2026-10-14' }], context(fetchStub));
   assert.deepEqual(paths, ['/profile/example/pull-list', '/comic/get_comics']);
@@ -150,7 +153,7 @@ test('Letterboxd parses recent RSS diary entries and finds a requested film', as
   const answer = await result('letterboxd', [{ name: 'username', value: 'alice' }, { name: 'film', value: 'Arrival' }], context(fetchStub));
   assert.equal(embed(answer).title, 'Arrival (2016)');
   assert.equal(embed(answer).url, 'https://letterboxd.com/alice/film/arrival/');
-  assert.equal((embed(answer).fields as Array<{ value: string }>)[0]?.value, '4 / 5');
+  assert.equal((embed(answer).fields as Array<{ value: string }>)[0]?.value, '★★★★');
   const opaqueGuid = feed.replace('<guid>https://letterboxd.com/alice/film/arrival/</guid>', '<guid isPermaLink="false">letterboxd-watch-12345</guid>');
   const opaqueAnswer = await result('letterboxd', [{ name: 'username', value: 'alice' }, { name: 'film', value: 'Arrival' }], context(async () => new Response(opaqueGuid)));
   assert.equal(embed(opaqueAnswer).url, 'https://letterboxd.com/alice/film/arrival/');
@@ -184,46 +187,12 @@ test('show uses TVmaze search and handles no results', async () => {
   assert.match(content(await result('show', [{ name: 'query', value: 'Unknown' }], context(async () => Response.json([])))), /No TVmaze show results/);
 });
 
-test('PokéAPI lookup formats a Pokémon and responds to 404 as no result', async () => {
-  const fetchStub: typeof fetch = async (input) => {
-    const url = String(input);
-    if (url.endsWith('/pokemon/pikachu')) return Response.json({
-      id: 25, name: 'pikachu', height: 4, weight: 60,
-      species: { url: 'https://pokeapi.co/api/v2/pokemon-species/25/' },
-      types: [{ type: { name: 'electric' } }], abilities: [{ ability: { name: 'static' } }],
-      stats: [{ base_stat: 35, stat: { name: 'hp' } }], sprites: { front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' },
-    });
-    return Response.json({ flavor_text_entries: [{ language: { name: 'en' }, flavor_text: 'It stores electricity in its cheeks.' }], genera: [{ language: { name: 'en' }, genus: 'Mouse Pokémon' }] });
-  };
+test('Bulbapedia lookup returns an article and explains missing pages', async () => {
+  const fetchStub: typeof fetch = async () => Response.json({ query: { pages: [{ title: 'Pikachu', pageimage: '025Pikachu.png', extract: 'It stores electricity in its cheeks.' }] } });
   const answer = await result('pokemon', [{ name: 'query', value: 'pikachu' }], context(fetchStub));
-  assert.equal(embed(answer).title, '#0025 · pikachu');
+  assert.equal(embed(answer).title, '#025 - Pikachu');
   assert.match(String(embed(answer).description), /stores electricity/);
-  assert.match(content(await result('pokemon', [{ name: 'query', value: 'Missingno' }], context(async () => new Response('', { status: 404 })))), /No Pokémon found/);
-});
-
-test('Google uses documented Custom Search parameters and returns multiple web results', async () => {
-  await withEnv({ GOOGLE_CSE_API_KEY: 'fixture-google', GOOGLE_CSE_ENGINE_ID: 'fixture-cx' }, async () => {
-    let requested: URL | undefined;
-    const fetchStub: typeof fetch = async (input) => {
-      requested = new URL(String(input));
-      return Response.json({
-        searchInformation: { formattedTotalResults: '100,000' },
-        items: [
-          { title: 'Example one', link: 'https://example.com/one', snippet: 'First result.' },
-          { title: 'Example two', link: 'https://example.com/two', snippet: 'Second result.' },
-        ],
-      });
-    };
-    const answer = await result('google', [{ name: 'query', value: 'robot comics' }, { name: 'amount', value: 2 }], context(fetchStub));
-    assert.equal(requested?.origin, 'https://www.googleapis.com');
-    assert.equal(requested?.pathname, '/customsearch/v1');
-    assert.equal(requested?.searchParams.get('cx'), 'fixture-cx');
-    assert.equal(requested?.searchParams.get('q'), 'robot comics');
-    assert.equal(requested?.searchParams.get('num'), '2');
-    assert.equal(requested?.searchParams.get('safe'), 'active');
-    assert.match(String(embed(answer).description), /Example one/);
-    assert.match(String(embed(answer).description), /Example two/);
-  });
+  assert.match(content(await result('pokemon', [{ name: 'query', value: 'Missingno' }], context(async () => Response.json({ query: { pages: [{ missing: true }] } })))), /No Pokémon found/);
 });
 
 test('YouTube uses the official Data API search.list endpoint and validates missing credentials', async () => {
@@ -239,7 +208,7 @@ test('YouTube uses the official Data API search.list endpoint and validates miss
     assert.equal(requested?.searchParams.get('part'), 'snippet');
     assert.equal(requested?.searchParams.get('type'), 'video');
     assert.equal(requested?.searchParams.get('q'), 'comic book review');
-    assert.equal(embed(answer).url, 'https://www.youtube.com/watch?v=abc123');
+    assert.match(content(answer), /https:\/\/www.youtube.com\/watch\?v=abc123/);
   });
   await withEnv({ YOUTUBE_API_KEY: '' }, async () => assert.match(content(await result('youtube', [{ name: 'query', value: 'video' }])), /lookup is not available right now/i));
 });

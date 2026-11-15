@@ -9,6 +9,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { APIInteractionResponse } from 'discord.js';
 import type { CommandContext, CommandInteraction, CommandModule } from './commands/types.js';
 import { createGuildContent } from './guild-content/index.js';
+import { createModeratorSettings } from './moderator-settings/index.js';
+import { discordPayload } from './discord-payload.js';
+import { discordFailure } from './discord-errors.js';
 
 export interface AuthExtension {
   handleHttp(request: IncomingMessage, response: ServerResponse): Promise<boolean>;
@@ -16,7 +19,9 @@ export interface AuthExtension {
   resolvers: Record<string, unknown>;
   requireManagedGuild(context: { request?: IncomingMessage; response?: ServerResponse }, guildId: string): Promise<unknown>;
   authorizeGuildWrite(context: { request?: IncomingMessage; response?: ServerResponse }, guildId: string): Promise<unknown>;
-  authenticatedUserId(context: { request?: IncomingMessage; response?: ServerResponse }): string | undefined;
+  configureDatabase?(databaseUrl: string): void;
+  authenticatedUserId(context: { request?: IncomingMessage; response?: ServerResponse }): Promise<string | undefined>;
+  authenticatedUser(context: { request?: IncomingMessage; response?: ServerResponse }): Promise<{ id: string; username: string } | undefined>;
   close?(): Promise<void>;
 }
 
@@ -28,6 +33,7 @@ export interface ApplicationConfig {
   applicationId?: string;
   botToken?: string;
   auth?: AuthExtension;
+  now?: () => Date;
 }
 
 export function createApplication(config: ApplicationConfig) {
@@ -36,14 +42,17 @@ export function createApplication(config: ApplicationConfig) {
     key: Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), Buffer.from(config.publicKey, 'hex')]),
     type: 'spki', format: 'der',
   });
+  config.auth?.configureDatabase?.(config.databaseUrl);
   const client = postgres(config.databaseUrl, { connect_timeout: 2 });
   const ormClient = postgres(config.databaseUrl, { connect_timeout: 2 });
   const database = drizzle(ormClient);
   const modules = config.modules ?? [];
-  const context: CommandContext = { sql: client, fetch: config.fetch ?? globalThis.fetch, startedAt: Date.now(), applicationId: config.applicationId, botToken: config.botToken };
+  const context: CommandContext = { sql: client, fetch: config.fetch ?? globalThis.fetch, startedAt: Date.now(), applicationId: config.applicationId, botToken: config.botToken, now: config.now };
   const guildContent = createGuildContent(client, ormClient, config.auth);
-  const schema = buildSchema(`type Query { ready: Boolean! } type Mutation { _foundation: Boolean } ${config.auth?.schemaFields ?? ''} ${guildContent.schemaFields}`);
+  const moderatorSettings = createModeratorSettings(client, ormClient, config.auth);
+  const schema = buildSchema(`type Query { ready: Boolean! } type Mutation { _foundation: Boolean } ${config.auth?.schemaFields ?? ''} ${guildContent.schemaFields} ${moderatorSettings.schemaFields}`);
   const server = createServer((request, response) => {
+    const receivedAt = performance.now();
     void (async () => {
       if (request.url?.startsWith('/api/')) request.url = request.url.slice(4);
       if (config.auth && await config.auth.handleHttp(request, response)) return;
@@ -69,6 +78,7 @@ export function createApplication(config: ApplicationConfig) {
           rootValue: {
             ...config.auth?.resolvers,
             ...guildContent.resolvers,
+            ...moderatorSettings.resolvers,
             async ready() {
               try {
                 await database.execute(sql`select 1`);
@@ -106,10 +116,11 @@ export function createApplication(config: ApplicationConfig) {
       const queued: Record<string, unknown>[] = [];
       const sendQueued = async () => {
         for (const data of queued) {
+          const { body, headers } = discordPayload(data);
           const sent = await context.fetch(`https://discord.com/api/v10/webhooks/${interaction.application_id}/${interaction.token}`, {
-            method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(data), signal: AbortSignal.timeout(10000),
+            method: 'POST', headers, body, signal: AbortSignal.timeout(10000),
           });
-          if (!sent.ok) throw new Error(`Follow-up rejected (${sent.status})`);
+          if (!sent.ok) throw new Error(await discordFailure(sent, [interaction.token, config.botToken]));
         }
       };
       const pending = module.handle(interaction as CommandInteraction, { ...context, queueFollowup: data => queued.push(data) }).catch((): APIInteractionResponse => ({ type: 4, data: { content: 'The command could not be completed. Please try again.', flags: 64 } }));
@@ -118,12 +129,26 @@ export function createApplication(config: ApplicationConfig) {
       const result = await Promise.race([pending, new Promise<typeof deferred>(resolve => { timer = setTimeout(() => resolve(deferred), 2000); })]);
       if (timer) clearTimeout(timer);
       if (result !== deferred) {
-        response.once('finish', () => { void sendQueued().catch(() => console.error('Discord follow-up failed')); });
+        if ('data' in result && result.data && 'files' in result.data) {
+          response.once('finish', () => { void (async () => {
+            const sent = await context.fetch(`https://discord.com/api/v10/webhooks/${interaction.application_id}/${interaction.token}/messages/@original`, { method: 'PATCH', ...discordPayload(result.data as Record<string, unknown>), signal: AbortSignal.timeout(10000) });
+            if (!sent.ok) throw new Error(await discordFailure(sent, [interaction.token, config.botToken]));
+            await sendQueued();
+          })().catch(() => console.error('Discord attachment upload failed')); });
+          response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ type: 5 }));
+          return;
+        }
+        response.once('finish', () => { void sendQueued().catch(error => console.error('Discord follow-up failed', {
+          operation: 'send follow-up',
+          error: error instanceof Error && error.message.startsWith('HTTP ') ? error.message : 'Network or upload failure',
+        })); });
         response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify(result));
         return;
       }
       const update = interaction.type === InteractionType.MessageComponent;
-      response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ type: update ? 6 : 5 }));
+      const deferEphemeral = module.deferEphemeral?.(interaction) ?? false;
+      const acknowledgementMs = Math.round(performance.now() - receivedAt);
+      response.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ type: update ? 6 : 5, ...(deferEphemeral ? { data: { flags: 64 } } : {}) }));
       void pending.then(async result => {
         if (!('data' in result)) return;
         if (result.type === InteractionResponseType.Modal) {
@@ -132,14 +157,23 @@ export function createApplication(config: ApplicationConfig) {
           return;
         }
         const edit = { ...result.data } as Record<string, unknown>;
-        if (typeof edit.flags === 'number') edit.flags &= ~64;
         const followup = await context.fetch(`https://discord.com/api/v10/webhooks/${interaction.application_id}/${interaction.token}/messages/@original`, {
-          method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify(edit),
+          method: 'PATCH', ...discordPayload(edit),
           signal: AbortSignal.timeout(10000),
         });
-        if (!followup.ok) console.error(`Discord follow-up failed (${followup.status})`);
+        if (!followup.ok) console.error('Discord follow-up failed', {
+          operation: 'edit deferred response',
+          error: await discordFailure(followup, [interaction.token, config.botToken]),
+          acknowledgementMs,
+          completionMs: Math.round(performance.now() - receivedAt),
+        });
         else await sendQueued();
-      }).catch(() => console.error('Discord follow-up failed'));
+      }).catch(error => console.error('Discord follow-up failed', {
+        operation: 'complete deferred response',
+        error: error instanceof Error && error.message.startsWith('HTTP ') ? error.message : 'Network or upload failure',
+        acknowledgementMs,
+        completionMs: Math.round(performance.now() - receivedAt),
+      }));
     })().catch(() => { if (!response.destroyed) response.writeHead(400).end(); });
   });
   return {
@@ -147,7 +181,7 @@ export function createApplication(config: ApplicationConfig) {
     async initialize() { await guildContent.start(); for (const module of modules) await module.start?.(context); },
     async close() {
       if (server.listening) await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
-      for (const module of modules) await module.close?.();
+      for (const module of modules) await module.close?.(context);
       await guildContent.close();
       await config.auth?.close?.();
       await client.end({ timeout: 2 });

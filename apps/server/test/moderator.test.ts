@@ -1,15 +1,17 @@
+import { mockComicGeeks } from './comicgeeks-fixtures.js';
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import postgres from 'postgres';
 import { InteractionResponseType, PermissionFlagsBits } from 'discord.js';
-import { moderatorModule, releaseEmbedPages, runScheduledReleaseList } from '../src/commands/moderator/index.js';
+import { moderatorModule, releaseEmbedPages, runScheduledReleaseList, runScheduledReleaseLists } from '../src/commands/moderator/index.js';
 import type { CommandContext, CommandInteraction } from '../src/commands/types.js';
 import type { Sql } from 'postgres';
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
 const db = databaseUrl ? postgres(databaseUrl) : undefined;
-const requestLog: Array<{ url: string; method: string; body?: Record<string, unknown> }> = [];
+const requestLog: Array<{ url: string; method: string; body?: Record<string, unknown>; headers?: Record<string, string> }> = [];
 let context: CommandContext;
+let transport: ReturnType<typeof mockComicGeeks>;
 
 let comicItemCount = 1;
 let comicDescriptionLength = 16;
@@ -35,7 +37,8 @@ const fixtureFetch: typeof fetch = async (input, init) => {
   const url = new URL(typeof input === 'string' || input instanceof URL ? input.toString() : input.url);
   const method = init?.method ?? 'GET';
   const body = typeof init?.body === 'string' ? JSON.parse(init.body) as Record<string, unknown> : undefined;
-  requestLog.push({ url: url.toString(), method, ...(body ? { body } : {}) });
+  const headers = Object.fromEntries(new Headers(init?.headers).entries());
+  requestLog.push({ url: url.toString(), method, ...(body ? { body } : {}), headers });
 
   if (url.hostname === 'leagueofcomicgeeks.com') return response({ list: comicHtml() });
   if (url.hostname === 'api.tvmaze.com') {
@@ -43,6 +46,7 @@ const fixtureFetch: typeof fetch = async (input, init) => {
       ? { name: `Web episode ${index + 1}`, season: 1, number: index + 1, airdate: url.searchParams.get('date'), airtime: null, summary: `<p>${'Streaming episode '.repeat(60)}</p>`, _embedded: { show: { id: 13, name: 'DC Show', webChannel: { name: 'Stream' } } } }
       : { name: `Pilot ${index + 1}`, season: 1, number: index + 1, airdate: url.searchParams.get('date'), airtime: '20:00', summary: `<p>${'First episode '.repeat(60)}</p>`, show: { id: 13, name: 'DC Show', network: { name: 'Network' } } }));
   }
+  if (url.hostname === 'api.paste.ee') return response({ link: 'https://paste.ee/p/abc123' });
   if (url.hostname === 'discord.com') {
     if (method === 'POST') return response({ id: 'message-1' });
     return new Response(null, { status: 204 });
@@ -51,6 +55,7 @@ const fixtureFetch: typeof fetch = async (input, init) => {
 };
 
 before(async () => {
+  transport = mockComicGeeks(fixtureFetch);
   requestLog.length = 0;
   queuedFollowups.length = 0;
   context = { sql: db ?? ({} as Sql), fetch: fixtureFetch, startedAt: Date.now(), botToken: 'fixture-token', queueFollowup: data => queuedFollowups.push(data) };
@@ -58,9 +63,11 @@ before(async () => {
 });
 
 after(async () => {
+  transport.restore();
   if (!db) return;
   await moderatorModule.close?.();
-  await db`DELETE FROM robotman_release_list_runs WHERE release_date IN ('2099-09-08', '2099-09-15')`;
+  await db`DELETE FROM robotman_release_list_runs WHERE release_date IN ('2099-09-08', '2099-09-15', '2099-10-13')`;
+  await db`DELETE FROM robotman_moderator_settings WHERE guild_id IN ('test-guild', 'schedule-a', 'schedule-b')`;
   await db.end();
 });
 
@@ -77,6 +84,14 @@ function command(name: string, permissions: string, date?: string): CommandInter
   } as unknown as CommandInteraction;
 }
 
+async function configureGuild(guildId: string, channelId: string | null, options: { day?: number; hour?: number; minute?: number; timeZone?: string; showIds?: number[] } = {}) {
+  if (!db) throw new Error('A test PostgreSQL database is required');
+  await db`INSERT INTO robotman_moderator_settings (guild_id, release_list_channel_id, release_list_day_of_week, release_list_hour, release_list_minute, release_list_time_zone, tvmaze_show_ids)
+    VALUES (${guildId}, ${channelId}, ${options.day ?? 0}, ${options.hour ?? 0}, ${options.minute ?? 0}, ${options.timeZone ?? 'UTC'}, ${JSON.stringify(options.showIds ?? [13])}::jsonb)
+    ON CONFLICT (guild_id) DO UPDATE SET release_list_channel_id = EXCLUDED.release_list_channel_id, release_list_day_of_week = EXCLUDED.release_list_day_of_week,
+      release_list_hour = EXCLUDED.release_list_hour, release_list_minute = EXCLUDED.release_list_minute, release_list_time_zone = EXCLUDED.release_list_time_zone, tvmaze_show_ids = EXCLUDED.tvmaze_show_ids`;
+}
+
 test('moderator commands reject non-moderators and stay server-only', async () => {
   const denied = await moderatorModule.handle(command('release-list', '0'), context);
   assert.equal(denied.data?.flags, 64);
@@ -91,27 +106,82 @@ test('moderator commands reject non-moderators and stay server-only', async () =
   assert.equal(requestLog.length, 0);
 });
 
-test('release-list queries League of Comic Geeks and returns release embeds', async () => {
+test('manual release-list posts to the configured channel and confirms ephemerally', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel');
+  requestLog.length = 0;
   const result = await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
   assert.equal(result.type, InteractionResponseType.ChannelMessageWithSource);
-  assert.match(String(result.data?.content), /Comics Release List for 2099-09-08/);
-  assert.equal(result.data?.embeds?.length, 1);
-  assert.equal(requestLog.filter(request => request.url.includes('/channels/test-channel/messages') && request.method === 'POST').length, 0);
+  assert.equal(result.data?.flags, 64);
+  assert.match(String(result.data?.content), /Release List for 2099-09-08 was sent/);
+  const messagePosts = requestLog.filter(request => request.url.includes('/channels/configured-release-channel/messages') && request.method === 'POST');
+  assert.equal(messagePosts.length, 2);
+  assert.match(String(messagePosts[0]?.body?.content), /Comics Release List for 2099-09-08/);
+  assert.equal(messagePosts[1]?.body?.embeds instanceof Array, true);
+  assert.equal(requestLog.some(request => request.url.includes('/channels/test-channel/messages')), false);
+});
+
+test('manual release-list explains ephemerally when no channel is configured', { skip: !db }, async () => {
+  await configureGuild('test-guild', null);
+  requestLog.length = 0;
+  const result = await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString()), context);
+  assert.equal(result.data?.flags, 64);
+  assert.match(String(result.data?.content), /Configure a release-list channel in the dashboard/);
+  assert.equal(requestLog.length, 0);
+});
+
+test('manual release-list reports delivery failures ephemerally', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel');
+  const failing: CommandContext = { ...context, fetch: async (input, init) => {
+    const url = String(input);
+    if (url.includes('leagueofcomicgeeks.com')) return response({ list: comicHtml() });
+    if (url.includes('/channels/configured-release-channel/messages')) return response({}, 500);
+    return fixtureFetch(input, init);
+  } };
+  const result = await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), failing);
+  assert.equal(result.data?.flags, 64);
+  assert.match(String(result.data?.content), /could not be delivered/);
+});
+
+test('release-list keeps the existing heading, embeds, and pinned heading delivery', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel');
+  requestLog.length = 0;
+  const result = await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
+  assert.equal(result.data?.flags, 64);
+  assert.ok(requestLog.some(request => request.url.endsWith('/pins/message-1') && request.method === 'PUT'));
+  assert.equal(requestLog.find(request => request.url.includes('/channels/configured-release-channel/messages'))?.body?.nonce !== undefined, true);
+});
+
+test('configured release-list queries League of Comic Geeks for its chosen date', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel');
+  requestLog.length = 0;
+  await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
   const locg = new URL(requestLog[0]!.url);
   assert.equal(locg.pathname, '/comic/get_comics');
   assert.deepEqual(locg.searchParams.getAll('publisher[]'), ['1', '59']);
   assert.deepEqual(locg.searchParams.getAll('format[]'), ['1', '5', '6']);
 });
 
-test('release-list paging respects Discord limits and delivers every issue', async () => {
+test('manual release-list uses the Guild time zone to choose its default date', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel', { timeZone: 'Pacific/Kiritimati' });
+  requestLog.length = 0;
+  const localMorning = new Date('2099-09-07T12:00:00.000Z');
+  await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString()), { ...context, now: () => localMorning });
+  const locg = requestLog.find(request => request.url.includes('leagueofcomicgeeks.com'));
+  assert.equal(new URL(locg!.url).searchParams.get('date'), '2099-09-15');
+});
+
+test('manual release-list paging respects Discord limits and delivers every issue', { skip: !db }, async () => {
+  await configureGuild('test-guild', 'configured-release-channel');
   comicItemCount = 15;
   comicDescriptionLength = 7_000;
   requestLog.length = 0;
   queuedFollowups.length = 0;
   try {
     const result = await moderatorModule.handle(command('release-list', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
-    assert.match(String(result.data?.content), /Comics Release List for 2099-09-08/);
-    const pages = [result.data?.embeds as unknown as Record<string, unknown>[] ?? [], ...queuedFollowups.map(followup => followup.embeds as Record<string, unknown>[])];
+    assert.equal(result.data?.flags, 64);
+    assert.match(String(result.data?.content), /Release List for 2099-09-08 was sent/);
+    const pages = requestLog.filter(request => request.url.includes('/channels/configured-release-channel/messages') && request.method === 'POST')
+      .flatMap(request => Array.isArray(request.body?.embeds) ? [request.body.embeds as Record<string, unknown>[]] : []);
     const delivered = pages.flat();
     assert.equal(delivered.length, 15);
     assert.deepEqual(new Set(delivered.map(embed => embed.title)), new Set(Array.from({ length: 15 }, (_, i) => `Action Comics #${i + 1}`)));
@@ -134,29 +204,73 @@ test('embed paging splits by both embed count and Discord’s aggregate characte
   assert.ok(pages.every(page => page.reduce((sum, embed) => sum + embedCharacterCount(embed), 0) <= 6000));
 });
 
-test('shows includes this week’s scheduled broadcast and streaming episodes', async () => {
+test('shows publishes the legacy Comment Templates link without Discord embeds', { skip: !db }, async () => {
+  await configureGuild('test-guild', null, { showIds: [13] });
+  const previousKey = process.env.PASTEE_KEY;
+  process.env.PASTEE_KEY = 'paste-test-key';
   requestLog.length = 0;
   queuedFollowups.length = 0;
   tvEpisodesPerRequest = 6;
-  const result = await moderatorModule.handle(command('shows', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
-  assert.equal(result.type, InteractionResponseType.ChannelMessageWithSource);
-  const pages = [result.data?.embeds as unknown as Record<string, unknown>[] ?? [], ...queuedFollowups.map(followup => followup.embeds as Record<string, unknown>[])];
-  const embeds = pages.flat();
-  assert.ok(embeds.length > 10);
-  assert.ok(embeds.some(embed => String(embed.description).includes('DC Show')));
-  assert.ok(embeds.some(embed => String(embed.description).includes('Streaming episode')));
-  assert.equal(embeds.reduce((count, embed) => count + (String(embed.description).match(/DC Show/g)?.length ?? 0), 0), 84);
-  for (const page of pages) {
-    assert.ok(page.length <= 10);
-    assert.ok(page.reduce((sum, embed) => sum + embedCharacterCount(embed), 0) <= 6000);
+  try {
+    const result = await moderatorModule.handle(command('shows', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
+    assert.equal(result.type, InteractionResponseType.ChannelMessageWithSource);
+    assert.equal(result.data?.embeds?.length ?? 0, 0);
+    const components = result.data?.components as Array<{ components: Array<{ label: string; url: string }> }>;
+    assert.deepEqual(components[0]?.components[0], { type: 2, style: 5, label: 'Comment Templates', url: 'https://paste.ee/p/abc123' });
+    const paste = requestLog.find(request => request.url === 'https://api.paste.ee/v1/pastes');
+    assert.equal(paste?.headers?.['x-auth-token'], 'paste-test-key');
+    assert.equal(paste?.body?.sections instanceof Array, true);
+    assert.match(String((paste?.body?.sections as Array<{ contents: string }>)[0]?.contents), /Episode Comment Templates for the week of 2099-09-07/);
+    assert.match(String((paste?.body?.sections as Array<{ contents: string }>)[0]?.contents), /DC Show/);
+  } finally {
+    if (previousKey === undefined) delete process.env.PASTEE_KEY; else process.env.PASTEE_KEY = previousKey;
+    tvEpisodesPerRequest = 1;
   }
-  tvEpisodesPerRequest = 1;
-  assert.equal(requestLog.filter(request => request.url.startsWith('https://api.tvmaze.com/')).length, 14);
+});
+
+test('shows sends a public text file when Paste.ee is not configured or unavailable', { skip: !db }, async () => {
+  await configureGuild('test-guild', null, { showIds: [13] });
+  const previousKey = process.env.PASTEE_KEY;
+  delete process.env.PASTEE_KEY;
+  queuedFollowups.length = 0;
+  try {
+    const missingKey = await moderatorModule.handle(command('shows', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
+    assert.equal(missingKey.data?.flags, undefined);
+    assert.equal(queuedFollowups[0]?.content, 'Episode Comment Templates are attached as a text file.');
+    const file = (queuedFollowups[0]?.files as Array<{ name: string; content: string }>)[0];
+    assert.equal(file?.name, 'episode-comment-templates-2099-09-07.txt');
+    assert.match(file?.content ?? '', /Episode Comment Templates/);
+
+    process.env.PASTEE_KEY = 'paste-test-key';
+    queuedFollowups.length = 0;
+    const failingPaste: CommandContext = { ...context, fetch: async (input, init) => {
+      if (String(input) === 'https://api.paste.ee/v1/pastes') return response({}, 503);
+      return fixtureFetch(input, init);
+    } };
+    await moderatorModule.handle(command('shows', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), failingPaste);
+    assert.equal(queuedFollowups.length, 1);
+    assert.match(String((queuedFollowups[0]?.files as Array<{ content: string }>)[0]?.content), /DC Show/);
+  } finally {
+    if (previousKey === undefined) delete process.env.PASTEE_KEY; else process.env.PASTEE_KEY = previousKey;
+  }
+});
+
+test('shows returns a plain no-episodes message without uploading an empty template', { skip: !db }, async () => {
+  await configureGuild('test-guild', null, { showIds: [13] });
+  queuedFollowups.length = 0;
+  tvEpisodesPerRequest = 0;
+  try {
+    const result = await moderatorModule.handle(command('shows', PermissionFlagsBits.ManageGuild.toString(), '2099-09-08'), context);
+    assert.equal(result.data?.embeds?.length ?? 0, 0);
+    assert.match(String(result.data?.content), /There are no episodes scheduled/);
+    assert.equal(queuedFollowups.length, 0);
+  } finally { tvEpisodesPerRequest = 1; }
 });
 
 test('scheduled release runs are durable and repeated deliveries do not repost', { skip: !db }, async () => {
   requestLog.length = 0;
-  const args = { channelId: 'release-channel', releaseDate: '2099-09-08', now: new Date('2099-09-01T12:00:00.000Z') };
+  const args = { guildId: 'scheduled-test-guild', channelId: 'release-channel', releaseDate: '2099-09-08', now: new Date('2099-09-01T12:00:00.000Z') };
+  await db!`DELETE FROM robotman_release_list_runs WHERE guild_id = ${args.guildId} AND release_date = ${args.releaseDate}`;
   const results = await Promise.all([
     runScheduledReleaseList(context, args),
     runScheduledReleaseList(context, args),
@@ -181,8 +295,9 @@ test('scheduled release delivery pages a large list without dropping issues', { 
   comicItemCount = 15;
   comicDescriptionLength = 7_000;
   requestLog.length = 0;
+  await db!`DELETE FROM robotman_release_list_runs WHERE guild_id = 'paging-test-guild' AND release_date = '2099-09-15'`;
   try {
-    const result = await runScheduledReleaseList(context, { channelId: 'release-channel', releaseDate: '2099-09-15' });
+    const result = await runScheduledReleaseList(context, { guildId: 'paging-test-guild', channelId: 'release-channel', releaseDate: '2099-09-15' });
     assert.equal(result, 'posted');
     const posts = requestLog.filter(request => request.url.includes('/channels/release-channel/messages') && request.method === 'POST');
     const pages = posts.flatMap(request => Array.isArray(request.body?.embeds) ? [request.body.embeds as Record<string, unknown>[]] : []);
@@ -196,6 +311,24 @@ test('scheduled release delivery pages a large list without dropping issues', { 
     comicItemCount = 1;
     comicDescriptionLength = 16;
   }
+});
+
+test('scheduled release lists run independently for each Guild and suppress duplicate runs', { skip: !db }, async () => {
+  await db!`DELETE FROM robotman_release_list_runs WHERE guild_id IN ('schedule-a', 'schedule-b') AND release_date = '2099-10-13'`;
+  await configureGuild('schedule-a', 'channel-a', { day: 1, hour: 0, minute: 0, timeZone: 'UTC' });
+  await configureGuild('schedule-b', 'channel-b', { day: 1, hour: 0, minute: 0, timeZone: 'UTC' });
+  const now = new Date('2099-10-12T00:00:20.000Z');
+  requestLog.length = 0;
+  const first = await runScheduledReleaseLists(context, now);
+  assert.deepEqual(first.map(run => [run.guildId, run.channelId, run.releaseDate, run.result]).sort(), [
+    ['schedule-a', 'channel-a', '2099-10-13', 'posted'],
+    ['schedule-b', 'channel-b', '2099-10-13', 'posted'],
+  ]);
+  const second = await runScheduledReleaseLists(context, new Date('2099-10-12T00:00:40.000Z'));
+  assert.deepEqual(second.map(run => run.result).sort(), ['already-posted', 'already-posted']);
+  assert.equal(requestLog.filter(request => request.url.includes('/channels/channel-a/messages') || request.url.includes('/channels/channel-b/messages')).length, 4);
+  await db!`DELETE FROM robotman_release_list_runs WHERE guild_id IN ('schedule-a', 'schedule-b') AND release_date = '2099-10-13'`;
+  await db!`DELETE FROM robotman_moderator_settings WHERE guild_id IN ('schedule-a', 'schedule-b')`;
 });
 
 function embedCharacterCount(embed: Record<string, unknown>) {

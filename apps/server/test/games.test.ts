@@ -73,65 +73,53 @@ test('Tic Tac Toe moves persist across interactions and reject nonparticipants',
   const unauthorized = await gamesModule.handle(component(firstId, 'outsider'), context);
   assert.equal(unauthorized.data?.flags, 64);
 
-  let current = await gamesModule.handle(component(firstId, 'one'), context);
+  const first = /<@([^>]+)>'s turn/.exec(String(start.data?.content))![1]!;
+  const second = first === 'one' ? 'two' : 'one';
+  let current = await gamesModule.handle(component(firstId, first), context);
   assert.match(String(current.data?.content), /two/);
 
   const stale = await gamesModule.handle(component(firstId, 'two'), context);
   assert.equal(stale.type, InteractionResponseType.UpdateMessage);
-  const moves: Array<[string, number]> = [['two', 4], ['one', 1], ['two', 8], ['one', 2]];
+  const moves: Array<[string, number]> = [[second, 4], [first, 1], [second, 8], [first, 2]];
   let winningMove = current;
   for (const [player, square] of moves) {
     winningMove = await gamesModule.handle(component(buttonAt(current, square), player), context);
     current = winningMove;
   }
-  assert.match(String(winningMove.data?.content), /<@one> wins Tic Tac Toe/);
+  assert.match(String(winningMove.data?.content), new RegExp(`<@${first}> wins Tic Tac Toe`));
   assert.equal((winningMove.data?.components?.[0] as any).components.every((entry: any) => entry.disabled), true);
 });
 
-test('Hangman uses a private setup modal, a guess modal, and reports completion', { skip: !db }, async () => {
-  const setup = await gamesModule.handle(command('hangman', 'setter', 'guesser'), context);
-  assert.equal(setup.type, InteractionResponseType.Modal);
-  const setupId = (setup.data as any).custom_id;
-  idFrom(setupId);
-  const started = await gamesModule.handle(modal(setupId, 'setter', 'cat', 'word'), context);
+test('Hangman starts with a random word and Stop finishes the game', { skip: !db }, async () => {
+  const started = await gamesModule.handle(command('hangman', 'solo'), context);
   assert.equal(started.type, InteractionResponseType.ChannelMessageWithSource);
-  assert.match(String(started.data?.content), /＿ ＿ ＿/);
-
-  let current = started;
-  const wrongPlayer = await gamesModule.handle(component(buttonAt(current, 0), 'setter'), context);
-  assert.equal(wrongPlayer.data?.flags, 64);
-  for (const letter of ['a', 'c', 't']) {
-    const guessModal = await gamesModule.handle(component(buttonAt(current, 0), 'guesser'), context);
-    assert.equal(guessModal.type, InteractionResponseType.Modal);
-    current = await gamesModule.handle(modal((guessModal.data as any).custom_id, 'guesser', letter, 'letter'), context);
-    assert.equal(current.type, InteractionResponseType.UpdateMessage);
-  }
-  assert.match(String(current.data?.content), /wins Hangman/);
-  assert.equal((current.data?.components?.[0] as any).components[0].disabled, true);
-
-  const soloSetup = await gamesModule.handle(command('hangman', 'solo'), context);
-  const soloSetupId = (soloSetup.data as any).custom_id;
-  const soloId = idFrom(soloSetupId);
-  const soloStarted = await gamesModule.handle(modal(soloSetupId, 'solo', 'ok', 'word'), context);
-  assert.equal(soloStarted.type, InteractionResponseType.ChannelMessageWithSource);
-  await db!`UPDATE robotman_game_sessions SET expires_at = now() - interval '1 second' WHERE session_id = ${soloId}`;
-  const expired = await gamesModule.handle(component(buttonAt(soloStarted, 0), 'solo'), context);
-  assert.match(String(expired.data?.content), /expired after 30 minutes/);
-  assert.equal((expired.data?.components?.[0] as any).components[0].disabled, true);
+  idFrom(buttonAt(started, 0));
+  const stopped = await gamesModule.handle(component(buttonAt(started, 2), 'solo'), context);
+  assert.equal((stopped.data as any).embeds[0].title, 'Hangman stopped');
+  assert.ok((stopped.data?.components?.[0] as any).components.every((entry: any) => entry.disabled));
 });
 
 test('Connect Four updates a persistent board and disables controls when won', { skip: !db }, async () => {
   const start = await gamesModule.handle(command('connect-four', 'red', 'yellow'), context);
   const rows = start.data?.components as any[];
-  assert.equal(rows.flatMap(entry => entry.components).length, 7);
+  assert.equal(rows.flatMap(entry => entry.components).length, 8);
   assert.ok(rows.every(entry => entry.components.length <= 5));
   idFrom(buttonAt(start, 0));
-  const turns: Array<[string, number]> = [
-    ['red', 0], ['yellow', 1], ['red', 0], ['yellow', 1], ['red', 0], ['yellow', 1], ['red', 0],
-  ];
+  const startEmbed = (start.data as any).embeds[0];
+  assert.match(startEmbed.title, /^🔴 (red|yellow), it's your turn!/);
+  assert.ok(startEmbed.description.includes('<:blank:769981408990068836>'));
+  assert.ok(startEmbed.description.endsWith('<:c1:771557387944722462><:c2:771557387907104779><:c3:771557387798577183><:c4:771557387634606091><:c5:771557388108955679><:c6:771557388057706538><:c7:771557387814567939>'));
+  const first = /🔴 (red|yellow),/.exec(startEmbed.title)![1]!;
+  const second = first === 'red' ? 'yellow' : 'red';
+  const turns: Array<[string, number]> = [[first, 0], [second, 1], [first, 0], [second, 1], [first, 0], [second, 1], [first, 0]];
   let latest = start;
   for (const [player, column] of turns) latest = await gamesModule.handle(component(buttonAt(latest, column), player), context);
-  assert.match(String(latest.data?.content), /<@red> wins Connect Four/);
+  const endEmbed = (latest.data as any).embeds[0];
+  assert.equal(endEmbed.title, `🔴 ${first} wins Connect Four!`);
+  assert.ok(endEmbed.description.includes('<:red:769980739361570836>'));
+  assert.ok(endEmbed.description.includes('<:yellow:769980715697700874>'));
+  assert.doesNotMatch(JSON.stringify(endEmbed), /<@/);
+  assert.equal(endEmbed.footer, undefined);
   assert.equal((latest.data?.components as any[]).flatMap(entry => entry.components).every(entry => entry.disabled), true);
 
 });

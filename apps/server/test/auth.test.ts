@@ -1,12 +1,17 @@
 import assert from 'node:assert/strict';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { test } from 'node:test';
+import { test, before } from 'node:test';
+import postgres from 'postgres';
+import { migrateDatabase } from '../src/database/migrate.js';
+const databaseUrl = process.env.TEST_DATABASE_URL ?? 'postgres://localhost/robotman_test';
+before(async () => { const db = postgres(databaseUrl); try { await migrateDatabase(db); } finally { await db.end(); } });
 import { buildSchema, graphql } from 'graphql';
 import { createAuth } from '../src/auth/index.js';
 
 function makeHarness() {
   const guildFetchCalls = new Map<string, number>();
   const auth = createAuth({
+    databaseUrl,
     clientId: 'app-123', clientSecret: 'secret', botToken: 'bot-token', sessionSecret: 'test-session-secret',
     publicOrigin: 'https://robotman.test', secureCookies: false, installationCacheMs: 60_000,
     fetch: async (input, init) => {
@@ -15,12 +20,18 @@ function makeHarness() {
       if (url.endsWith('/users/@me') && (init?.headers as Record<string, string>)?.authorization === 'Bearer oauth-token') {
         return Response.json({ id: 'user-7', username: 'tester', global_name: 'Test User', avatar: null });
       }
-      if (new URL(url).pathname.endsWith('/users/@me/guilds')) return Response.json([
+      if (new URL(url).pathname.endsWith('/users/@me/guilds')) {
+        const bot = new Headers(init?.headers).get('authorization') === 'Bot bot-token';
+        const key = bot ? 'bot-list' : 'user-list';
+        guildFetchCalls.set(key, (guildFetchCalls.get(key) ?? 0) + 1);
+        if (bot) return Response.json([{ id: 'owner' }, { id: 'admin' }]);
+        return Response.json([
         { id: 'owner', name: 'Owner guild', icon: null, owner: true, permissions: '0' },
         { id: 'manage', name: 'Manager guild', icon: null, owner: false, permissions: '32' },
         { id: 'admin', name: 'Admin guild', icon: null, owner: false, permissions: '8' },
         { id: 'member', name: 'Member guild', icon: null, owner: false, permissions: '1' },
-      ]);
+        ]);
+      }
       const guild = /\/guilds\/([^/?]+)/.exec(url)?.[1];
       if (guild) {
         guildFetchCalls.set(guild, (guildFetchCalls.get(guild) ?? 0) + 1);
@@ -109,13 +120,15 @@ test('guild list filters access, checks installation via Discord REST, and suppl
     assert.equal(guilds[0].installed, true);
     assert.equal(guilds[1].installed, false);
     const invite = new URL(guilds[1].inviteUrl);
+    assert.ok((BigInt(invite.searchParams.get('permissions')!) & 262144n) !== 0n, 'invite permits external game emojis');
     assert.equal(invite.searchParams.get('scope'), 'bot applications.commands');
-    assert.equal(invite.searchParams.get('permissions'), '83968');
+    assert.equal(invite.searchParams.get('permissions'), '346112');
     assert.equal(invite.searchParams.get('guild_id'), 'manage');
-    assert.equal(guildFetchCalls.get('owner'), 1);
+    assert.equal(guildFetchCalls.get('bot-list'), 1);
     const cached = await request(auth, '/auth/guilds', { cookie: sessionCookie });
     assert.equal(cached.status, 200);
-    assert.equal(guildFetchCalls.get('owner'), 1);
+    assert.equal(guildFetchCalls.get('bot-list'), 1);
+    assert.equal(guildFetchCalls.get('user-list'), 1);
   } finally { await auth.close?.(); }
 });
 
