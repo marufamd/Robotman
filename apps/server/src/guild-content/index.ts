@@ -6,6 +6,7 @@ import type { Sql } from 'postgres';
 import { normalizeReply as normalizedInput } from '../rich-reply.js';
 import { createRecommendations } from '../recommendations/index.js';
 import { migrateDatabase } from '../database/migrate.js';
+import { rememberActor as rememberActorFor } from '../actor.js';
 import { discordUsers, responseChangeHistory, responses } from '../database/schema.js';
 import type { AuthExtension } from '../application.js';
 
@@ -19,6 +20,11 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
     type ResponseAuthor { id: ID!, username: String }
     type GuildResponse { id: ID!, guildId: ID!, trigger: String!, aliases: [String!]!, content: String!, embedsJson: String!, createdBy: ResponseAuthor, lastEditedBy: ResponseAuthor }
     enum ResponseChangeAction { CREATED UPDATED DELETED }
+    enum ChangeSubject { RESPONSE CHARACTER WRITER MODERATOR BOOSTER }
+    enum HistoryOrder { NEWEST OLDEST }
+    type ChangeHistoryItem { action: ResponseChangeAction!, subject: ChangeSubject!, actorId: ID!, actorName: String, guildId: ID!, entryId: ID!, occurredAt: String!, trigger: String! }
+    type ChangeHistoryPage { items: [ChangeHistoryItem!]!, total: Int!, page: Int!, pageCount: Int!, pageSize: Int! }
+    extend type Query { changeHistory(guildId: ID!, page: Int = 1, pageSize: Int = 25, order: HistoryOrder = NEWEST): ChangeHistoryPage! }
     type ResponseChange { action: ResponseChangeAction!, actorId: ID!, guildId: ID!, responseId: ID!, occurredAt: String!, trigger: String! }
     input ResponseInput { trigger: String!, aliases: [String!]!, content: String!, embedsJson: String! }
     extend type Query { responses(guildId: ID!): [GuildResponse!]! }
@@ -37,16 +43,7 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
     if (!auth) throw new Error('Sign in required');
     await auth.authorizeGuildWrite(context, guildId);
   };
-  async function rememberActor(context: GraphqlContext) {
-    const user = await auth?.authenticatedUser(context);
-    if (!user) throw new Error('Sign in required');
-    await db.insert(discordUsers).values(user).onConflictDoUpdate({
-      target: discordUsers.id,
-      set: { username: user.username },
-      setWhere: sql`${discordUsers.username} is distinct from ${user.username}`,
-    });
-    return user;
-  }
+  const rememberActor = (context: GraphqlContext) => rememberActorFor(db, auth, context);
   async function withAuthors(rows: Array<typeof responses.$inferSelect>, guildId: string) {
     if (!rows.length) return [];
     const ids = rows.map(row => row.id);
@@ -78,9 +75,27 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
         const rows = await db.select().from(responses).where(eq(responses.guildId, guildId)).orderBy(asc(responses.trigger));
         return withAuthors(rows, guildId);
       },
+      async changeHistory({ guildId, page, pageSize, order }: { guildId: string; page: number; pageSize: number; order: 'NEWEST' | 'OLDEST' }, context: GraphqlContext) {
+        await authorizeRead(context, guildId);
+        const size = Math.min(Math.max(Math.trunc(pageSize) || 25, 1), 100);
+        const [counted] = await db.select({ total: sql<number>`count(*)::int` }).from(responseChangeHistory).where(eq(responseChangeHistory.guildId, guildId));
+        const total = counted?.total ?? 0;
+        const pageCount = Math.max(1, Math.ceil(total / size));
+        const current = Math.min(Math.max(Math.trunc(page) || 1, 1), pageCount);
+        const direction = order === 'OLDEST' ? asc : desc;
+        const rows = await db.select({ change: responseChangeHistory, actorName: discordUsers.username }).from(responseChangeHistory)
+          .leftJoin(discordUsers, eq(discordUsers.id, responseChangeHistory.actorId))
+          .where(eq(responseChangeHistory.guildId, guildId))
+          .orderBy(direction(responseChangeHistory.occurredAt), direction(responseChangeHistory.id))
+          .limit(size).offset((current - 1) * size);
+        return { total, page: current, pageCount, pageSize: size, items: rows.map(({ change, actorName }) => ({
+          action: change.action.toUpperCase(), subject: change.subject.toUpperCase(), actorId: change.actorId, actorName, guildId: change.guildId,
+          entryId: change.responseId, occurredAt: change.occurredAt.toISOString(), trigger: change.trigger,
+        })) };
+      },
       async responseChangeHistory({ guildId }: { guildId: string }, context: GraphqlContext) {
         await authorizeRead(context, guildId);
-        const rows = await db.select().from(responseChangeHistory).where(eq(responseChangeHistory.guildId, guildId))
+        const rows = await db.select().from(responseChangeHistory).where(and(eq(responseChangeHistory.guildId, guildId), eq(responseChangeHistory.subject, 'response')))
           .orderBy(sql`${responseChangeHistory.occurredAt} desc`, sql`${responseChangeHistory.id} desc`);
         return rows.map(row => ({ ...row, action: row.action.toUpperCase(), occurredAt: row.occurredAt.toISOString() }));
       },

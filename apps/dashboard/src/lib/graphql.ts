@@ -47,13 +47,8 @@ export type RecommendationSettings = {
 export const recommendationFields = 'id category name aliases content embedsJson curatorName curatorUserId introductionMode introduction effectiveIntroduction';
 export const recommendationSettingsFields = 'lists { tasteTest { title introduction color moderatorHeading boosterHeading } characters { title introduction color } writers { title introduction color } } categories { category introduction }';
 
-export type ResponseChange = {
-  action: string;
-  actorId: string;
-  responseId: string;
-  occurredAt: string;
-  trigger: string;
-};
+export type ChangeHistoryItem = { action: string; subject: string; actorId: string; actorName: string | null; entryId: string; occurredAt: string; trigger: string };
+export type ChangeHistoryPage = { items: ChangeHistoryItem[]; total: number; page: number; pageCount: number; pageSize: number };
 
 export type ModeratorSettings = {
   guildId: string;

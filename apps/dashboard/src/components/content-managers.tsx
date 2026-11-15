@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { recommendationFields, queryGraphql } from '../lib/graphql';
-import type { GuildResponse, ManagedServer, RecommendationEntry, ResponseChange } from '../lib/graphql';
+import type { ChangeHistoryPage, GuildResponse, ManagedServer, RecommendationEntry } from '../lib/graphql';
 import { Icon } from './icon';
 import { InlineAlert, PageHeader, compactPrimaryButtonClass, fieldClass } from './server-page';
 import { ResponseTable } from './response-table';
@@ -101,30 +101,57 @@ export function RecommendationManager({ server, csrfToken }: ContentProps) {
   </section>;
 }
 
-export function ResponseHistory({ server }: { server: ManagedServer }) {
-  const [changes, setChanges] = useState<ResponseChange[]>([]);
+export type HistoryOrder = 'newest' | 'oldest';
+const subjectLabels: Record<string, string> = { RESPONSE: 'Response', CHARACTER: 'Character', WRITER: 'Writer', MODERATOR: 'Moderator', BOOSTER: 'Booster' };
+const HISTORY_PAGE_SIZE = 25;
+
+export function ChangeHistory({ server, page, order, onChange }: { server: ManagedServer; page: number; order: HistoryOrder; onChange: (next: { page: number; order: HistoryOrder }) => void }) {
+  const [history, setHistory] = useState<ChangeHistoryPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
     setError(null);
     try {
-      const data = await queryGraphql<{ responseChangeHistory: ResponseChange[] }>(
-        'query ResponseHistory($server: ID!) { responseChangeHistory(guildId: $server) { action actorId responseId occurredAt trigger } }',
+      const data = await queryGraphql<{ changeHistory: ChangeHistoryPage }>(
+        'query ChangeHistory($server: ID!, $page: Int!, $pageSize: Int!, $order: HistoryOrder!) { changeHistory(guildId: $server, page: $page, pageSize: $pageSize, order: $order) { total page pageCount pageSize items { action subject actorId actorName entryId occurredAt trigger } } }',
         undefined,
-        { server: server.id },
+        { server: server.id, page, pageSize: HISTORY_PAGE_SIZE, order: order === 'oldest' ? 'OLDEST' : 'NEWEST' },
       );
-      setChanges(data.responseChangeHistory);
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load Response History.'); }
+      setHistory(data.changeHistory);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not load Change History.'); }
     finally { setLoading(false); }
   }
 
-  useEffect(() => { setChanges([]); setLoading(true); void load(); }, [server.id]);
+  useEffect(() => { setLoading(true); void load(); }, [server.id, page, order]);
 
+  const current = history?.page ?? page;
+  const pageCount = history?.pageCount ?? 1;
   return <section>
-    <PageHeader description="Review recent changes made to this server’s Responses." server={server} title="Response History" />
+    <PageHeader description="Review who created, edited and deleted this server’s Responses and recommendation lists." server={server} title="Change History" />
     {error && <div className="mb-5"><InlineAlert>{error} <button className="ml-2 font-semibold text-white underline underline-offset-4" onClick={() => { setLoading(true); void load(); }}>Try again</button></InlineAlert></div>}
-    {loading ? <RowsSkeleton /> : error ? null : changes.length === 0 ? <div className="rounded-xl border border-night-800 bg-night-900/50 px-5 py-8"><p className="font-semibold text-white">No Response changes yet</p><p className="mt-1 text-sm leading-6 text-night-300">When a manager creates, edits, or deletes a Response, it will appear here.</p></div> : <ol className="divide-y divide-night-800 rounded-xl border border-night-800 bg-night-900/50">{changes.map((change, index) => <li className="flex flex-col justify-between gap-2 px-4 py-4 sm:flex-row sm:items-center" key={`${change.responseId}-${change.occurredAt}-${change.action}-${index}`}><span className="min-w-0 text-sm text-night-100"><strong className="text-sunset-200">{change.action.toLowerCase()}</strong> Response “{change.trigger}” <span className="text-night-400">by user {change.actorId}</span></span><time className="shrink-0 text-xs text-night-400" dateTime={change.occurredAt}>{new Date(change.occurredAt).toLocaleString()}</time></li>)}</ol>}
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <label className="flex items-center gap-2 text-sm text-night-200">Sort order
+        <select aria-label="Sort order" className="rounded-lg border border-night-700 bg-night-950 px-3 py-2 text-sm text-white" onChange={event => onChange({ page: 1, order: event.target.value === 'oldest' ? 'oldest' : 'newest' })} value={order}>
+          <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
+        </select>
+      </label>
+      {history && history.total > 0 && <p className="text-xs text-night-400">{history.total} {history.total === 1 ? 'change' : 'changes'}</p>}
+    </div>
+    {loading && !history ? <RowsSkeleton /> : error && !history ? null : !history || history.items.length === 0 ? <div className="rounded-xl border border-night-800 bg-night-900/50 px-5 py-8"><p className="font-semibold text-white">No changes yet</p><p className="mt-1 text-sm leading-6 text-night-300">When a manager creates, edits, or deletes a Response or recommendation list, it will appear here.</p></div> : <>
+      <ol aria-busy={loading} className={`divide-y divide-night-800 rounded-xl border border-night-800 bg-night-900/50 ${loading ? 'opacity-60' : ''}`}>{history.items.map((change, index) => <li className="flex flex-col justify-between gap-2 px-4 py-4 sm:flex-row sm:items-center" key={`${change.entryId}-${change.occurredAt}-${change.action}-${index}`}>
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-night-100">
+          <span className="rounded-md border border-night-700 px-2 py-0.5 text-xs font-semibold text-night-200">{subjectLabels[change.subject] ?? change.subject}</span>
+          <span><strong className="text-sunset-200">{change.action.toLowerCase()}</strong> “{change.trigger}” <span className="text-night-400">by {change.actorName ?? `user ${change.actorId}`}</span></span>
+        </span>
+        <time className="shrink-0 text-xs text-night-400" dateTime={change.occurredAt}>{new Date(change.occurredAt).toLocaleString()}</time>
+      </li>)}</ol>
+      <nav aria-label="Pagination" className="mt-4 flex items-center justify-between gap-3">
+        <button className="rounded-lg border border-night-700 px-3 py-2 text-sm text-white disabled:opacity-40" disabled={current <= 1} onClick={() => onChange({ page: current - 1, order })} type="button" aria-label="Previous page">Previous</button>
+        <p className="text-sm text-night-300">Page {current} of {pageCount}</p>
+        <button className="rounded-lg border border-night-700 px-3 py-2 text-sm text-white disabled:opacity-40" disabled={current >= pageCount} onClick={() => onChange({ page: current + 1, order })} type="button" aria-label="Next page">Next</button>
+      </nav>
+    </>}
   </section>;
 }
 

@@ -66,7 +66,7 @@ function selectedSubcommand(interaction: InputInteraction) {
   return option?.type === 1 ? option.name : undefined;
 }
 
-type PlaceholderValues = { userId: string; username: string; avatar: string; server: string; channelId: string };
+type PlaceholderValues = { userId: string; username: string; avatar: string; server: string; channelId: string; trigger: string };
 
 function substitute(value: string, values: PlaceholderValues) {
   const replacements = {
@@ -75,8 +75,9 @@ function substitute(value: string, values: PlaceholderValues) {
     avatar: values.avatar,
     server: values.server,
     channel: `<#${values.channelId}>`,
+    trigger: values.trigger,
   };
-  return value.replace(/\{(user|username|avatar|server|channel)\}/g, (placeholder) => replacements[placeholder.slice(1, -1) as keyof typeof replacements]);
+  return value.replace(/\{(user|username|avatar|server|channel|trigger)\}/g, (placeholder) => replacements[placeholder.slice(1, -1) as keyof typeof replacements]);
 }
 
 function renderPlaceholders(value: unknown, values: PlaceholderValues): unknown {
@@ -148,6 +149,7 @@ async function lookupResponse(interaction: InputInteraction, context: CommandCon
     avatar: requesterAvatar(userId, requester?.avatar, requester?.discriminator),
     server: needsServerName && interaction.guild_id ? await guildName(interaction.guild_id, context) : 'this server',
     channelId,
+    trigger,
   };
   const content = substitute(found.content, values);
   const embeds = Array.isArray(found.embeds) ? renderPlaceholders(found.embeds, values) as unknown[] : [];
@@ -183,7 +185,7 @@ async function lookupRecommendation(interaction: InputInteraction, context: Comm
   const requester = interaction.member?.user ?? interaction.user;
   const settings = await recommendationSettings(interaction.guild_id!, context);
   const needsServer = JSON.stringify(entry).includes('{server}') || introductionFor(entry, settings).includes('{server}');
-  const values = { user: `<@${requester?.id ?? ''}>`, username: requester?.username ?? 'Unknown user', avatar: requesterAvatar(requester?.id ?? '', requester?.avatar, requester?.discriminator), server: needsServer ? await guildName(interaction.guild_id!, context) : 'this server', channel: `<#${interaction.channel_id ?? ''}>` };
+  const values = { user: `<@${requester?.id ?? ''}>`, username: requester?.username ?? 'Unknown user', avatar: requesterAvatar(requester?.id ?? '', requester?.avatar, requester?.discriminator), server: needsServer ? await guildName(interaction.guild_id!, context) : 'this server', channel: `<#${interaction.channel_id ?? ''}>`, trigger: suffix || choice !== entry.id ? name : entry.name };
   try {
     return { type: InteractionResponseType.ChannelMessageWithSource, data: effectiveReply(entry, settings, values) } as APIInteractionResponse;
   } catch {

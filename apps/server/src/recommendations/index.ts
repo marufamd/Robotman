@@ -4,7 +4,8 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import type { Sql } from 'postgres';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AuthExtension } from '../application.js';
-import { recommendationEntries, recommendationSettings } from '../database/schema.js';
+import { rememberActor } from '../actor.js';
+import { recommendationEntries, recommendationSettings, responseChangeHistory } from '../database/schema.js';
 import { categories, defaultSettings, effectiveReply, introductionFor, resolveSettings, type ListSettings, type Settings } from './model.js';
 import { normalizeReply } from '../rich-reply.js';
 
@@ -32,7 +33,8 @@ export function createRecommendations(client: Sql, auth?: AuthExtension) {
     return { category, name: value.trigger, aliases: value.aliases, content: value.content, embeds: value.embeds, curatorName, curatorUserId, introductionMode: (input.introductionMode ?? 'INHERIT').toLowerCase(), introduction: input.introduction ?? '', description: input.description ?? '', url: input.url?.trim() ?? '' };
   }
   const settingsFor = async (database: typeof db, guildId: string) => resolveSettings((await database.select().from(recommendationSettings).where(eq(recommendationSettings.guildId, guildId)))[0]?.data);
-  async function save(guildId: string, input: Input, id?: string) {
+  async function save(guildId: string, input: Input, context: Context, id?: string) {
+    const { id: actorId } = await rememberActor(db, auth, context);
     return db.transaction(async tx => {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${'robotman-recommendations:' + guildId}))`);
       const settings = await settingsFor(tx as unknown as typeof db, guildId);
@@ -45,6 +47,7 @@ export function createRecommendations(client: Sql, auth?: AuthExtension) {
         ? await tx.update(recommendationEntries).set({ ...value, updatedAt: new Date() }).where(and(eq(recommendationEntries.id, id), eq(recommendationEntries.guildId, guildId))).returning()
         : await tx.insert(recommendationEntries).values({ id: randomUUID(), guildId, ...value }).returning();
       if (!row) throw new Error('Recommendation Entry not found in this server.');
+      await tx.insert(responseChangeHistory).values({ id: randomUUID(), guildId, responseId: row.id, subject: row.category, action: id ? 'updated' : 'created', actorId, trigger: row.name });
       return present(row, settings);
     });
   }
@@ -102,16 +105,21 @@ export function createRecommendations(client: Sql, auth?: AuthExtension) {
       },
       async createRecommendation({ guildId, input }: { guildId: string; input: Input }, context: Context) {
         await authorize(context, guildId, true);
-        return save(guildId, input);
+        return save(guildId, input, context);
       },
       async updateRecommendation({ guildId, id, input }: { guildId: string; id: string; input: Input }, context: Context) {
         await authorize(context, guildId, true);
-        return save(guildId, input, id);
+        return save(guildId, input, context, id);
       },
       async deleteRecommendation({ guildId, id }: { guildId: string; id: string }, context: Context) {
         await authorize(context, guildId, true);
-        const [row] = await db.delete(recommendationEntries).where(and(eq(recommendationEntries.id, id), eq(recommendationEntries.guildId, guildId))).returning();
-        if (!row) throw new Error('Recommendation Entry not found in this server.');
+        const actorId = await auth?.authenticatedUserId(context);
+        if (!actorId) throw new Error('Sign in required');
+        await db.transaction(async tx => {
+          const [row] = await tx.delete(recommendationEntries).where(and(eq(recommendationEntries.id, id), eq(recommendationEntries.guildId, guildId))).returning();
+          if (!row) throw new Error('Recommendation Entry not found in this server.');
+          await tx.insert(responseChangeHistory).values({ id: randomUUID(), guildId, responseId: row.id, subject: row.category, action: 'deleted', actorId, trigger: row.name });
+        });
         return true;
       },
     },

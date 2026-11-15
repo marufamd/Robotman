@@ -36,10 +36,13 @@ Formatted text about a scheduled episode that a guild member can use to write a 
 **Response**:
 Saved text or embed content returned when a person requests it with a trigger.
 
-**Response Placeholder**:
-A token in Response text that is replaced with information about the person who requested the Response, the current server, or the channel where it was requested.
+**Variable** (also called a placeholder):
+A token in a Response or Recommendation Entry reply, or in a category default introduction, that is replaced with information about the person who made the request, the current server, the channel, or what they entered.
 
-The supported placeholders are `{user}` (a mention of the requester), `{username}` (the requester's username), `{avatar}` (the requester's avatar URL), `{server}` (the current server's name), and `{channel}` (a mention of the channel where the Response was requested). They may appear in message text and textual embed properties.
+The supported placeholders are `{user}` (a mention of the requester), `{username}` (the requester's username), `{avatar}` (the requester's avatar URL), `{server}` (the current server's name), `{channel}` (a mention of the channel where the Response was requested), and `{trigger}` (exactly what the requester entered: the trigger or alias they typed, or a collection's name when picked from suggestions). Personal Recommendation lists also support `{curator_name}` and `{curator}` (the saved curator name). They may appear in message text and textual embed properties. The list titles and introductions of Taste Test, Characters and Writers are plain text with no variables.
+
+**Change History**:
+The record of who created, edited and deleted each Response and Recommendation Entry, and when. Changes to dashboard settings are not recorded. It is shown newest or oldest first, in pages.
 
 **Response Preview**:
 A Discord slash-command request by a member, followed by Robotman's reply to that request in its server channel.

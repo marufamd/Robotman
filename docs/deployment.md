@@ -76,6 +76,10 @@ The report lists what would be imported and every record it cannot map, with the
 
 Imported rows get stable IDs derived from their legacy IDs, so re-running the same import is harmless, but it never updates a row that already exists. Treat the cutover run as the only real import. If you need to redo it, empty the Robotman tables first.
 
+### Backfilling recommendation history after an earlier import
+
+Recommendation history was not stored by the first release. If you already imported before Change History covered recommendations, run the same import again: rows are matched by stable IDs, so existing Responses and entries are untouched and only the missing history events are added. Take a manual backup first.
+
 ### What is mapped
 
 | Legacy | v7 |
@@ -84,8 +88,8 @@ Imported rows get stable IDs derived from their legacy IDs, so re-running the sa
 | `character`, `writer` rows | Recommendation Entries; the trailing ` recs` is dropped from names and aliases |
 | `moderator`, `booster` rows | Recommendation Entries with the name as the saved curator name (no Discord ID); unique per server, so a repeated curator is reported |
 | `embed` / `embed_color` | one embed holding the text, with the color |
-| `history` | Response change history (`add`/`edit`/`delete` become created/updated/deleted); history of recommendation rows is skipped and counted |
-| authors and editors | Responses with no history get created/updated events from the author/editor columns; Discord tags become display names |
+| `history` | Change History for Responses and recommendations (`add`/`edit`/`delete` become created/updated/deleted); events for recommendations that no longer exist have no known category and are left out and counted |
+| authors and editors | Responses and recommendations with no history get created/updated events from the author/editor columns; Discord tags become display names |
 | timestamps | interpreted as UTC |
 
 Imported recommendation entries use introduction mode **none**, so each reply reads exactly as it did before.

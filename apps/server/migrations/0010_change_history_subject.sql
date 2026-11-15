@@ -1,0 +1,2 @@
+ALTER TABLE "robotman_response_change_history" ADD COLUMN "subject" text DEFAULT 'response' NOT NULL;--> statement-breakpoint
+ALTER TABLE "robotman_response_change_history" ADD CONSTRAINT "robotman_response_history_subject_check" CHECK ("robotman_response_change_history"."subject" in ('response', 'character', 'writer', 'moderator', 'booster'));

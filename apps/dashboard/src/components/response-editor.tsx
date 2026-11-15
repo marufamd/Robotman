@@ -1,10 +1,11 @@
 import { useAuth } from '../lib/auth-context';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { toHTML } from 'discord-markdown';
 import { DiscordCommand, DiscordEmbed, DiscordEmbedDescription, DiscordEmbedField, DiscordEmbedFields, DiscordEmbedFooter, DiscordMessage, DiscordMessages } from '@skyra/discord-components-react';
 import { Icon, LoadingSpinner } from './icon';
 import { InlineAlert, PageHeader, fieldClass, primaryButtonClass } from './server-page';
+import { VariableGuide, curatorVariables, messageVariables } from './variables';
 import { recommendationFields, recommendationSettingsFields, type RecommendationEntry, type RecommendationSettings, queryGraphql } from '../lib/graphql';
 import type { GuildResponse, ManagedServer, User } from '../lib/graphql';
 
@@ -231,8 +232,19 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
   const personalList = recommendation && ['MODERATOR', 'BOOSTER'].includes(category);
   const entryName = personalList ? curatorName : trigger;
   const effectiveIntroduction = introductionMode === 'NONE' ? '' : introductionMode === 'CUSTOM' ? introduction : settings?.categories.find(item => item.category === category)?.introduction ?? '';
-  const curatorText = (value: string) => value.replace(/\{curator(?:_name)?\}/g, () => curatorName);
-  const composedContent = recommendation ? curatorText([effectiveIntroduction, content].filter(value => value.trim()).join('\n\n')) : content;
+  const triggerText = (value: string) => value.replace(/\{trigger\}/g, () => trigger.trim() || 'trigger');
+  const curatorText = (value: string) => triggerText(value.replace(/\{curator(?:_name)?\}/g, () => curatorName));
+  const composedContent = recommendation ? curatorText([effectiveIntroduction, content].filter(value => value.trim()).join('\n\n')) : triggerText(content);
+  const messageRef = useRef<HTMLTextAreaElement>(null);
+  function insertVariable(token: string) {
+    const field = messageRef.current;
+    const start = field?.selectionStart ?? content.length;
+    const end = field?.selectionEnd ?? start;
+    const next = `${content.slice(0, start)}${token}${content.slice(end)}`;
+    if (next.length > MAX_MESSAGE) return;
+    setContent(next);
+    requestAnimationFrame(() => { field?.focus(); field?.setSelectionRange(start + token.length, start + token.length); });
+  }
   const validationErrors = useMemo(() => {
     const errors = validateResponse(entryName, aliases, composedContent, embeds);
     if (recommendation && ['MODERATOR', 'BOOSTER'].includes(category) && !curatorName.trim()) errors.push('Curator name is required.');
@@ -388,9 +400,9 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
 
           <section aria-labelledby="message-content-title" className={sectionClass}>
             <div className="flex items-start justify-between gap-4"><div><h2 className="font-display text-base font-bold text-white" id="message-content-title">Message text</h2><p className={helperClass}>Optional text that appears above any embeds.</p></div><span className="shrink-0 text-xs tabular-nums text-night-400">{content.length}/{MAX_MESSAGE}</span></div>
-            <label className="sr-only" htmlFor="response-content">Message text</label><textarea className={`${inputClass} mt-3 min-h-28 resize-y`} id="response-content" maxLength={MAX_MESSAGE} onChange={event => setContent(event.target.value)} placeholder="Write the reply members will see…" value={content} />
+            <label className="sr-only" htmlFor="response-content">Message text</label><textarea className={`${inputClass} mt-3 min-h-28 resize-y`} id="response-content" ref={messageRef} maxLength={MAX_MESSAGE} onChange={event => setContent(event.target.value)} placeholder="Write the reply members will see…" value={content} />
             {submitted && textError(validationErrors, 'Message text') && <p className="mt-1 text-xs text-rose-300">{textError(validationErrors, 'Message text')}</p>}
-            <details className="mt-3 rounded-lg border border-night-800 bg-night-950/60 px-3 py-2.5"><summary className="cursor-pointer text-[13px] font-semibold text-night-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sunset-400">Available placeholders</summary><div className="mt-3 grid gap-2 text-xs leading-5 text-night-300 sm:grid-cols-2"><p><code className="text-sunset-200">{'{user}'}</code> mentions the requester</p><p><code className="text-sunset-200">{'{username}'}</code> inserts their username</p><p><code className="text-sunset-200">{'{avatar}'}</code> inserts their avatar URL</p><p><code className="text-sunset-200">{'{server}'}</code> inserts this server’s name</p><p><code className="text-sunset-200">{'{channel}'}</code> mentions the request channel</p>{recommendation && <p><code className="text-sunset-200">{'{curator_name}'} / {'{curator}'}</code> inserts the saved curator name without mentioning them</p>}</div></details>
+            <VariableGuide onInsert={insertVariable} variables={personalList ? [...messageVariables, ...curatorVariables] : messageVariables} />
           </section>
 
           <section aria-labelledby="embeds-title" className={sectionClass}>
@@ -409,7 +421,7 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
           </div>
         </div>
         <aside aria-label="Live Discord preview" className="min-w-0 xl:sticky xl:top-6">
-          <DiscordResponsePreview commandName={recommendation ? 'recs lookup' : undefined} content={composedContent} embeds={recommendation ? JSON.parse(JSON.stringify(embeds.map(serializeEmbed)), (_key, value: unknown) => typeof value === 'string' ? curatorText(value) : value) : embeds.map(serializeEmbed)} user={previewUser} server={server} />
+          <DiscordResponsePreview commandName={recommendation ? 'recs lookup' : undefined} content={composedContent} embeds={JSON.parse(JSON.stringify(embeds.map(serializeEmbed)), (_key, value: unknown) => typeof value === 'string' ? (recommendation ? curatorText(value) : triggerText(value)) : value)} user={previewUser} server={server} />
           <p className="mt-3 text-xs leading-5 text-night-400">Preview uses your account and this server. Members see their own details and request channel.</p>
         </aside>
       </div>

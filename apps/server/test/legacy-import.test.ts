@@ -91,37 +91,45 @@ test('importing recommendation-type rows creates entries that /recs lookup finds
 
 const event = (guild: string, over: Record<string, unknown>) => ({ guild, user_id: '222222222222222222', user_tag: 'Editor#1234', action: 'edit', response: 'Reading Order', date: '2022-05-06 07:08:09.5', ...over });
 
-test('importing history keeps response change history and authors, skips recommendation history, and is safe to re-run', { skip }, async () => {
+test('importing history keeps Response and recommendation history, derives missing events, and is safe to re-run', { skip }, async () => {
   await withApp(async ({ guild, sql, importer }) => {
     const data = { auto_responses: [
       row(guild, { name: 'Reading Order', content: 'x', created: '2021-03-04T05:06:07.123', author: '111111111111111111', author_tag: 'Author#0' }),
       row(guild, { name: 'No Events', content: 'y', created: '2021-01-01T00:00:00', updated: '2021-02-01T00:00:00', editor: '333333333333333333', editor_tag: 'Fixer#0' }),
       row(guild, { name: 'Maruf recs', type: 'moderator', content: 'z' }),
+      row(guild, { name: 'Lonely recs', type: 'character', content: 'w', created: '2020-06-01T00:00:00', updated: '2020-07-01T00:00:00', editor: '333333333333333333', editor_tag: 'Fixer#0' }),
     ], history: [
       event(guild, { action: 'add', date: '2021-03-04 05:06:07.123', user_id: '111111111111111111', user_tag: 'Author#0' }),
       event(guild, { action: 'edit' }),
       event(guild, { action: 'add', response: 'Old Gone', date: '2020-01-01 00:00:00' }),
       event(guild, { action: 'delete', response: 'Old Gone', date: '2020-02-01 00:00:00' }),
-      event(guild, { action: 'edit', response: 'maruf recs' }),
+      event(guild, { action: 'edit', response: 'maruf recs', date: '2022-06-07 08:09:10' }),
+      event(guild, { action: 'edit', response: 'ghost recs' }),
       event(guild, { action: '', response: 'Reading Order' }),
     ] };
     const first = importer(data);
     assert.equal(first.status, 0, first.stderr);
-    assert.equal(first.report.imported.history, 6); // 4 recorded events + created/updated derived for the response with none
-    assert.deepEqual(first.report.skipped, { recommendationHistory: 1 });
+    // 5 recorded events (4 Response + 1 recommendation) + 2 derived for "No Events" + 2 derived for "Lonely recs"
+    assert.equal(first.report.imported.history, 9);
+    assert.deepEqual(first.report.skipped, { recommendationHistory: 1 }, 'only the event for an entry that no longer exists is left out');
     assert.deepEqual(first.report.unmapped.map((item: any) => item.reason), ['unknown-history-action']);
 
-    const history = await sql<{ trigger: string; action: string; actor_id: string; occurred_at: Date; response_id: string }[]>`select trigger, action, actor_id, occurred_at, response_id from robotman_response_change_history where guild_id = ${guild} order by trigger, occurred_at`;
-    assert.deepEqual(history.map(item => [item.trigger, item.action, item.actor_id, item.occurred_at.toISOString()]), [
-      ['No Events', 'created', '111111111111111111', '2021-01-01T00:00:00.000Z'],
-      ['No Events', 'updated', '333333333333333333', '2021-02-01T00:00:00.000Z'],
-      ['Old Gone', 'created', '222222222222222222', '2020-01-01T00:00:00.000Z'],
-      ['Old Gone', 'deleted', '222222222222222222', '2020-02-01T00:00:00.000Z'],
-      ['Reading Order', 'created', '111111111111111111', '2021-03-04T05:06:07.123Z'],
-      ['Reading Order', 'updated', '222222222222222222', '2022-05-06T07:08:09.500Z'],
+    const history = await sql<{ subject: string; trigger: string; action: string; actor_id: string; occurred_at: Date; response_id: string }[]>`select subject, trigger, action, actor_id, occurred_at, response_id from robotman_response_change_history where guild_id = ${guild} order by trigger, occurred_at`;
+    assert.deepEqual(history.map(item => [item.subject, item.trigger, item.action, item.actor_id, item.occurred_at.toISOString()]), [
+      ['character', 'Lonely', 'created', '111111111111111111', '2020-06-01T00:00:00.000Z'],
+      ['character', 'Lonely', 'updated', '333333333333333333', '2020-07-01T00:00:00.000Z'],
+      ['moderator', 'Maruf', 'updated', '222222222222222222', '2022-06-07T08:09:10.000Z'],
+      ['response', 'No Events', 'created', '111111111111111111', '2021-01-01T00:00:00.000Z'],
+      ['response', 'No Events', 'updated', '333333333333333333', '2021-02-01T00:00:00.000Z'],
+      ['response', 'Old Gone', 'created', '222222222222222222', '2020-01-01T00:00:00.000Z'],
+      ['response', 'Old Gone', 'deleted', '222222222222222222', '2020-02-01T00:00:00.000Z'],
+      ['response', 'Reading Order', 'created', '111111111111111111', '2021-03-04T05:06:07.123Z'],
+      ['response', 'Reading Order', 'updated', '222222222222222222', '2022-05-06T07:08:09.500Z'],
     ]);
     const [live] = await sql`select response_id from robotman_responses where guild_id = ${guild} and trigger = 'Reading Order'`;
     assert.equal(history.find(item => item.trigger === 'Reading Order')!.response_id, live!.response_id);
+    const [entry] = await sql`select recommendation_id from robotman_recommendation_entries where guild_id = ${guild} and name = 'Maruf'`;
+    assert.equal(history.find(item => item.trigger === 'Maruf')!.response_id, entry!.recommendation_id, 'recommendation history points at the imported entry');
     const users = await sql`select user_id, username from robotman_discord_users where user_id in ('111111111111111111', '222222222222222222') order by user_id`;
     assert.deepEqual(users.map(user => [user.user_id, user.username]), [['111111111111111111', 'Author'], ['222222222222222222', 'Editor']]);
 
@@ -129,6 +137,19 @@ test('importing history keeps response change history and authors, skips recomme
     assert.equal(second.status, 0, second.stderr);
     assert.deepEqual(second.report.written, { responses: 0, recommendations: 0, history: 0 });
     const [count] = await sql`select count(*)::int as total from robotman_response_change_history where guild_id = ${guild}`;
-    assert.equal(count!.total, 6);
+    assert.equal(count!.total, 9);
+
+    // Rows written by an earlier import used different IDs; matching must also recognise the same event by what it records.
+    await sql`update robotman_response_change_history set change_id = gen_random_uuid()::text where guild_id = ${guild}`;
+    const renumbered = importer(data);
+    assert.deepEqual(renumbered.report.written, { responses: 0, recommendations: 0, history: 0 });
+
+    // A later export has new events, and an older event can sit anywhere in the file; known events must not be added twice.
+    const later = { ...data, history: [event(guild, { action: 'edit', response: 'Reading Order', date: '2023-01-01 00:00:00' }), ...data.history, data.history[0]!] };
+    const third = importer(later);
+    assert.equal(third.status, 0, third.stderr);
+    assert.equal(third.report.written.history, 2, 'one genuinely new event, and one identical repeated event that is kept as a second occurrence');
+    const [again] = await sql`select count(*)::int as total from robotman_response_change_history where guild_id = ${guild}`;
+    assert.equal(again!.total, 11);
   });
 });

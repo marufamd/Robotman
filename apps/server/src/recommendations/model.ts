@@ -44,7 +44,7 @@ export function introductionFor(entry: Pick<Entry, 'category' | 'introductionMod
   return settings.categories.find(item => item.category.toLowerCase() === entry.category)?.introduction ?? '';
 }
 export function substituteReply(value: unknown, replacements: Record<string, string>): any {
-  if (typeof value === 'string') return value.replace(/\{(user|username|avatar|server|channel|curator_name|curator)\}/g, (token, key: string) => replacements[key] ?? token);
+  if (typeof value === 'string') return value.replace(/\{(user|username|avatar|server|channel|trigger|curator_name|curator)\}/g, (token, key: string) => replacements[key] ?? token);
   if (Array.isArray(value)) return value.map(item => substituteReply(item, replacements));
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, substituteReply(item, replacements)]));
   return value;

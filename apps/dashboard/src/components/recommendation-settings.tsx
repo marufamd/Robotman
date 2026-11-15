@@ -4,6 +4,7 @@ import { Icon } from './icon';
 import { useAuth } from '../lib/auth-context';
 import { queryGraphql, recommendationSettingsFields, type RecommendationSettings, type ManagedServer } from '../lib/graphql';
 import { InlineAlert, PageHeader, fieldClass, primaryButtonClass } from './server-page';
+import { VariableGuide, curatorVariables, messageVariables } from './variables';
 
 export function RecommendationSettingsEditor({ server }: { server: ManagedServer }) {
   const { csrfToken, user, needsSignIn } = useAuth();
@@ -52,6 +53,7 @@ export function RecommendationSettingsEditor({ server }: { server: ManagedServer
     {error && <div className="mb-5"><InlineAlert>{error}{!settings && <button className="ml-2 underline" onClick={() => void load()}>Try again</button>}</InlineAlert></div>}
     {notice && <div className="mb-5"><InlineAlert tone="success">{notice}</InlineAlert></div>}
     {!settings ? !error && <p role="status" className="text-sm text-night-300">Loading recommendation settings…</p> : <form className="space-y-5" onSubmit={event => void save(event)}>
+      <p className="text-sm leading-6 text-night-300">List titles and introductions are plain text; variables are not filled in.</p>
       {([['tasteTest', 'Taste Test', '/recs taste-test lists Mods and Boosters by name with no pages.'], ['characters', 'Characters', '/recs characters lists Character collections ten names at a time.'], ['writers', 'Writers', '/recs writers lists Writer collections ten names at a time.']] as const).map(([key, name, help]) => {
         const list = settings.lists[key];
         const update = (value: Partial<typeof settings.lists.tasteTest>) => setSettings({ ...settings, lists: { ...settings.lists, [key]: { ...list, ...value } } });
@@ -73,6 +75,7 @@ export function RecommendationSettingsEditor({ server }: { server: ManagedServer
       <section aria-labelledby="category-defaults">
         <h2 id="category-defaults" className="font-display text-base font-bold text-white">Category defaults</h2>
         <p className="mt-1 text-sm leading-6 text-night-300">Introductions appear before individual replies; each entry can inherit, replace, or omit them. Curator placeholders insert a plain saved name.</p>
+        <VariableGuide label="Variables for introductions" note="Category introductions can use these variables. The curator variables are filled in for Moderator and Booster entries only." variables={[...messageVariables, ...curatorVariables]} />
         <div className="mt-4 space-y-4">{settings.categories.map((item, index) => {
           const name = item.category[0] + item.category.slice(1).toLowerCase();
           const update = (value: Partial<typeof item>) => setSettings({ ...settings, categories: settings.categories.map((category, position) => position === index ? { ...category, ...value } : category) });

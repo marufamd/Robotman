@@ -16,7 +16,7 @@ function Overview({ server }: { server: ManagedServer }) {
   const sections = [
     { label: 'Responses', description: 'Create and maintain phrases that members can request in Discord.', to: '/servers/$serverId/responses' as const, icon: 'responses' as const },
     { label: 'Recommendations', description: 'Manage the entries available through the recommendation commands.', to: '/servers/$serverId/recommendations' as const, icon: 'recommendations' as const },
-    { label: 'Response History', description: 'Review recent changes made to this server’s Responses.', to: '/servers/$serverId/history' as const, icon: 'history' as const },
+    { label: 'Change History', description: 'See who created, edited or deleted Responses and recommendation lists.', to: '/servers/$serverId/history' as const, icon: 'history' as const },
     { label: 'Server Settings', description: 'Choose the Release List schedule and TV shows used by /shows.', to: '/servers/$serverId/settings' as const, icon: 'settings' as const },
   ];
 

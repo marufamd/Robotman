@@ -14,7 +14,7 @@ let cookie = '';
 let csrfToken = '';
 let discordCalls = 0;
 let discordUnavailable = false;
-const listGuilds = ['taste', 'taste-empty', 'taste-long', 'paged', 'paged-long', 'settings', 'legacy'].map(name => `${name}-${guildId}`);
+const listGuilds = ['history', 'history-paged', 'taste', 'taste-empty', 'taste-long', 'paged', 'paged-long', 'settings', 'legacy'].map(name => `${name}-${guildId}`);
 const webhookPosts: Array<{ token: string; body: any }> = [];
 
 before(async () => {
@@ -359,6 +359,64 @@ const addEntry = async (guild: string, category: string, name: string) => {
   assert.equal(created.errors, undefined, JSON.stringify(created.errors));
 };
 const settingsFields = 'lists { tasteTest { title introduction color moderatorHeading boosterHeading } characters { title introduction color } writers { title introduction color } } categories { category introduction }';
+
+const historyFields = 'page pageCount pageSize total items { action subject trigger actorId actorName occurredAt }';
+const historyQuery = (args: string) => `query($guild: ID!) { changeHistory(guildId: $guild${args}) { ${historyFields} } }`;
+
+test('Change History records Responses and recommendations, oldest or newest first', async () => {
+  const guild = `history-${guildId}`;
+  const mutate = async (query: string, variables: Record<string, unknown>) => { const result = await graphql(query, { guild, ...variables }); assert.equal(result.errors, undefined, JSON.stringify(result.errors)); return result.data; };
+  const response = (await mutate('mutation($guild: ID!, $input: ResponseInput!) { createResponse(guildId: $guild, input: $input) { id } }', { input: { trigger: 'Alpha', aliases: [], content: 'a', embedsJson: '[]' } })).createResponse;
+  const entryInput = { category: 'CHARACTER', name: 'Beta', aliases: [], content: 'b', embedsJson: '[]', introductionMode: 'NONE' };
+  const entry = (await mutate('mutation($guild: ID!, $input: RecommendationInput!) { createRecommendation(guildId: $guild, input: $input) { id } }', { input: entryInput })).createRecommendation;
+  await mutate('mutation($guild: ID!, $id: ID!, $input: RecommendationInput!) { updateRecommendation(guildId: $guild, id: $id, input: $input) { id } }', { id: entry.id, input: { ...entryInput, content: 'b2' } });
+  await mutate('mutation($guild: ID!, $id: ID!, $input: ResponseInput!) { updateResponse(guildId: $guild, id: $id, input: $input) { id } }', { id: response.id, input: { trigger: 'Alpha', aliases: [], content: 'a2', embedsJson: '[]' } });
+  await mutate('mutation($guild: ID!, $id: ID!) { deleteRecommendation(guildId: $guild, id: $id) }', { id: entry.id });
+
+  const rows = (items: any[]) => items.map(item => [item.action, item.subject, item.trigger, item.actorName]);
+  const oldest = (await mutate(historyQuery(', order: OLDEST'), {})).changeHistory;
+  assert.deepEqual(rows(oldest.items), [['CREATED', 'RESPONSE', 'Alpha', 'manager'], ['CREATED', 'CHARACTER', 'Beta', 'manager'], ['UPDATED', 'CHARACTER', 'Beta', 'manager'], ['UPDATED', 'RESPONSE', 'Alpha', 'manager'], ['DELETED', 'CHARACTER', 'Beta', 'manager']]);
+  assert.deepEqual([oldest.total, oldest.page, oldest.pageCount], [5, 1, 1]);
+  const newest = (await mutate(historyQuery(''), {})).changeHistory;
+  assert.deepEqual(rows(newest.items), rows(oldest.items).reverse(), 'newest first is the default');
+  assert.ok(newest.items.every((item: any) => item.actorId === 'content-manager' && Number.isFinite(Date.parse(item.occurredAt))));
+});
+
+test('Change History pages server-side and keeps pages within range', async () => {
+  const guild = `history-paged-${guildId}`;
+  for (let index = 0; index < 30; index++) await addEntry(guild, 'WRITER', `Paged ${String(index).padStart(2, '0')}`);
+  const read = async (args: string) => (await graphql(historyQuery(args), { guild })).data.changeHistory;
+  const first = await read('');
+  assert.deepEqual([first.total, first.pageCount, first.page, first.pageSize, first.items.length], [30, 2, 1, 25, 25]);
+  assert.equal(first.items[0].trigger, 'Paged 29');
+  const second = await read(', page: 2');
+  assert.deepEqual([second.page, second.items.length, second.items.at(-1).trigger], [2, 5, 'Paged 00']);
+  assert.equal((await read(', page: 99')).page, 2, 'out-of-range pages clamp to the last page');
+  assert.equal((await read(', page: 0')).page, 1);
+  const small = await read(', pageSize: 10, order: OLDEST, page: 3');
+  assert.deepEqual([small.pageCount, small.items.length, small.items[0].trigger], [3, 10, 'Paged 20']);
+  assert.equal((await read(', pageSize: 1000')).pageSize, 100, 'page size is capped');
+  assert.match((await graphql(historyQuery(''), { guild: 'not-managed' })).errors[0].message, /Managed Guild/);
+  const other = await graphql(historyQuery(''), { guild: `other-${guildId}` });
+  assert.ok(other.data.changeHistory.items.every((item: any) => !/^Paged/.test(item.trigger)), 'history never crosses servers');
+});
+
+test('{trigger} inserts what the requester entered for /response and /recs lookup', async () => {
+  const guild = guildId;
+  const response = await graphql('mutation($guild: ID!, $input: ResponseInput!) { createResponse(guildId: $guild, input: $input) { id } }', { guild, input: { trigger: 'Trigger Demo', aliases: ['tdemo'], content: 'You asked for {trigger}', embedsJson: JSON.stringify([{ title: 'About {trigger}', description: 'By {username}' }]) } });
+  assert.equal(response.errors, undefined);
+  const asked = (await discord(guild, 2, { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: 'TDEMO' }] })).data;
+  assert.equal(asked.content, 'You asked for TDEMO', 'keeps exactly what was typed, including an alias and its capitals');
+  assert.equal(asked.embeds[0].title, 'About TDEMO');
+
+  const entry = await graphql('mutation($guild: ID!, $input: RecommendationInput!) { createRecommendation(guildId: $guild, input: $input) { id } }', { guild, input: { category: 'CHARACTER', name: 'Trigger Family', aliases: ['tfam'], content: 'Showing {trigger}', embedsJson: JSON.stringify([{ title: '{trigger} picks' }]), introductionMode: 'CUSTOM', introduction: 'Intro for {trigger}' } });
+  assert.equal(entry.errors, undefined);
+  const lookupAs = (value: string) => discord(guild, 2, { type: 1, name: 'recs', options: [{ type: 1, name: 'lookup', options: [{ type: 3, name: 'name', value }] }] });
+  const picked = (await lookupAs('Trigger Family · Character')).data;
+  assert.equal(picked.content, 'Intro for Trigger Family\n\nShowing Trigger Family', 'an autocomplete pick drops the category suffix');
+  assert.equal(picked.embeds[0].title, 'Trigger Family picks');
+  assert.equal((await lookupAs('TFam')).data.content, 'Intro for TFam\n\nShowing TFam', 'a typed alias is kept as typed');
+});
 
 test('/recs taste-test lists mods and boosters alphabetically under their headings with the original introduction', async () => {
   const guild = `taste-${guildId}`;

@@ -11,7 +11,7 @@ export type LegacyExport = { auto_responses: LegacyAutoResponse[]; history: Lega
 export type Issue = { legacyId?: number; guild?: string; name?: string; reason: string; detail?: string };
 export type PlannedResponse = { id: string; guildId: string; trigger: string; aliases: string[]; content: string; embeds: Record<string, unknown>[]; createdAt: Date; updatedAt: Date };
 export type PlannedRecommendation = PlannedResponse & { category: string; curatorName: string };
-export type PlannedHistory = { id: string; guildId: string; responseId: string; action: 'created' | 'updated' | 'deleted'; actorId: string; trigger: string; occurredAt: Date };
+export type PlannedHistory = { id: string; guildId: string; responseId: string; subject: string; action: 'created' | 'updated' | 'deleted'; actorId: string; trigger: string; occurredAt: Date };
 export type Plan = {
   responses: PlannedResponse[]; recommendations: PlannedRecommendation[]; history: PlannedHistory[]; users: Map<string, string>;
   skipped: { recommendationHistory: number }; warnings: Issue[]; unmapped: Issue[];
@@ -91,26 +91,42 @@ const actions: Record<string, PlannedHistory['action']> = { add: 'created', edit
 
 function planHistory(data: LegacyExport, plan: Plan) {
   const remember = (id: string | null, tag: string | null) => { if (id && tag && username(tag)) plan.users.set(id, username(tag)); };
-  const byName = new Map(plan.responses.map(item => [`${item.guildId}\u0000${item.trigger.toLocaleLowerCase('en-US')}`, item]));
-  const recommendationNames = new Set(data.auto_responses.filter(row => row.type !== 'regular').map(row => `${row.guild}\u0000${stripRecs(row.name).toLocaleLowerCase('en-US')}`));
+  const lowered = (value: string) => value.trim().toLocaleLowerCase('en-US');
+  const responseByName = new Map(plan.responses.map(item => [`${item.guildId}\u0000${lowered(item.trigger)}`, item]));
+  const entryByName = new Map(plan.recommendations.map(item => [`${item.guildId}\u0000${lowered(item.trigger)}`, item]));
+  const recommendationNames = new Set(data.auto_responses.filter(row => row.type !== 'regular').map(row => `${row.guild}\u0000${lowered(stripRecs(row.name))}`));
   const withHistory = new Set<string>();
-  data.history.forEach((event, index) => {
-    const key = `${event.guild}\u0000${event.response.trim().toLocaleLowerCase('en-US')}`;
+  // IDs come from an event's content (plus a counter for identical repeats), not its position, so a later export re-matches known events.
+  const seen = new Map<string, number>();
+  data.history.forEach(event => {
     const where = { guild: event.guild, name: event.response };
     const action = actions[event.action];
     if (!action) { plan.unmapped.push({ ...where, reason: 'unknown-history-action', detail: event.action }); return; }
-    if (!byName.has(key) && (recommendationNames.has(`${event.guild}\u0000${stripRecs(event.response).toLocaleLowerCase('en-US')}`) || /\srecs$/i.test(event.response.trim()))) { plan.skipped.recommendationHistory += 1; return; }
-    withHistory.add(key);
-    const response = byName.get(key);
+    const key = `${event.guild}\u0000${lowered(event.response)}`;
+    const fingerprint = [event.guild, event.user_id, event.action, event.response, event.date ?? ''].join('\u0000');
+    const occurrence = seen.get(fingerprint) ?? 0;
+    seen.set(fingerprint, occurrence + 1);
+    const response = responseByName.get(key);
+    const entry = response ? undefined : entryByName.get(`${event.guild}\u0000${lowered(stripRecs(event.response))}`);
+    // A recommendation whose entry no longer exists has no known category, so its history cannot be placed.
+    if (!response && !entry && (recommendationNames.has(`${event.guild}\u0000${lowered(stripRecs(event.response))}`) || /\srecs$/i.test(event.response.trim()))) { plan.skipped.recommendationHistory += 1; return; }
+    const subject = entry?.category ?? 'response';
+    const target = response ?? entry;
+    withHistory.add(target ? target.id : key);
     remember(event.user_id, event.user_tag);
-    plan.history.push({ id: legacyId('history', index, event.guild, event.user_id, event.action, event.response, event.date ?? ''), guildId: event.guild, responseId: response?.id ?? legacyId('response-name', event.guild, event.response.trim().toLocaleLowerCase('en-US')), action, actorId: event.user_id, trigger: event.response.trim(), occurredAt: parseLegacyTime(event.date, response?.createdAt ?? new Date(0)) });
+    plan.history.push({
+      id: legacyId('history', occurrence, event.guild, event.user_id, event.action, event.response, event.date ?? ''), guildId: event.guild,
+      responseId: target?.id ?? legacyId('response-name', event.guild, lowered(event.response)), subject, action, actorId: event.user_id,
+      trigger: target?.trigger ?? event.response.trim(), occurredAt: parseLegacyTime(event.date, target?.createdAt ?? new Date(0)),
+    });
   });
-  // A Response with no recorded events still shows who made it, using the author columns of the old table.
+  // Entries with no recorded events still show who made them, using the author columns of the old table.
   for (const row of data.auto_responses) {
-    const response = row.type === 'regular' ? plan.responses.find(item => item.id === legacyId('response', row.id)) : undefined;
-    if (!response || withHistory.has(`${response.guildId}\u0000${response.trigger.toLocaleLowerCase('en-US')}`)) continue;
+    const item = row.type === 'regular' ? plan.responses.find(candidate => candidate.id === legacyId('response', row.id)) : plan.recommendations.find(candidate => candidate.id === legacyId('recommendation', row.id));
+    if (!item || withHistory.has(item.id)) continue;
+    const subject = row.type === 'regular' ? 'response' : row.type;
     remember(row.author, row.author_tag); remember(row.editor, row.editor_tag);
-    plan.history.push({ id: legacyId('history-created', row.id), guildId: response.guildId, responseId: response.id, action: 'created', actorId: row.author, trigger: response.trigger, occurredAt: response.createdAt });
-    if (row.updated && row.editor) plan.history.push({ id: legacyId('history-updated', row.id), guildId: response.guildId, responseId: response.id, action: 'updated', actorId: row.editor, trigger: response.trigger, occurredAt: response.updatedAt });
+    plan.history.push({ id: legacyId('history-created', row.id), guildId: item.guildId, responseId: item.id, subject, action: 'created', actorId: row.author, trigger: item.trigger, occurredAt: item.createdAt });
+    if (row.updated && row.editor) plan.history.push({ id: legacyId('history-updated', row.id), guildId: item.guildId, responseId: item.id, subject, action: 'updated', actorId: row.editor, trigger: item.trigger, occurredAt: item.updatedAt });
   }
 }

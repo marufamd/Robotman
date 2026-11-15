@@ -9,7 +9,7 @@ const serverNavigation: NavigationItem[] = [
   { label: 'Overview', to: '/servers/$serverId', icon: 'overview' },
   { label: 'Responses', to: '/servers/$serverId/responses', suffix: '/responses', icon: 'responses' },
   { label: 'Recommendations', to: '/servers/$serverId/recommendations', suffix: '/recommendations', icon: 'recommendations' },
-  { label: 'Response History', to: '/servers/$serverId/history', suffix: '/history', icon: 'history' },
+  { label: 'Change History', to: '/servers/$serverId/history', suffix: '/history', icon: 'history' },
   { label: 'Server Settings', to: '/servers/$serverId/settings', suffix: '/settings', icon: 'settings' },
 ];
 

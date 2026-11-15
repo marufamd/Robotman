@@ -96,3 +96,48 @@ test('an in-progress list settings draft is restored after signing in again', as
   await expect(page.getByText('Your settings draft was restored.')).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Writers title', exact: true })).toHaveValue('Authors draft');
 });
+
+async function mockEditorApi(page: import('@playwright/test').Page) {
+  const settings = { lists: { tasteTest: { title: 'Taste Test', introduction: '', color: 3447003, moderatorHeading: 'Mods', boosterHeading: 'Boosters' }, characters: { title: 'C', introduction: '', color: 1 }, writers: { title: 'W', introduction: '', color: 1 } }, categories: ['CHARACTER', 'WRITER', 'MODERATOR', 'BOOSTER'].map(category => ({ category, introduction: '' })) };
+  await page.route('**/api/graphql', async route => {
+    const { query } = route.request().postDataJSON();
+    if (query.includes('authUser')) return route.fulfill({ json: { data: { authUser: { id: 'manager', username: 'Manager' }, authCsrfToken: 'csrf' } } });
+    if (query.includes('managedGuilds')) return route.fulfill({ json: { data: { managedGuilds: [{ id: 'test', name: 'Test server', installed: true }] } } });
+    if (query.includes('recommendationSettings')) return route.fulfill({ json: { data: { recommendationSettings: settings } } });
+    return route.fulfill({ json: { data: { responses: [], recommendationEntries: [] } } });
+  });
+}
+
+test('the message editors show every variable up front and insert it at the cursor', async ({ page }) => {
+  await mockEditorApi(page);
+  await page.goto('/servers/test/responses/new');
+  const variables = page.getByRole('region', { name: 'Available variables' });
+  for (const name of ['user', 'username', 'avatar', 'server', 'channel', 'trigger']) await expect(variables.getByRole('button', { name: `Insert {${name}}` })).toBeVisible();
+  await expect(variables.getByText('what the requester typed')).toBeVisible();
+  await expect(variables.getByRole('button', { name: 'Insert {curator_name}' })).toHaveCount(0);
+  const message = page.getByRole('textbox', { name: 'Message text', exact: true });
+  await message.fill('AB');
+  await message.press('Home'); await message.press('ArrowRight');
+  await variables.getByRole('button', { name: 'Insert {trigger}' }).click();
+  await expect(message).toHaveValue('A{trigger}B');
+  await expect(message).toBeFocused();
+});
+
+test('curator variables appear only for Moderator and Booster recommendations', async ({ page }) => {
+  await mockEditorApi(page);
+  await page.goto('/servers/test/recommendations/new');
+  const variables = page.getByRole('region', { name: 'Available variables' });
+  await expect(variables.getByRole('button', { name: 'Insert {trigger}' })).toBeVisible();
+  await expect(variables.getByRole('button', { name: 'Insert {curator_name}' })).toHaveCount(0);
+  await page.getByRole('combobox', { name: 'Category', exact: true }).selectOption('MODERATOR');
+  await expect(variables.getByRole('button', { name: 'Insert {curator_name}' })).toBeVisible();
+});
+
+test('recommendation settings list the variables for introductions and say the list texts are plain', async ({ page }) => {
+  await mockEditorApi(page);
+  await page.goto('/servers/test/recommendations/settings');
+  const variables = page.getByRole('region', { name: 'Variables for introductions' });
+  await expect(variables).toBeVisible();
+  for (const name of ['user', 'username', 'avatar', 'server', 'channel', 'trigger', 'curator_name']) await expect(variables.getByText(`{${name}}`, { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('List titles and introductions are plain text; variables are not filled in.')).toBeVisible();
+});
