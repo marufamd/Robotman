@@ -10,8 +10,32 @@ permissions:
   contents: read
   packages: write
 jobs:
-  deploy:
+  changes:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      server: ${{ steps.check.outputs.server }}
+    steps:
+      - name: Decide whether server files changed
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then echo "server=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # Server-side paths: the dashboard alone (apps/dashboard) never triggers a server deploy.
+          files=$(gh api "repos/$REPO/commits/$SHA" --paginate --jq '.files[].filename')
+          if echo "$files" | grep -Eq '^(apps/server/|packages/|deploy/robotman/|\.github/workflows/deploy-server\.yaml$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|package\.json$|turbo\.json$)'; then
+            echo "server=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "server=false" >> "$GITHUB_OUTPUT"
+            echo "No server files changed in $SHA; skipping the server deploy."
+          fi
+  deploy:
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
     runs-on: ubuntu-latest
     env:
       IMAGE: ghcr.io/${{ github.repository_owner }}/robotman-server
