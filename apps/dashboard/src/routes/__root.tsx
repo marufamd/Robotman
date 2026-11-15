@@ -4,7 +4,30 @@ import stylesheet from '../styles.css?url';
 import { AuthProvider } from '../lib/auth-context';
 
 export const Route = createRootRoute({
-  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Robotman' }], links: [{ rel: 'stylesheet', href: stylesheet }] }),
+  head: () => {
+    // Link previews need absolute URLs. Vercel sets the production hostname; local development falls back to a relative path.
+    const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '';
+    const image = `${origin}/icon.png`;
+    return {
+      meta: [
+        { charSet: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { title: 'Robotman' },
+        { name: 'description', content: 'Robotman dashboard' },
+        { property: 'og:site_name', content: 'Robotman dashboard' },
+        { property: 'og:title', content: 'Robotman dashboard' },
+        { property: 'og:description', content: 'Robotman dashboard' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:image', content: image },
+        { property: 'og:image:alt', content: 'Robotman' },
+        { property: 'og:url', content: origin || '/' },
+        { name: 'theme-color', content: '#f2b139' },
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:image', content: image },
+      ],
+      links: [{ rel: 'stylesheet', href: stylesheet }],
+    };
+  },
   component: RootLayout,
   shellComponent: Document,
 });
