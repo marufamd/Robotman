@@ -30,6 +30,7 @@ test('CI and deployment workflows exist and the deploy workflow publishes to GHC
   assert.match(deploy, /--wait/);
   assert.doesNotMatch(deploy, /\/opt\/edge|caddy reload/, 'the shared proxy is managed by the server-config repository');
   assert.equal(existsSync('deploy/edge'), false);
+  assert.match(deploy, /docker logout ghcr\.io/, 'the temporary registry token must not stay on the server');
   assert.match(deploy, /needs: changes/, 'dashboard-only commits must not redeploy the server');
   assert.doesNotMatch(deploy, /(password|secret|token)\s*:\s*['"]?[A-Za-z0-9]{12,}/i, 'no inline credentials');
 });

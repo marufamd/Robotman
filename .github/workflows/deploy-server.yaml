@@ -77,5 +77,7 @@ jobs:
         run: |
           SSH="ssh -i ~/.ssh/id_deploy $TARGET"
           scp -i ~/.ssh/id_deploy deploy/robotman/compose.yaml "$TARGET:/opt/robotman/compose.yaml"
+          # The token expires when this run ends; never leave it on the server, or later pulls fail with "denied".
+          trap '$SSH "docker logout ghcr.io" || true' EXIT
           printf '%s' "$GHCR_TOKEN" | $SSH "docker login ghcr.io -u $GHCR_USER --password-stdin"
           $SSH "cd /opt/robotman && ROBOTMAN_IMAGE=${IMAGE}:${TAG} docker compose pull server && ROBOTMAN_IMAGE=${IMAGE}:${TAG} docker compose up -d --wait --wait-timeout 120"

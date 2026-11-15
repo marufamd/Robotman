@@ -22,6 +22,8 @@ if (!dryRun) {
 const report = { dryRun, imported: { responses: plan.responses.length, recommendations: plan.recommendations.length, history: plan.history.length }, skipped: plan.skipped, written: written ?? null, warnings: plan.warnings, unmapped: plan.unmapped };
 if (flag('--json')) console.log(JSON.stringify(report));
 else {
-  console.log(`${dryRun ? 'Dry run: would import' : 'Imported'} ${report.imported.responses} Responses and ${report.imported.recommendations} Recommendation Entries and ${report.imported.history} history events (left out ${plan.skipped.recommendationHistory} events for recommendations that no longer exist).`);
+  if (written) console.log(`Wrote ${written.responses} new Responses, ${written.recommendations} new Recommendation Entries and ${written.history} new history events (already present rows were left alone).`);
+  else console.log(`Dry run: the export contains ${report.imported.responses} Responses, ${report.imported.recommendations} Recommendation Entries and ${report.imported.history} history events; nothing was written.`);
+  if (plan.skipped.recommendationHistory) console.log(`Left out ${plan.skipped.recommendationHistory} history events for recommendations that no longer exist.`);
   for (const issue of [...plan.warnings, ...plan.unmapped]) console.log(`- ${issue.reason}: ${issue.name ?? ''} (legacy #${issue.legacyId ?? '?'}, guild ${issue.guild ?? '?'}) ${issue.detail ?? ''}`);
 }
