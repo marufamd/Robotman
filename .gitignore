@@ -30,3 +30,13 @@ robotdb.dump
 
 # OS Files
 .DS_Store
+# v7 tooling
+.turbo/
+.output/
+.vercel/
+apps/dashboard/src/routeTree.gen.ts
+out/
+
+# Browser tests
+**/test-results/
+**/playwright-report/

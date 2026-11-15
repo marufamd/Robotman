@@ -1,0 +1,117 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.skyra.pw/whitney-font/v2/Book.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.skyra.pw/whitney-font/v2/Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.skyra.pw/whitney-font/v2/Semibold.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Whitney";
+  src: url("https://cdn.skyra.pw/whitney-font/v2/Bold.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Preflight's light-DOM resets override Skyra's shadow-host spacing. Remove
+   the base reset within the preview so the components keep their own layout. */
+@layer base {
+  a { color: inherit; text-decoration: none; }
+  .response-discord-messages,
+  .response-discord-messages *,
+  .response-discord-messages ::before,
+  .response-discord-messages ::after {
+    all: revert-layer;
+  }
+}
+
+/* Keep Whitney ahead of the font stack declared by Skyra's shadow hosts. */
+.response-discord-messages,
+.response-discord-messages discord-message,
+.response-discord-messages discord-command {
+  font-family: "Whitney", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+}
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Manrope", sans-serif;
+  --color-sunset-50: #ffefd4;
+  --color-sunset-200: #ffd48d;
+  --color-sunset-300: #ffb689;
+  --color-sunset-400: #fdbb2d;
+  --color-sunset-500: #ff8c37;
+  --color-sunset-700: #672f00;
+  --color-night-950: #031427;
+  --color-night-900: #0b1c30;
+  --color-night-850: #102034;
+  --color-night-800: #1b2b3f;
+  --color-night-700: #26364a;
+  --color-night-600: #34465d;
+  --color-night-400: #8fa3be;
+  --color-night-300: #aabbd2;
+  --color-night-200: #d3e4fe;
+  --color-night-100: #edf4ff;
+}
+
+:root {
+  color-scheme: dark;
+  background: #031427;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+  margin: 0;
+  background-color: #031427;
+  color: #d3e4fe;
+  font-family: var(--font-sans);
+}
+
+button, input, select, textarea { font: inherit; }
+
+/* Let the editor's typography utilities take precedence over the app reset. */
+.response-editor :where(button, input, select, textarea),
+.response-manager :where(button, input, select, textarea) { font: revert-layer; }
+
+button { cursor: pointer; }
+
+::selection { background: #fdbb2d; color: #031427; }
+
+* { scrollbar-color: #34465d #0b1c30; scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: #0b1c30; }
+*::-webkit-scrollbar-thumb { border: 2px solid #0b1c30; border-radius: 999px; background: #34465d; }
+*::-webkit-scrollbar-thumb:hover { background: #526984; }
+
+/* Keep long slash-command references inside the Discord preview surface. */
+.response-discord-messages { max-width: 100%; overflow-x: auto; }
+
+.recommendation-back-link:hover > span,
+.recommendation-back-link:focus-visible > span {
+  text-decoration-line: underline;
+  text-underline-offset: 4px;
+}

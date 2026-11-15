@@ -1,0 +1,37 @@
+{
+  "name": "@robotman/server",
+  "version": "7.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch --env-file=../../.env src/index.ts",
+    "start": "node --enable-source-maps dist/index.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "register:commands": "tsx --env-file=../../.env src/register-commands.ts",
+    "db:generate": "drizzle-kit generate"
+  },
+  "devDependencies": {
+    "@robotman/typescript-config": "workspace:*",
+    "@types/pngjs": "^6.0.5",
+    "@types/turndown": "^5.0.6",
+    "drizzle-kit": "^0.31.11"
+  },
+  "dependencies": {
+    "chrono-node": "^2.10.3",
+    "comicgeeks": "1.2.0",
+    "discord.js": "^14.27.0",
+    "drizzle-orm": "^0.45.4",
+    "expr-eval": "^2.0.2",
+    "graphql": "^17.0.2",
+    "pngjs": "^7.0.0",
+    "postgres": "^3.4.9",
+    "turndown": "^7.2.5"
+  },
+  "files": [
+    "dist",
+    "migrations",
+    "assets"
+  ]
+}
