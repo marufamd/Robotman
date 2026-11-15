@@ -49,10 +49,13 @@ export function substituteReply(value: unknown, replacements: Record<string, str
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, substituteReply(item, replacements)]));
   return value;
 }
-export function effectiveReply(entry: Entry, settings: Settings, replacements: Record<string, string> = {}) {
-  const values = { ...replacements, curator: entry.curatorName, curator_name: entry.curatorName };
-  const content = substituteReply([introductionFor(entry, settings), entry.content].filter(value => value.trim()).join('\n\n'), values) as string;
-  const embeds = substituteReply(entry.embeds, values) as Record<string, unknown>[];
-  normalizeReply({ trigger: entry.name, aliases: entry.aliases, content, embedsJson: JSON.stringify(embeds) });
+/** Builds the message a member sees: an optional introduction, then the saved reply, with variables filled in and Discord's limits checked. */
+export function composeReply(reply: { name: string; aliases: string[]; content: string; embeds: Record<string, unknown>[] }, introduction: string, replacements: Record<string, string> = {}) {
+  const content = substituteReply([introduction, reply.content].filter(value => value.trim()).join('\n\n'), replacements) as string;
+  const embeds = substituteReply(reply.embeds, replacements) as Record<string, unknown>[];
+  normalizeReply({ trigger: reply.name, aliases: reply.aliases, content, embedsJson: JSON.stringify(embeds) });
   return { ...(content ? { content } : {}), ...(embeds.length ? { embeds } : {}), allowed_mentions: { parse: [] } };
+}
+export function effectiveReply(entry: Entry, settings: Settings, replacements: Record<string, string> = {}) {
+  return composeReply(entry, introductionFor(entry, settings), { ...replacements, curator: entry.curatorName, curator_name: entry.curatorName });
 }

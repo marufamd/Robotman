@@ -54,9 +54,8 @@ export function createRecommendations(client: Sql, auth?: AuthExtension) {
   return {
     schemaFields: `
       enum RecommendationCategory { CHARACTER WRITER MODERATOR BOOSTER }
-      enum RecommendationIntroductionMode { INHERIT CUSTOM NONE }
-      type RecommendationEntry { id: ID!, guildId: ID!, category: RecommendationCategory!, name: String!, aliases: [String!]!, content: String!, embedsJson: String!, curatorName: String!, curatorUserId: String, introductionMode: RecommendationIntroductionMode!, introduction: String!, effectiveIntroduction: String!, description: String!, url: String! }
-      input RecommendationInput { category: RecommendationCategory!, name: String!, aliases: [String!], content: String, embedsJson: String, curatorName: String, curatorUserId: String, introductionMode: RecommendationIntroductionMode, introduction: String, description: String, url: String }
+      type RecommendationEntry { id: ID!, guildId: ID!, category: RecommendationCategory!, name: String!, aliases: [String!]!, content: String!, embedsJson: String!, curatorName: String!, curatorUserId: String, introductionMode: IntroductionMode!, introduction: String!, effectiveIntroduction: String!, description: String!, url: String! }
+      input RecommendationInput { category: RecommendationCategory!, name: String!, aliases: [String!], content: String, embedsJson: String, curatorName: String, curatorUserId: String, introductionMode: IntroductionMode, introduction: String, description: String, url: String }
       type RecommendationCategorySettings { category: RecommendationCategory!, introduction: String! }
       input RecommendationCategorySettingsInput { category: RecommendationCategory!, introduction: String! }
       type RecommendationListSettings { title: String!, introduction: String!, color: Int! }

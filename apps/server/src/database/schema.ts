@@ -56,9 +56,20 @@ export const responses = pgTable('robotman_responses', {
   aliases: jsonb('aliases').$type<string[]>().notNull().default([]),
   content: text('content').notNull().default(''),
   embeds: jsonb('embeds').$type<Record<string, unknown>[]>().notNull().default([]),
+  // inherit = the server's default Response introduction, custom = this Response's own, none = no introduction.
+  introductionMode: text('introduction_mode').notNull().default('inherit'),
+  introduction: text('introduction').notNull().default(''),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-}, table => [index('robotman_responses_guild_idx').on(table.guildId, table.trigger)]);
+}, table => [
+  check('robotman_responses_introduction_mode_check', sql`${table.introductionMode} in ('inherit', 'custom', 'none')`),
+  index('robotman_responses_guild_idx').on(table.guildId, table.trigger),
+]);
+
+export const responseSettings = pgTable('robotman_response_settings', {
+  guildId: text('guild_id').primaryKey(),
+  introduction: text('introduction').notNull().default(''),
+});
 
 export const responseChangeHistory = pgTable('robotman_response_change_history', {
   id: text('change_id').primaryKey(),

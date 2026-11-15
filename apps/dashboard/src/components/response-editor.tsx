@@ -16,7 +16,7 @@ type EmbedDraft = {
   authorName: string; authorUrl: string; authorIconUrl: string; fields: EmbedFieldDraft[];
   thumbnailUrl: string; imageUrl: string; footerText: string; footerIconUrl: string; timestamp: string;
 };
-type EditorResponse = Pick<GuildResponse, 'id' | 'trigger' | 'aliases' | 'content' | 'embedsJson'>;
+type EditorResponse = Pick<GuildResponse, 'id' | 'trigger' | 'aliases' | 'content' | 'embedsJson' | 'introductionMode' | 'introduction'>;
 
 const MAX_EMBEDS = 10;
 const MAX_MESSAGE = 2000;
@@ -217,6 +217,8 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
   const [introductionMode, setIntroductionMode] = useState<'INHERIT' | 'CUSTOM' | 'NONE'>('INHERIT');
   const [introduction, setIntroduction] = useState('');
   const [settings, setSettings] = useState<RecommendationSettings | null>(null);
+  const [responseDefault, setResponseDefault] = useState<string | null>(null);
+  const settingsReady = recommendation ? settings !== null : responseDefault !== null;
   const [restored, setRestored] = useState(false);
   const [trigger, setTrigger] = useState('');
   const [aliases, setAliases] = useState<string[]>([]);
@@ -231,10 +233,11 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
   const [embedParseError, setEmbedParseError] = useState<string | null>(null);
   const personalList = recommendation && ['MODERATOR', 'BOOSTER'].includes(category);
   const entryName = personalList ? curatorName : trigger;
-  const effectiveIntroduction = introductionMode === 'NONE' ? '' : introductionMode === 'CUSTOM' ? introduction : settings?.categories.find(item => item.category === category)?.introduction ?? '';
+  const defaultIntroduction = recommendation ? settings?.categories.find(item => item.category === category)?.introduction ?? '' : responseDefault ?? '';
+  const effectiveIntroduction = introductionMode === 'NONE' ? '' : introductionMode === 'CUSTOM' ? introduction : defaultIntroduction;
   const triggerText = (value: string) => value.replace(/\{trigger\}/g, () => trigger.trim() || 'trigger');
   const curatorText = (value: string) => triggerText(value.replace(/\{curator(?:_name)?\}/g, () => curatorName));
-  const composedContent = recommendation ? curatorText([effectiveIntroduction, content].filter(value => value.trim()).join('\n\n')) : triggerText(content);
+  const composedContent = recommendation ? curatorText([effectiveIntroduction, content].filter(value => value.trim()).join('\n\n')) : triggerText([effectiveIntroduction, content].filter(value => value.trim()).join('\n\n'));
   const messageRef = useRef<HTMLTextAreaElement>(null);
   function insertVariable(token: string) {
     const field = messageRef.current;
@@ -245,6 +248,10 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
     setContent(next);
     requestAnimationFrame(() => { field?.focus(); field?.setSelectionRange(start + token.length, start + token.length); });
   }
+  const introductionControls = <>
+    <label className={`${labelClass} mt-3`}>Introduction<select className={inputClass} value={introductionMode} onChange={event => setIntroductionMode(event.target.value as typeof introductionMode)}><option value="INHERIT">{recommendation ? 'Use category default' : 'Use server default'}</option><option value="CUSTOM">Custom introduction</option><option value="NONE">No introduction</option></select></label>
+    {introductionMode === 'CUSTOM' ? <label className={`${labelClass} mt-3`}>Custom introduction<textarea className={inputClass} maxLength={2000} rows={3} value={introduction} onChange={event => setIntroduction(event.target.value)} /></label> : introductionMode === 'INHERIT' && <p className={`${helperClass} mt-2 whitespace-pre-wrap`}>{effectiveIntroduction || (recommendation ? 'This category has no introduction.' : 'No default introduction is set for this server.')}</p>}
+  </>;
   const validationErrors = useMemo(() => {
     const errors = validateResponse(entryName, aliases, composedContent, embeds);
     if (recommendation && ['MODERATOR', 'BOOSTER'].includes(category) && !curatorName.trim()) errors.push('Curator name is required.');
@@ -253,6 +260,15 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
     return errors;
   }, [trigger, aliases, composedContent, content, embeds, recommendation, category, curatorName, curatorUserId]);
   const responsesUrl = recommendation ? '/servers/$serverId/recommendations' as const : '/servers/$serverId/responses' as const;
+
+  useEffect(() => {
+    if (recommendation) return;
+    let active = true;
+    queryGraphql<{ responseSettings: { introduction: string } }>('query($server: ID!) { responseSettings(guildId: $server) { introduction } }', undefined, { server: server.id })
+      .then(result => { if (active) setResponseDefault(result.responseSettings.introduction); })
+      .catch(reason => { if (active) setError(reason instanceof Error ? reason.message : 'Could not load Response settings.'); });
+    return () => { active = false; };
+  }, [recommendation, server.id]);
 
   useEffect(() => {
     if (!recommendation) return;
@@ -269,8 +285,9 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
       if (saved) {
         const draft = JSON.parse(saved);
         if (typeof draft.trigger === 'string' && typeof draft.content === 'string' && Array.isArray(draft.aliases) && draft.aliases.every((alias: unknown) => typeof alias === 'string') && Array.isArray(draft.embeds)) {
+          setIntroductionMode(draft.introductionMode ?? 'INHERIT'); setIntroduction(draft.introduction ?? '');
           if (recommendation) {
-            setCategory(draft.category ?? 'CHARACTER'); setCuratorName(draft.curatorName ?? ''); setCuratorUserId(draft.curatorUserId ?? ''); setIntroductionMode(draft.introductionMode ?? 'INHERIT'); setIntroduction(draft.introduction ?? '');
+            setCategory(draft.category ?? 'CHARACTER'); setCuratorName(draft.curatorName ?? ''); setCuratorUserId(draft.curatorUserId ?? '');
           }
           setTrigger(draft.trigger); setAliases(draft.aliases); setContent(draft.content); setEmbeds(draft.embeds);
           setRestored(true); setLoaded(true); setLoading(false);
@@ -283,7 +300,7 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
     setLoading(true);
     setError(null);
     queryGraphql<{ responses?: EditorResponse[]; recommendationEntries?: RecommendationEntry[] }>(
-      recommendation ? `query($server: ID!) { recommendationEntries(guildId: $server) { ${recommendationFields} } }` : 'query Responses($server: ID!) { responses(guildId: $server) { id trigger aliases content embedsJson } }',
+      recommendation ? `query($server: ID!) { recommendationEntries(guildId: $server) { ${recommendationFields} } }` : 'query Responses($server: ID!) { responses(guildId: $server) { id trigger aliases content embedsJson introductionMode introduction } }',
       undefined,
       { server: server.id },
     ).then(result => {
@@ -291,7 +308,8 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
       const selected = (result.responses ?? result.recommendationEntries ?? []).find(item => item.id === entityId);
       if (!selected) throw new Error(`This ${recommendation ? 'Recommendation' : 'Response'} could not be found in this server.`);
       setTrigger('trigger' in selected ? selected.trigger : selected.name);
-      if ('category' in selected) { setCategory(selected.category); setCuratorName(selected.curatorName); setCuratorUserId(selected.curatorUserId ?? ''); setIntroductionMode(selected.introductionMode); setIntroduction(selected.introduction); }
+      setIntroductionMode(selected.introductionMode); setIntroduction(selected.introduction);
+      if ('category' in selected) { setCategory(selected.category); setCuratorName(selected.curatorName); setCuratorUserId(selected.curatorUserId ?? ''); }
       setAliases(selected.aliases);
       setContent(selected.content);
       try { setEmbeds(parseEmbeds(selected.embedsJson)); }
@@ -340,7 +358,9 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
     setSaving(true);
     setError(null);
     const payload = {
-      ...(recommendation ? { name: entryName.trim(), category, curatorName, curatorUserId: curatorUserId || null, introductionMode, introduction } : { trigger: trigger.trim() }),
+      ...(recommendation ? { name: entryName.trim(), category, curatorName, curatorUserId: curatorUserId || null } : { trigger: trigger.trim() }),
+      introductionMode,
+      introduction: introductionMode === 'CUSTOM' ? introduction : '',
       aliases: aliases.map(alias => alias.trim()).filter(Boolean),
       content,
       embedsJson: JSON.stringify(embeds.map(serializeEmbed)),
@@ -367,7 +387,7 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
     {restored && <div className="mb-5"><InlineAlert tone="success">Your draft was restored. Review it, then save when ready.</InlineAlert></div>}
     {error && (!needsSignIn || error !== 'Sign in required') && <div className="mb-5"><InlineAlert>{error}</InlineAlert></div>}
     {embedParseError && <div className="mb-5"><InlineAlert>{embedParseError}</InlineAlert></div>}
-    {(loading || recommendation && !settings && !error) ? <div aria-label="Loading Response" className="h-48 animate-pulse rounded-xl bg-night-800/70" role="status" /> : !loaded || recommendation && !settings ? null : <form onSubmit={event => void save(event)}>
+    {(loading || !settingsReady && !error) ? <div aria-label="Loading Response" className="h-48 animate-pulse rounded-xl bg-night-800/70" role="status" /> : !loaded || !settingsReady ? null : <form onSubmit={event => void save(event)}>
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
         <div className="min-w-0 space-y-4">
           {recommendation && <section className={sectionClass} aria-label="Recommendation details">
@@ -376,8 +396,12 @@ export function ResponseEditor({ server, user, csrfToken, responseId, recommenda
               <label className={labelClass}>Curator name<input className={inputClass} aria-label="Curator name" value={curatorName} maxLength={100} required onChange={event => setCuratorName(event.target.value)} /><span className={helperClass}>Members find this personal list by this name. One list per person per server.</span></label>
               <label className={labelClass}>Discord user ID (optional)<input className={inputClass} inputMode="numeric" value={curatorUserId} onChange={event => setCuratorUserId(event.target.value)} /><span className={helperClass}>This won’t notify the curator or change their list.</span></label>
             </div>}
-            <label className={`${labelClass} mt-3`}>Introduction<select className={inputClass} value={introductionMode} onChange={event => setIntroductionMode(event.target.value as typeof introductionMode)}><option value="INHERIT">Use category default</option><option value="CUSTOM">Custom introduction</option><option value="NONE">No introduction</option></select></label>
-            {introductionMode === 'CUSTOM' ? <label className={`${labelClass} mt-3`}>Custom introduction<textarea className={inputClass} maxLength={2000} rows={3} value={introduction} onChange={event => setIntroduction(event.target.value)} /></label> : introductionMode === 'INHERIT' && <p className={`${helperClass} mt-2 whitespace-pre-wrap`}>{effectiveIntroduction || 'This category has no introduction.'}</p>}
+            {introductionControls}
+          </section>}
+          {!recommendation && <section aria-label="Response introduction" className={sectionClass}>
+            <h2 className="font-display text-base font-bold text-white">Introduction</h2>
+            <p className={helperClass}>Text shown above this Response. The server default is set in Response Settings.</p>
+            {introductionControls}
           </section>}
           <section aria-labelledby="response-identity" className={sectionClass}>
             <h2 className="font-display text-base font-bold text-white" id="response-identity">{recommendation ? personalList ? 'Search aliases' : 'Collection name and aliases' : 'Trigger and aliases'}</h2>

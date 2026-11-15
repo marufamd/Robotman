@@ -1,4 +1,4 @@
-import { effectiveReply, introductionFor, resolveSettings, type ListSettings, type Settings, type Entry } from '../../recommendations/model.js';
+import { composeReply, effectiveReply, introductionFor, resolveSettings, type ListSettings, type Settings, type Entry } from '../../recommendations/model.js';
 import { InteractionResponseType } from 'discord.js';
 import type {
   APIInteractionResponse,
@@ -66,29 +66,6 @@ function selectedSubcommand(interaction: InputInteraction) {
   return option?.type === 1 ? option.name : undefined;
 }
 
-type PlaceholderValues = { userId: string; username: string; avatar: string; server: string; channelId: string; trigger: string };
-
-function substitute(value: string, values: PlaceholderValues) {
-  const replacements = {
-    user: `<@${values.userId}>`,
-    username: values.username,
-    avatar: values.avatar,
-    server: values.server,
-    channel: `<#${values.channelId}>`,
-    trigger: values.trigger,
-  };
-  return value.replace(/\{(user|username|avatar|server|channel|trigger)\}/g, (placeholder) => replacements[placeholder.slice(1, -1) as keyof typeof replacements]);
-}
-
-function renderPlaceholders(value: unknown, values: PlaceholderValues): unknown {
-  if (typeof value === 'string') return substitute(value, values);
-  if (Array.isArray(value)) return value.map(item => renderPlaceholders(item, values));
-  if (typeof value === 'object' && value !== null) {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, renderPlaceholders(item, values)]));
-  }
-  return value;
-}
-
 const guildNameCache = new Map<string, { name: string; expiresAt: number }>();
 
 async function guildName(guildId: string, context: CommandContext): Promise<string> {
@@ -130,32 +107,35 @@ function requesterAvatar(userId: string, avatarHash?: string | null, discriminat
 async function lookupResponse(interaction: InputInteraction, context: CommandContext) {
   const trigger = stringOptions(interaction).get('trigger')?.trim();
   if (!trigger) return response('Enter a Response trigger or alias.');
-  const [found] = await context.sql<{ content: string; embeds: unknown }[]>`
-    select content, embeds from robotman_responses
+  const [found] = await context.sql<{ trigger: string; aliases: string[]; content: string; embeds: Record<string, unknown>[]; introductionMode: string; introduction: string }[]>`
+    select trigger, aliases, content, embeds, introduction_mode as "introductionMode", introduction from robotman_responses
     where guild_id = ${interaction.guild_id!}
       and (lower(trigger) = lower(${trigger}) or case when jsonb_typeof(aliases) = 'array' then exists (
         select 1 from jsonb_array_elements_text(aliases) as alias(value) where lower(alias.value) = lower(${trigger})
       ) else false end)
     limit 1`;
   if (!found) return response(`No Response found for “${trigger}”.`);
+  const [defaults] = found.introductionMode === 'inherit' ? await context.sql<{ introduction: string }[]>`select introduction from robotman_response_settings where guild_id = ${interaction.guild_id!}` : [];
+  const introduction = found.introductionMode === 'custom' ? found.introduction : found.introductionMode === 'inherit' ? defaults?.introduction ?? '' : '';
   const requester = interaction.member?.user ?? interaction.user;
   const userId = requester?.id ?? '';
-  const channelId = interaction.channel_id ?? '';
   // Resolving a server name is only necessary when the saved reply uses it.
-  const needsServerName = found.content.includes('{server}') || JSON.stringify(found.embeds).includes('{server}');
-  const values: PlaceholderValues = {
-    userId,
+  const needsServerName = JSON.stringify([found.content, found.embeds, introduction]).includes('{server}');
+  const values = {
+    user: `<@${userId}>`,
     username: requester?.username ?? 'Unknown user',
     avatar: requesterAvatar(userId, requester?.avatar, requester?.discriminator),
     server: needsServerName && interaction.guild_id ? await guildName(interaction.guild_id, context) : 'this server',
-    channelId,
+    channel: `<#${interaction.channel_id ?? ''}>`,
     trigger,
   };
-  const content = substitute(found.content, values);
-  const embeds = Array.isArray(found.embeds) ? renderPlaceholders(found.embeds, values) as unknown[] : [];
-  return { type: InteractionResponseType.ChannelMessageWithSource, data: {
-    ...(content || !embeds.length ? { content: (content || 'This Response has no content.').slice(0, 2000) } : {}), ...(embeds.length ? { embeds: embeds.slice(0, 10) } : {}),
-  } } as APIInteractionResponse;
+  try {
+    // Unlike recommendations, Responses keep Discord's normal mention behaviour, so {user} still notifies the requester.
+    const { allowed_mentions: _suppressed, ...data } = composeReply({ name: found.trigger, aliases: found.aliases, content: found.content, embeds: found.embeds }, introduction, values);
+    return { type: InteractionResponseType.ChannelMessageWithSource, data } as APIInteractionResponse;
+  } catch {
+    return response('This Response exceeds Discord’s message limits after its variables are filled in. Ask a server manager to shorten it or the introduction.');
+  }
 }
 
 async function recommendationSettings(guildId: string, context: CommandContext): Promise<Settings> {

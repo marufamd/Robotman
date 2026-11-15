@@ -14,6 +14,7 @@ test('expired sign-in preserves a Response draft through OAuth and never automat
     }
     if (query.includes('authUser')) return route.fulfill({ json: { data: { authUser: { id: 'manager', username: 'manager', displayName: null, avatarUrl: null }, authCsrfToken: csrf } } });
     if (query.includes('managedGuilds')) return route.fulfill({ json: { data: { managedGuilds: [{ id: 'test', name: 'Test server', installed: true, owner: true, icon: null, inviteUrl: '' }] } } });
+    if (query.includes('responseSettings')) return route.fulfill({ json: { data: { responseSettings: { introduction: '' } } } });
     return route.fulfill({ json: { data: { responses: [] } } });
   });
   await page.route('**/api/auth/login', route => {
@@ -59,6 +60,7 @@ test('a database outage keeps the editor and identity available for an explicit 
     const { query } = route.request().postDataJSON();
     if (outage) return route.fulfill({ json: { errors: [{ message: 'Sign-in service is temporarily unavailable. Please try again.', extensions: { code: 'SERVICE_UNAVAILABLE' } }] } });
     if (query.includes('authUser')) return route.fulfill({ json: { data: { authUser: { id: 'manager', username: 'manager' }, authCsrfToken: 'csrf' } } });
+    if (query.includes('responseSettings')) return route.fulfill({ json: { data: { responseSettings: { introduction: '' } } } });
     return route.fulfill({ json: { data: { managedGuilds: [{ id: 'test', name: 'Test server', installed: true }] } } });
   });
   await page.goto('/servers/test/responses/new');
@@ -81,6 +83,7 @@ test('signing in with a different Discord account does not restore the previous 
     const { query } = route.request().postDataJSON();
     if (query.includes('mutation Save')) return route.fulfill({ json: { errors: [{ message: 'Sign in required', extensions: { code: 'UNAUTHENTICATED' } }] } });
     if (query.includes('authUser')) return route.fulfill({ json: { data: { authUser: { id: userId, username: userId }, authCsrfToken: 'csrf' } } });
+    if (query.includes('responseSettings')) return route.fulfill({ json: { data: { responseSettings: { introduction: '' } } } });
     return route.fulfill({ json: { data: { managedGuilds: [{ id: 'test', name: 'Test server', installed: true }] } } });
   });
   await page.route('**/api/auth/login', route => {

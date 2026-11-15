@@ -44,6 +44,9 @@ The supported placeholders are `{user}` (a mention of the requester), `{username
 **Change History**:
 The record of who created, edited and deleted each Response and Recommendation Entry, and when. Changes to dashboard settings are not recorded. It is shown newest or oldest first, in pages.
 
+**Response Introduction**:
+Opening text shown above a Response's own text. A server sets one default in Response Settings; each Response can use it, replace it with its own, or omit it. New and imported Responses use the default. It supports the same variables as message text, except the curator ones. Recommendation Entries have the same choice with their category's default introduction.
+
 **Response Preview**:
 A Discord slash-command request by a member, followed by Robotman's reply to that request in its server channel.
 

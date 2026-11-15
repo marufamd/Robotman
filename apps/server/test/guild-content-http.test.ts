@@ -14,7 +14,7 @@ let cookie = '';
 let csrfToken = '';
 let discordCalls = 0;
 let discordUnavailable = false;
-const listGuilds = ['history', 'history-paged', 'taste', 'taste-empty', 'taste-long', 'paged', 'paged-long', 'settings', 'legacy'].map(name => `${name}-${guildId}`);
+const listGuilds = ['response-intro', 'response-expand', 'history', 'history-paged', 'taste', 'taste-empty', 'taste-long', 'paged', 'paged-long', 'settings', 'legacy'].map(name => `${name}-${guildId}`);
 const webhookPosts: Array<{ token: string; body: any }> = [];
 
 before(async () => {
@@ -362,6 +362,54 @@ const settingsFields = 'lists { tasteTest { title introduction color moderatorHe
 
 const historyFields = 'page pageCount pageSize total items { action subject trigger actorId actorName occurredAt }';
 const historyQuery = (args: string) => `query($guild: ID!) { changeHistory(guildId: $guild${args}) { ${historyFields} } }`;
+
+test('Response settings hold a default introduction that each Response inherits, replaces or omits', async () => {
+  const guild = `response-intro-${guildId}`;
+  const create = async (trigger: string, extra: Record<string, unknown> = {}, content = 'The body') => {
+    const result = await graphql('mutation($guild: ID!, $input: ResponseInput!) { createResponse(guildId: $guild, input: $input) { id introductionMode effectiveIntroduction } }', { guild, input: { trigger, aliases: [], content, embedsJson: '[]', ...extra } });
+    assert.equal(result.errors, undefined, JSON.stringify(result.errors));
+    return result.data.createResponse;
+  };
+  const read = async () => (await graphql('query($guild: ID!) { responseSettings(guildId: $guild) { introduction } }', { guild })).data.responseSettings;
+  const save = (introduction: string, includeCsrf = true) => graphql('mutation($guild: ID!, $input: ResponseSettingsInput!) { updateResponseSettings(guildId: $guild, input: $input) { introduction } }', { guild, input: { introduction } }, includeCsrf);
+  const ask = async (trigger: string) => (await discord(guild, 2, { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: trigger }] })).data;
+
+  assert.deepEqual(await read(), { introduction: '' });
+  const plain = await create('Plain');
+  assert.deepEqual([plain.introductionMode, plain.effectiveIntroduction], ['INHERIT', ''], 'new Responses inherit by default');
+  assert.equal((await ask('plain')).content, 'The body', 'no default introduction means the reply is unchanged');
+
+  assert.equal((await save('About {trigger}:')).errors, undefined);
+  assert.deepEqual(await read(), { introduction: 'About {trigger}:' });
+  assert.equal((await ask('PLAIN')).content, 'About PLAIN:\n\nThe body', 'inherit uses the default, with variables filled in');
+  const own = await create('Own', { introductionMode: 'CUSTOM', introduction: 'Special {trigger}' });
+  assert.equal(own.effectiveIntroduction, 'Special {trigger}');
+  assert.equal((await ask('own')).content, 'Special own\n\nThe body');
+  const bare = await create('Bare', { introductionMode: 'NONE' });
+  assert.equal(bare.effectiveIntroduction, '');
+  assert.equal((await ask('bare')).content, 'The body');
+  const listed = (await graphql('query($guild: ID!) { responses(guildId: $guild) { trigger introductionMode effectiveIntroduction } }', { guild })).data.responses;
+  assert.deepEqual(listed.map((item: any) => [item.trigger, item.introductionMode, item.effectiveIntroduction]), [['Bare', 'NONE', ''], ['Own', 'CUSTOM', 'Special {trigger}'], ['Plain', 'INHERIT', 'About {trigger}:']]);
+
+  assert.match((await save('x'.repeat(2001))).errors[0].message, /2,000/);
+  await create('Long', {}, 'x'.repeat(1980));
+  assert.match((await save('y'.repeat(20))).errors[0].message, /Long.*2,000/, 'a default that would overflow an existing Response is refused, naming it');
+  assert.deepEqual(await read(), { introduction: 'About {trigger}:' }, 'a refused change leaves the saved default alone');
+  assert.match((await graphql('mutation($guild: ID!, $input: ResponseInput!) { createResponse(guildId: $guild, input: $input) { id } }', { guild, input: { trigger: 'Too long', aliases: [], content: 'x'.repeat(1995), embedsJson: '[]' } })).errors[0].message, /2,000/, 'a new Response must fit together with its introduction');
+  assert.match((await save('Hi', false)).errors[0].message, /CSRF/);
+  assert.match((await graphql('query($guild: ID!) { responseSettings(guildId: $guild) { introduction } }', { guild: 'not-managed' })).errors[0].message, /Managed Guild/);
+
+});
+
+test('a Response that grows past Discord’s limit after variables are filled in is explained, never cut off', async () => {
+  const guild = `response-expand-${guildId}`;
+  const ok = (result: any) => { assert.equal(result.errors, undefined, JSON.stringify(result.errors)); return result; };
+  ok(await graphql('mutation($guild: ID!, $input: ResponseSettingsInput!) { updateResponseSettings(guildId: $guild, input: $input) { introduction } }', { guild, input: { introduction: '{username}'.repeat(30) } }));
+  ok(await graphql('mutation($guild: ID!, $input: ResponseInput!) { createResponse(guildId: $guild, input: $input) { id } }', { guild, input: { trigger: 'Grows', aliases: [], content: 'x'.repeat(1690), embedsJson: '[]' } }));
+  const reply = (await discord(guild, 2, { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: 'grows' }] })).data;
+  assert.match(reply.content, /exceeds Discord.*limits/);
+  assert.equal(reply.embeds, undefined);
+});
 
 test('Change History records Responses and recommendations, oldest or newest first', async () => {
   const guild = `history-${guildId}`;

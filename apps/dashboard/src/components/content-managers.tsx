@@ -46,10 +46,11 @@ export function ResponseManager({ server, csrfToken }: ContentProps) {
     <PageHeader compact description="Create and maintain the phrases members can request in Discord." server={server} title="Responses" />
     {error && <div className="mb-4"><InlineAlert>{error} <button className="ml-2 font-semibold text-white underline underline-offset-4" onClick={() => { setLoading(true); void load(); }} type="button">Try again</button></InlineAlert></div>}
     {notice && <div className="mb-4"><InlineAlert tone="success">{notice}</InlineAlert></div>}
-    <div className="flex items-center justify-between gap-4">
-      <h2 className="font-display text-sm font-bold text-white">Saved Responses</h2>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div><Link className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-night-600 bg-night-800 px-4 py-2 text-sm font-semibold text-white transition hover:border-night-400 hover:bg-night-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sunset-400" to="/servers/$serverId/responses/settings" params={{ serverId: server.id }}><Icon className="size-4" name="settings" />Response Settings</Link></div>
       <Link className={compactPrimaryButtonClass} params={{ serverId: server.id }} to="/servers/$serverId/responses/new"><Icon className="size-4" name="plus" />New Response</Link>
     </div>
+    <h2 className="mb-2 mt-5 font-display text-sm font-bold text-white">Saved Responses</h2>
     {(!error || responses.length > 0 || loading) && <ResponseTable deletingId={deletingId} key={server.id} loading={loading} onDelete={(id, trigger) => void remove(id, trigger)} responses={responses} serverId={server.id} />}
   </section>;
 }

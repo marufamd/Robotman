@@ -7,18 +7,24 @@ import { normalizeReply as normalizedInput } from '../rich-reply.js';
 import { createRecommendations } from '../recommendations/index.js';
 import { migrateDatabase } from '../database/migrate.js';
 import { rememberActor as rememberActorFor } from '../actor.js';
-import { discordUsers, responseChangeHistory, responses } from '../database/schema.js';
+import { discordUsers, responseChangeHistory, responseSettings, responses } from '../database/schema.js';
+import { composeReply } from '../recommendations/model.js';
 import type { AuthExtension } from '../application.js';
 
 interface GraphqlContext { request?: IncomingMessage; response?: ServerResponse; }
-interface ResponseInput { trigger: string; aliases: string[]; content: string; embedsJson: string; }
+interface ResponseInput { trigger: string; aliases: string[]; content: string; embedsJson: string; introductionMode?: string; introduction?: string; }
 
 export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExtension) {
   const db = drizzle(ormClient);
   const recommendations = createRecommendations(ormClient, auth);
   const fields = `
     type ResponseAuthor { id: ID!, username: String }
-    type GuildResponse { id: ID!, guildId: ID!, trigger: String!, aliases: [String!]!, content: String!, embedsJson: String!, createdBy: ResponseAuthor, lastEditedBy: ResponseAuthor }
+    enum IntroductionMode { INHERIT CUSTOM NONE }
+    type GuildResponse { id: ID!, guildId: ID!, trigger: String!, aliases: [String!]!, content: String!, embedsJson: String!, introductionMode: IntroductionMode!, introduction: String!, effectiveIntroduction: String!, createdBy: ResponseAuthor, lastEditedBy: ResponseAuthor }
+    type ResponseSettings { introduction: String! }
+    input ResponseSettingsInput { introduction: String! }
+    extend type Query { responseSettings(guildId: ID!): ResponseSettings! }
+    extend type Mutation { updateResponseSettings(guildId: ID!, input: ResponseSettingsInput!): ResponseSettings! }
     enum ResponseChangeAction { CREATED UPDATED DELETED }
     enum ChangeSubject { RESPONSE CHARACTER WRITER MODERATOR BOOSTER }
     enum HistoryOrder { NEWEST OLDEST }
@@ -26,7 +32,7 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
     type ChangeHistoryPage { items: [ChangeHistoryItem!]!, total: Int!, page: Int!, pageCount: Int!, pageSize: Int! }
     extend type Query { changeHistory(guildId: ID!, page: Int = 1, pageSize: Int = 25, order: HistoryOrder = NEWEST): ChangeHistoryPage! }
     type ResponseChange { action: ResponseChangeAction!, actorId: ID!, guildId: ID!, responseId: ID!, occurredAt: String!, trigger: String! }
-    input ResponseInput { trigger: String!, aliases: [String!]!, content: String!, embedsJson: String! }
+    input ResponseInput { trigger: String!, aliases: [String!]!, content: String!, embedsJson: String!, introductionMode: IntroductionMode, introduction: String }
     extend type Query { responses(guildId: ID!): [GuildResponse!]! }
     extend type Query { responseChangeHistory(guildId: ID!): [ResponseChange!]! }
     extend type Mutation {
@@ -44,6 +50,15 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
     await auth.authorizeGuildWrite(context, guildId);
   };
   const rememberActor = (context: GraphqlContext) => rememberActorFor(db, auth, context);
+  const defaultIntroductionFor = async (database: Pick<typeof db, 'select'>, guildId: string) => (await database.select().from(responseSettings).where(eq(responseSettings.guildId, guildId)))[0]?.introduction ?? '';
+  const introductionFor = (row: { introductionMode: string; introduction: string }, defaultIntroduction: string) => row.introductionMode === 'none' ? '' : row.introductionMode === 'custom' ? row.introduction : defaultIntroduction;
+  /** The introduction fields of a saved Response, checked together with its text against Discord's limits. */
+  async function storedIntroduction(database: Pick<typeof db, 'select'>, guildId: string, input: ResponseInput, value: ReturnType<typeof normalizedInput>) {
+    const mode = (input.introductionMode ?? 'INHERIT').toLowerCase();
+    const introduction = mode === 'custom' ? input.introduction ?? '' : '';
+    composeReply({ name: value.trigger, aliases: value.aliases, content: value.content, embeds: value.embeds }, introductionFor({ introductionMode: mode, introduction }, await defaultIntroductionFor(database, guildId)));
+    return { introductionMode: mode, introduction };
+  }
   async function withAuthors(rows: Array<typeof responses.$inferSelect>, guildId: string) {
     if (!rows.length) return [];
     const ids = rows.map(row => row.id);
@@ -55,7 +70,8 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
     const [creators, editors] = await Promise.all([authors('created'), authors('updated')]);
     const createdBy = new Map(creators.map(({ responseId, ...author }) => [responseId, author]));
     const lastEditedBy = new Map(editors.map(({ responseId, ...author }) => [responseId, author]));
-    return rows.map(row => ({ ...row, embedsJson: JSON.stringify(row.embeds), createdBy: createdBy.get(row.id) ?? null, lastEditedBy: lastEditedBy.get(row.id) ?? null }));
+    const defaultIntroduction = await defaultIntroductionFor(db, guildId);
+    return rows.map(row => ({ ...row, introductionMode: row.introductionMode.toUpperCase(), effectiveIntroduction: introductionFor(row, defaultIntroduction), embedsJson: JSON.stringify(row.embeds), createdBy: createdBy.get(row.id) ?? null, lastEditedBy: lastEditedBy.get(row.id) ?? null }));
   }
   async function assertTriggersAvailable(tx: Parameters<Parameters<typeof db.transaction>[0]>[0], guildId: string, input: ReturnType<typeof normalizedInput>, exceptId?: string) {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${'robotman-response-triggers:' + guildId}))`);
@@ -74,6 +90,23 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
         await rememberActor(context);
         const rows = await db.select().from(responses).where(eq(responses.guildId, guildId)).orderBy(asc(responses.trigger));
         return withAuthors(rows, guildId);
+      },
+      async responseSettings({ guildId }: { guildId: string }, context: GraphqlContext) {
+        await authorizeRead(context, guildId);
+        return { introduction: await defaultIntroductionFor(db, guildId) };
+      },
+      async updateResponseSettings({ guildId, input }: { guildId: string; input: { introduction: string } }, context: GraphqlContext) {
+        await authorizeWrite(context, guildId);
+        if (input.introduction.length > 2000) throw new Error('The introduction must be 2,000 characters or fewer.');
+        await db.transaction(async tx => {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${'robotman-response-triggers:' + guildId}))`);
+          for (const row of await tx.select().from(responses).where(eq(responses.guildId, guildId))) {
+            try { composeReply({ name: row.trigger, aliases: row.aliases, content: row.content, embeds: row.embeds }, introductionFor(row, input.introduction)); }
+            catch (error) { throw new Error(`${row.trigger}: ${error instanceof Error ? error.message : 'Reply is invalid'}`); }
+          }
+          await tx.insert(responseSettings).values({ guildId, introduction: input.introduction }).onConflictDoUpdate({ target: responseSettings.guildId, set: { introduction: input.introduction } });
+        });
+        return { introduction: input.introduction };
       },
       async changeHistory({ guildId, page, pageSize, order }: { guildId: string; page: number; pageSize: number; order: 'NEWEST' | 'OLDEST' }, context: GraphqlContext) {
         await authorizeRead(context, guildId);
@@ -105,7 +138,8 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
         const { id: actorId } = await rememberActor(context);
         const [row] = await db.transaction(async tx => {
           await assertTriggersAvailable(tx, guildId, value);
-          const [created] = await tx.insert(responses).values({ id: randomUUID(), guildId, ...value }).returning();
+          const stored = await storedIntroduction(tx, guildId, input, value);
+          const [created] = await tx.insert(responses).values({ id: randomUUID(), guildId, ...value, ...stored }).returning();
           if (created) await tx.insert(responseChangeHistory).values({ id: randomUUID(), guildId, responseId: created.id, action: 'created', actorId, trigger: created.trigger });
           return created ? [created] : [];
         });
@@ -118,7 +152,8 @@ export function createGuildContent(client: Sql, ormClient: Sql, auth?: AuthExten
         const { id: actorId } = await rememberActor(context);
         const [row] = await db.transaction(async tx => {
           await assertTriggersAvailable(tx, guildId, value, id);
-          const [updated] = await tx.update(responses).set({ ...value, updatedAt: new Date() })
+          const stored = await storedIntroduction(tx, guildId, input, value);
+          const [updated] = await tx.update(responses).set({ ...value, ...stored, updatedAt: new Date() })
             .where(and(eq(responses.id, id), eq(responses.guildId, guildId))).returning();
           if (updated) await tx.insert(responseChangeHistory).values({ id: randomUUID(), guildId, responseId: updated.id, action: 'updated', actorId, trigger: updated.trigger });
           return updated ? [updated] : [];

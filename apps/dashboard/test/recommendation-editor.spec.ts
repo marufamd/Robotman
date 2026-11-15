@@ -104,6 +104,7 @@ async function mockEditorApi(page: import('@playwright/test').Page) {
     if (query.includes('authUser')) return route.fulfill({ json: { data: { authUser: { id: 'manager', username: 'Manager' }, authCsrfToken: 'csrf' } } });
     if (query.includes('managedGuilds')) return route.fulfill({ json: { data: { managedGuilds: [{ id: 'test', name: 'Test server', installed: true }] } } });
     if (query.includes('recommendationSettings')) return route.fulfill({ json: { data: { recommendationSettings: settings } } });
+    if (query.includes('responseSettings')) return route.fulfill({ json: { data: { responseSettings: { introduction: '' } } } });
     return route.fulfill({ json: { data: { responses: [], recommendationEntries: [] } } });
   });
 }
@@ -117,7 +118,7 @@ test('the message editors show every variable up front and insert it at the curs
   await expect(variables.getByRole('button', { name: 'Insert {curator_name}' })).toHaveCount(0);
   const message = page.getByRole('textbox', { name: 'Message text', exact: true });
   await message.fill('AB');
-  await message.press('Home'); await message.press('ArrowRight');
+  await message.evaluate((field: HTMLTextAreaElement) => field.setSelectionRange(1, 1));
   await variables.getByRole('button', { name: 'Insert {trigger}' }).click();
   await expect(message).toHaveValue('A{trigger}B');
   await expect(message).toBeFocused();
