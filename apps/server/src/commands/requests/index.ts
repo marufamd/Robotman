@@ -39,7 +39,7 @@ const definitions = [
   },
 ] satisfies RESTPostAPIChatInputApplicationCommandsJSONBody[];
 
-const response = (content: string): APIInteractionResponse => ({ type: InteractionResponseType.ChannelMessageWithSource, data: { content: content.slice(0, 2000) } });
+const response = (content: string, ephemeral = false): APIInteractionResponse => ({ type: InteractionResponseType.ChannelMessageWithSource, data: { content: content.slice(0, 2000), ...(ephemeral ? { flags: 64 } : {}) } });
 const autocomplete = (choices: Array<{ name: string; value: string }>): APIInteractionResponse => ({ type: InteractionResponseType.ApplicationCommandAutocompleteResult, data: { choices } });
 
 function input(interaction: CommandInteraction): InputInteraction {
@@ -114,7 +114,7 @@ async function lookupResponse(interaction: InputInteraction, context: CommandCon
         select 1 from jsonb_array_elements_text(aliases) as alias(value) where lower(alias.value) = lower(${trigger})
       ) else false end)
     limit 1`;
-  if (!found) return response(`No Response found for “${trigger}”.`);
+  if (!found) return response(`No Response found for “${trigger}”.`, true);
   const [defaults] = found.introductionMode === 'inherit' ? await context.sql<{ introduction: string }[]>`select introduction from robotman_response_settings where guild_id = ${interaction.guild_id!}` : [];
   const introduction = found.introductionMode === 'custom' ? found.introduction : found.introductionMode === 'inherit' ? defaults?.introduction ?? '' : '';
   const requester = interaction.member?.user ?? interaction.user;
@@ -157,7 +157,7 @@ async function lookupRecommendation(interaction: InputInteraction, context: Comm
       ((lower(name) = lower(${name}) or exists (select 1 from jsonb_array_elements_text(aliases) as alias(value) where lower(alias.value) = lower(${name})))
         ${selectedCategory ? context.sql`and category = ${selectedCategory}` : context.sql``}))
     order by (recommendation_id = ${choice}) desc, category, name limit 2`;
-  if (!entries.length) return response(`No Recommendation Entry found for “${name}”.`);
+  if (!entries.length) return response(`No Recommendation Entry found for “${name}”.`, true);
   if (entries.length > 1 && entries[0]?.id !== choice) return response('More than one collection matches. Select a collection from autocomplete, including its category.');
   const entry = entries[0]!;
   // Transitional rows written through the old API retain their original authored embed.

@@ -36,7 +36,9 @@ test('signed /response looks up a complete trigger or alias case-insensitively a
     } });
 
     const partial = await send({ type: 2, data: { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: 'Long' }] } });
-    assert.match((await partial.json()).data.content, /No Response found/);
+    const missing = (await partial.json()).data;
+    assert.match(missing.content, /No Response found/);
+    assert.equal(missing.flags, 64);
     const otherGuild = await send({ type: 2, guild_id: 'different-guild', data: { type: 1, name: 'response', options: [{ type: 3, name: 'trigger', value: 'Long Trigger' }] } });
     assert.match((await otherGuild.json()).data.content, /No Response found/);
 
