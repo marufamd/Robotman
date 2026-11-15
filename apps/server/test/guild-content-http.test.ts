@@ -318,10 +318,11 @@ test('a signed recommendation lookup finds aliases and renders the selected rich
     return result.json();
   }
   const completion = await send(4, 'sam-books');
-  assert.deepEqual(completion.data.choices, [{ name: 'Sam · Booster', value: created.data.createRecommendation.id }]);
+  assert.deepEqual(completion.data.choices, [{ name: 'Sam · Booster', value: 'Sam · Booster' }], 'the value is what Discord echoes in chat, so it must be readable');
   const decoy = await graphql('mutation($guild: ID!, $input: RecommendationInput!) { createRecommendation(guildId: $guild, input: $input) { id } }', { guild: guildId, input: { category: 'WRITER', name: 'Another collection', aliases: [created.data.createRecommendation.id], content: 'Must not replace the selected collection', embedsJson: '[]', introductionMode: 'NONE' } });
   assert.equal(decoy.errors, undefined);
   const reply = await send(2, completion.data.choices[0].value);
+  assert.equal((await send(2, created.data.createRecommendation.id)).data.content, reply.data.content, 'IDs remain accepted');
   assert.equal(reply.data.content, 'A list from Sam\n\nFor <@987> (Reader) in <#789>: Sam');
   assert.deepEqual(reply.data.embeds, [{ title: 'Sam picks', description: 'Book one' }, { title: 'More', description: 'Book two' }]);
   assert.deepEqual(reply.data.allowed_mentions, { parse: [] });
@@ -338,6 +339,8 @@ test('a signed recommendation lookup finds aliases and renders the selected rich
   assert.ok(longChoices.some((choice: any) => choice.name.endsWith(' · Character')));
   assert.ok(longChoices.some((choice: any) => choice.name.endsWith(' · Writer')));
   assert.ok(longChoices.every((choice: any) => choice.name.length <= 100));
+  assert.ok(longChoices.every((choice: any) => choice.value.length <= 100));
+  for (const choice of longChoices) assert.equal((await send(2, choice.value)).data.content, 'A complete collection', 'every offered value can be selected');
 });
 
 async function discord(guild: string, type: number, data: Record<string, unknown>, token = 'test-token') {

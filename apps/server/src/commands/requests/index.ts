@@ -164,9 +164,10 @@ async function recommendationSettings(guildId: string, context: CommandContext):
 async function lookupRecommendation(interaction: InputInteraction, context: CommandContext) {
   const choice = stringOptions(interaction).get('name')?.trim();
   if (!choice) return response('Select a Recommendation Entry.');
-  const separator = choice.indexOf('|');
-  const selectedCategory = separator > 0 ? choice.slice(0, separator) : undefined;
-  const name = separator > 0 ? choice.slice(separator + 1) : choice;
+  // Autocomplete values are "Name · Category" so Discord echoes something readable; long names fall back to the entry ID.
+  const suffix = /^(.*) · (Character|Writer|Moderator|Booster)$/s.exec(choice);
+  const name = suffix ? suffix[1]! : choice;
+  const selectedCategory = suffix?.[2]!.toLowerCase();
   const entries = await context.sql<(Entry & { id: string; description: string; url: string })[]>`
     select recommendation_id as id, category, name, content, embeds, aliases, curator_name as "curatorName", introduction_mode as "introductionMode", introduction, description, url
     from robotman_recommendation_entries
@@ -286,9 +287,8 @@ async function completeRecommendations(interaction: InputInteraction, context: C
   return autocomplete(rows.map(({ id, category, name }) => {
     const suffix = ` · ${categoryLabels[category as keyof typeof categoryLabels] ?? category}`;
     const label = name.length + suffix.length > 100 ? `${name.slice(0, 99 - suffix.length)}…${suffix}` : `${name}${suffix}`;
-    return { name: label, value: id };
+    return { name: label, value: name.length + suffix.length > 100 ? id : `${name}${suffix}` };
   }));
-
 }
 
 export const requestModule: CommandModule = {
