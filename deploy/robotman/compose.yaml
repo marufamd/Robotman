@@ -1,0 +1,44 @@
+# Robotman on the Ubuntu server: PostgreSQL and the published server image. HTTPS is handled by the shared
+# proxy in deploy/edge, which reaches this stack over the external `edge` network. Provide a .env beside this file.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-robotman}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-robotman}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+  server:
+    image: ${ROBOTMAN_IMAGE:?Set ROBOTMAN_IMAGE}
+    container_name: robotman-server
+    networks: [default, edge]
+    environment:
+      NODE_ENV: production
+      SERVER_PORT: 3001
+      DATABASE_URL: postgres://${POSTGRES_USER:-robotman}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-robotman}
+      DISCORD_PUBLIC_KEY: ${DISCORD_PUBLIC_KEY:?Set DISCORD_PUBLIC_KEY}
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:-}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:-}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      DASHBOARD_ORIGIN: ${DASHBOARD_ORIGIN:?Set DASHBOARD_ORIGIN}
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET}
+      COMICVINE_API_KEY: ${COMICVINE_API_KEY:-}
+      OMDB_API_KEY: ${OMDB_API_KEY:-}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      PASTEE_KEY: ${PASTEE_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+networks:
+  edge:
+    external: true
+volumes:
+  postgres_data:

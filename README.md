@@ -62,6 +62,8 @@ Under **Recommendations → Recommendation Settings**, managers can customize th
 
 Migrations 0008 and 0009 add rich recommendation fields and per-server presentation settings. Existing details and links are preserved in authored embeds, and existing personal entries use their saved collection name as an initial curator label for managers to review; no creator/editor is inferred to be the curator. Legacy description/link API fields remain available for transitional clients; the dashboard uses rich content. The original production export still needs the separately planned import mapping and maintenance-window cutover.
 
+Production deployment (Vercel dashboard, Docker server behind a shared Caddy proxy) and the legacy data import are documented in [Deployment](docs/deployment.md).
+
 Run `pnpm register:commands` to publish the selected Discord commands through Discord's REST API. Set `DISCORD_TEST_GUILD_ID` to publish to a development Guild; otherwise registration is global. This requires Discord credentials and is separate from starting the application. See [Local testing](docs/local-testing.md) for the full workflow, including Cloudflare Quick Tunnel setup, endpoint verification, troubleshooting, and shutdown.
 
 League of Comic Geeks retrieval uses `comicgeeks` for `/locg`, `/pull`, `/pull-user`, and manual/scheduled Release Lists. Robotman handles Discord formatting and delivery; the package handles provider requests and parsing.

@@ -66,3 +66,14 @@ An additional name used to find a Recommendation Entry in autocomplete. It does 
 
 **Recommendation List**:
 A browsable index of Recommendation Entry names. Taste Test groups personal lists under Mods and Boosters; Character and Writer lists each have their own index. These lists show names rather than full replies or individual books.
+
+## Deployment and migration
+
+**Legacy Export**:
+A JSON snapshot of the previous Robotman's auto-response and history tables, produced from its PostgreSQL database and used only to populate v7.
+
+**Cutover**:
+The maintenance-window moment when the old bot stops, the Legacy Export is imported into an empty v7 database, and Discord's interactions are pointed at v7.
+
+**Edge proxy**:
+The shared reverse proxy on the server that terminates HTTPS for Robotman and any other hosted app.
