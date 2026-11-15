@@ -129,7 +129,7 @@ export function ChangeHistory({ server, page, order, onChange }: { server: Manag
   const current = history?.page ?? page;
   const pageCount = history?.pageCount ?? 1;
   return <section>
-    <PageHeader description="Review who created, edited and deleted this server’s Responses and recommendation lists." server={server} title="Change History" />
+    <PageHeader compact description="Review who created, edited and deleted this server’s Responses and recommendation lists." server={server} title="Change History" />
     {error && <div className="mb-5"><InlineAlert>{error} <button className="ml-2 font-semibold text-white underline underline-offset-4" onClick={() => { setLoading(true); void load(); }}>Try again</button></InlineAlert></div>}
     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
       <label className="flex items-center gap-2 text-sm text-night-200">Sort order
